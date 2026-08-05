@@ -6,9 +6,12 @@ export default function FlashrideLogisticsWebsite() {
       <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md text-white">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
 
-          <div className="text-2xl font-extrabold tracking-wide">
-            FLASHRIDE
-            <span className="text-orange-500"> LOGISTICS</span>
+          <div className="flex items-center">
+  <img
+    src="/images/5ee9a16e-98e8-475c-8835-83ed59cfa798.jpeg"
+    alt="Flashride Logistics"
+    className="h-12 w-auto"
+  />
           </div>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium">
