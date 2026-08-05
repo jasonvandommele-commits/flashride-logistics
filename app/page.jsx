@@ -89,7 +89,7 @@ export default function FlashrideLogisticsWebsite() {
 
           <div>
             <img
-  src="https://images.unsplash.com/photo-1580674684081-7617fbf3b2e8?q=80&w=1200&auto=format&fit=crop"
+  src="/images/IMG_0255.jpeg"
   alt="Camion transport logistique"
   className="rounded-3xl shadow-2xl w-full h-[520px] object-cover"
 />
