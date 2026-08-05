@@ -56,7 +56,7 @@ export default function FlashrideLogisticsWebsite() {
               <span className="text-orange-500">
                 {" "}rapides
               </span>
-              en France et en Europe.
+              {" "}en France et en Europe.
             </h1>
 
             <p className="mt-8 text-xl text-gray-300 leading-relaxed">
