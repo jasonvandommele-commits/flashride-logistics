@@ -903,10 +903,32 @@ export default function FlashrideLogisticsWebsite() {
     
     
       <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
-    
+
+      <p>
         © 2026 Flashride Logistics — Tous droits réservés.
+      </p>
+    
+    
+      <div className="mt-4 flex justify-center gap-6">
+    
+        <a 
+          href="/mentions-legales"
+          className="hover:text-orange-500"
+        >
+          Mentions légales
+        </a>
+    
+    
+        <a
+          href="/confidentialite"
+          className="hover:text-orange-500"
+        >
+          Politique de confidentialité
+        </a>
     
       </div>
+    
+    </div>
     
     
     </footer>
