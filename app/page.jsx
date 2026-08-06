@@ -5,16 +5,16 @@ export default function FlashrideLogisticsWebsite() {
       {/* Navigation */}
 <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 text-gray-900">
 
-  <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
+  <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
 
-    <div className="flex items-center gap-2 md:gap-4">
+    <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
   <img
     src="/images/IMG_0265.png"
     alt="Flashride Logistics"
     className="h-10 md:h-14 w-auto object-contain"
   />
 
-  <div className="text-sm md:text-xl font-black tracking-wider whitespace-nowrap">
+  <div className="text-xs sm:text-sm md:text-xl font-black tracking-wide whitespace-nowrap">
   <span className="text-[#0B1F3A]">FLASH</span>
   <span className="text-orange-500">RIDE</span>
   <span className="text-[#0B1F3A]"> LOGISTICS</span>
