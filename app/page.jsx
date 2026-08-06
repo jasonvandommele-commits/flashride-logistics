@@ -286,88 +286,127 @@ export default function FlashrideLogisticsWebsite() {
         </div>
       
       </section>      
-            {/* Services */}
-      
+            {/* SERVICES */}
+
       <section id="services" className="py-24 px-6 bg-gray-100">
+      
       
         <div className="max-w-7xl mx-auto">
       
       
           <div className="text-center mb-16">
       
+      
             <p className="text-orange-500 font-bold uppercase tracking-widest">
               Nos services
             </p>
       
       
-            <h2 className="text-3xl md:text-5xl font-black mt-4 leading-tight">
-              Des solutions de transport
-              pensées pour chaque mission
+            <h2 className="text-3xl md:text-5xl font-black mt-4">
+              Des solutions de transport adaptées à chaque besoin
             </h2>
       
       
-            <p className="mt-5 text-gray-600 text-lg">
-              Flashride Logistics accompagne entreprises et particuliers avec une
-              offre complète de transport et de logistique : livraisons, tournées
-              dédiées, transport de marchandises et prestations événementielles.
+            <p className="mt-5 text-gray-600 text-lg max-w-4xl mx-auto">
+      
+              Flashride Logistics accompagne entreprises et particuliers
+              avec des solutions de transport flexibles, du besoin ponctuel
+              aux prestations régulières.
+      
             </p>
       
+      
           </div>
+      
+      
       
       
       
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       
       
+      
             {[
               {
-                title: "Tournées régulières",
-                text: "Des prestations de livraison planifiées pour accompagner durablement votre activité."
-              },
-              {
                 title: "Transport express",
-                text: "Une solution réactive pour vos envois urgents et vos contraintes de délai."
+                text: "Une solution pour vos besoins urgents lorsque votre livraison ne peut pas attendre. Contactez directement notre équipe pour une prise en charge rapide.",
+                link: "/transport-express"
               },
+      
+              {
+                title: "Tournées régulières",
+                text: "Une organisation adaptée aux entreprises ayant besoin de livraisons planifiées chaque jour, chaque semaine ou selon un planning défini.",
+                link: "/tournees-regulieres"
+              },
+      
               {
                 title: "Transport dédié",
-                text: "Un véhicule et une organisation personnalisés pour vos missions spécifiques."
+                text: "Une solution personnalisée avec une organisation construite autour de vos contraintes, vos volumes et votre activité.",
+                link: "/transport-dedie"
               },
+      
               {
                 title: "Transport de marchandises",
-                text: "L’acheminement sécurisé de vos colis, palettes et équipements professionnels."
+                text: "L’acheminement de vos colis, équipements ou marchandises avec une solution adaptée à votre besoin.",
+                link: "/transport-marchandises"
               },
+      
               {
                 title: "Logistique événementielle",
-                text: "Transport, acheminement et gestion logistique pour vos salons, événements et manifestations."
+                text: "Transport et acheminement de matériel, équipements ou biens nécessaires à vos événements professionnels ou personnels.",
+                link: "/logistique-evenementielle"
               },
+      
               {
-                title: "Transport national",
-                text: "Des solutions adaptées pour vos besoins de transport partout en France."
+                title: "Transport national & européen",
+                text: "Des solutions de transport depuis l’Île-de-France vers la France et l’Europe pour vos besoins ponctuels ou réguliers.",
+                link: "/transport-national"
               }
-            ].map((service, index) => (
+      
+            ].map((service,index)=>(
       
       
               <div
                 key={index}
-                className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
+                className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
               >
       
       
-                <div className="w-14 h-14 bg-orange-500 rounded-2xl mb-6 flex items-center justify-center">
+                <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mb-6">
       
                   <div className="w-5 h-5 bg-white rounded-full"></div>
       
                 </div>
       
       
-                <h3 className="text-2xl font-bold mb-3">
+      
+      
+                <h3 className="text-2xl font-bold mb-4">
                   {service.title}
                 </h3>
       
       
-                <p className="text-gray-600 leading-relaxed">
+      
+      
+                <p className="text-gray-600 leading-relaxed flex-grow">
+      
                   {service.text}
+      
                 </p>
+      
+      
+      
+      
+      
+                <a
+                  href={service.link}
+                  className="mt-8 inline-flex items-center text-orange-500 font-bold hover:text-orange-600 transition"
+                >
+      
+                  Découvrir le service →
+      
+                </a>
+      
       
       
               </div>
@@ -376,7 +415,9 @@ export default function FlashrideLogisticsWebsite() {
             ))}
       
       
+      
           </div>
+      
       
       
         </div>
