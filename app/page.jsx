@@ -410,48 +410,76 @@ export default function FlashrideLogisticsWebsite() {
 
 
       {/* Contact */}
-      <section id="contact" className="py-20 px-6 bg-white">
-
-        <div className="max-w-5xl mx-auto text-center">
-
-          <h2 className="text-5xl font-black">
-            Contactez-nous
-          </h2>
-
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-              <p className="text-orange-500 font-bold">
-                Téléphone
-              </p>
-              <p className="mt-3">
-                07 52 98 81 55
-              </p>
-            </div>
-
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-              <p className="text-orange-500 font-bold">
-                Email
-              </p>
-              <p className="mt-3">
-                contact@flashride-logistics.com
-              </p>
-            </div>
-
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-              <p className="text-orange-500 font-bold">
-                Zone
-              </p>
-              <p className="mt-3">
-                Île-de-France & Europe
-              </p>
-            </div>
-
-          </div>
-
+      id="contact"
+      <section className="py-20 px-6 bg-white">
+         <div className="max-w-6xl mx-auto text-center">
+    
+      <p className="text-orange-500 font-bold uppercase tracking-widest">
+        Contact
+      </p>
+    
+      <h2 className="text-5xl font-black mt-4">
+        Parlons de votre projet transport
+      </h2>
+    
+      <p className="mt-5 text-gray-600 text-lg">
+        Une question, une demande spécifique ou un besoin régulier ?
+        Notre équipe est à votre écoute pour trouver la solution adaptée.
+      </p>
+    
+    
+      <div className="mt-12 grid md:grid-cols-3 gap-6">
+    
+    
+        <div className="bg-gray-100 rounded-3xl p-8">
+          <p className="text-orange-500 font-bold">
+            Téléphone
+          </p>
+    
+          <p className="mt-3 font-semibold">
+            07 52 98 81 55
+          </p>
         </div>
+    
+    
+        <div className="bg-gray-100 rounded-3xl p-8">
+          <p className="text-orange-500 font-bold">
+            Email
+          </p>
+    
+          <p className="mt-3 font-semibold">
+            contact@flashride-logistics.com
+          </p>
+        </div>
+    
+    
+        <div className="bg-gray-100 rounded-3xl p-8">
+          <p className="text-orange-500 font-bold">
+            Zone d’intervention
+          </p>
+    
+          <p className="mt-3 font-semibold">
+            Paris • Île-de-France • France • Europe
+          </p>
+        </div>
+    
+    
+      </div>
+    
+    
+      <div className="mt-10">
+    
+        <a
+          href="#devis"
+          className="inline-block bg-orange-500 text-white px-8 py-4 rounded-2xl font-bold hover:bg-orange-600 transition"
+        >
+          Demander une étude personnalisée
+        </a>
+    
+      </div>
+    
+    
+    </div>
 
       </section>
 
