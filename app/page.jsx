@@ -128,65 +128,122 @@ export default function FlashrideLogisticsWebsite() {
       </nav>
 
 
-      {/* Hero */}
-      <section className="pt-20 md:pt-24 bg-gradient-to-br from-black via-slate-900 to-black text-white">
-
-       <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
-
+            {/* Hero */}
+      
+      <section className="pt-20 md:pt-24 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
+      
+        <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
+      
+      
           <div>
-
-            <p className="text-orange-400 font-bold uppercase tracking-widest mb-5">
-              TRANSPORT & LOGISTIQUE SUR MESURE
+      
+            <p className="text-orange-400 font-bold uppercase tracking-[0.2em] mb-5">
+              TRANSPORT & LOGISTIQUE PROFESSIONNELLE
             </p>
-
-          <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-              Vos solutions de
-            <span className="text-orange-500">
-              {" "}transport
-           </span>
-              {" "}à Paris, en France et en Europe.
-          </h1>
-
-            <div className="mt-8 flex flex-wrap gap-6 text-gray-300 text-sm font-medium">
-          <span>✓ Paris & Île-de-France</span>
-          <span>✓ France & Europe</span>
-          <span>✓ Solutions sur mesure</span>
-        </div>
-
-
+      
+      
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight">
+      
+              Votre partenaire transport
+              <span className="text-orange-500">
+                {" "}fiable
+              </span>
+      
+              <br />
+      
+              de Paris à l’Europe.
+      
+            </h1>
+      
+      
+            <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl">
+      
+              Flashride Logistics accompagne les entreprises avec des solutions
+              adaptées : transport express, tournées dédiées, marchandises,
+              événements et prestations logistiques.
+      
+            </p>
+      
+      
+            <div className="mt-8 flex flex-wrap gap-4 text-sm font-medium text-gray-300">
+      
+              <span>✓ 2 roues</span>
+              <span>✓ VL 6m³</span>
+              <span>✓ 20m³ hayon</span>
+              <span>✓ France & Europe</span>
+      
+            </div>
+      
+      
             <div className="mt-10 flex flex-wrap gap-4">
-
-              <a
-                href="tel:0752988155"
-                className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600"
-              >
-                Appeler maintenant
-              </a>
-
-
+      
+      
               <a
                 href="#devis"
-                className="border border-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black"
+                className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition"
               >
-                Obtenir un devis
+                Demander un devis
               </a>
-
+      
+      
+              <a
+                href="tel:0752988155"
+                className="border border-white/40 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition"
+              >
+                Nous appeler
+              </a>
+      
+      
             </div>
-
+      
+      
+            <div className="mt-10 flex gap-8 text-sm text-gray-400">
+      
+              <div>
+                <p className="text-white font-bold text-xl">
+                  24/7
+                </p>
+                Disponibilité
+              </div>
+      
+      
+              <div>
+                <p className="text-white font-bold text-xl">
+                  IDF
+                </p>
+                Zone principale
+              </div>
+      
+      
+              <div>
+                <p className="text-white font-bold text-xl">
+                  Europe
+                </p>
+                Couverture
+              </div>
+      
+            </div>
+      
+      
           </div>
-
-
-          <div>
+      
+      
+      
+          <div className="relative">
+      
+            <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
+      
             <img
-  src="/images/IMG_0255.jpeg"
-  alt="Camion transport logistique"
-  className="rounded-3xl shadow-2xl w-full h-[520px] object-cover"
-/>
+              src="/images/IMG_0255.jpeg"
+              alt="Transport Flashride Logistics"
+              className="relative rounded-3xl shadow-2xl w-full h-[520px] object-cover"
+            />
+      
           </div>
-
-
+      
+      
         </div>
-
+      
       </section>      
       {/* Services */}
       <section id="services" className="py-24 px-6 bg-gray-100">
