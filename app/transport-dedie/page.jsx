@@ -213,20 +213,19 @@ export default function TransportDedie() {
 
 
           <h2 className="text-3xl md:text-5xl font-black text-center">
-
-            Une solution construite autour de votre activité
-
-          </h2>
+  Une solution construite autour de vos besoins
+</h2>
 
 
-          <p className="mt-8 text-gray-600 text-lg text-center max-w-3xl mx-auto">
+<p className="mt-8 text-gray-600 text-lg text-center max-w-3xl mx-auto">
 
-            Le transport dédié permet aux entreprises de bénéficier d’une
-            organisation spécifique pour leurs besoins particuliers.
-            Nous adaptons notre prestation afin de répondre à vos contraintes
-            de délais, de volume et d’organisation.
+  Le transport dédié permet de bénéficier d’une organisation adaptée
+  lorsqu’un besoin nécessite une prise en charge personnalisée.
+  Que vous soyez une entreprise ou un particulier, Flashride Logistics
+  met en place une solution pensée selon vos contraintes, vos délais,
+  votre volume et les spécificités de votre mission.
 
-          </p>
+</p>
 
 
 
