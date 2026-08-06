@@ -3,15 +3,16 @@ export default function FlashrideLogisticsWebsite() {
     <main className="bg-white text-gray-900 min-h-screen">
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md text-white">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+<nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md text-gray-900 shadow-md">
 
-          <div className="flex items-center">
-  <img
-    src="/images/IMG_0265.png"
-    alt="Flashride Logistics"
-    <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md text-gray-900 shadow-md">
-  />
+  <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+
+    <div className="flex items-center">
+      <img
+        src="/images/IMG_0265.png"
+        alt="Flashride Logistics"
+        className="h-20 w-auto object-contain"
+      />
           </div>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium">
