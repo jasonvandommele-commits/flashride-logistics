@@ -273,22 +273,22 @@ export default function TransportExpress() {
 
 
         <h2 className="text-3xl md:text-5xl font-black">
-          Votre transport est urgent ?
-        </h2>
+  Besoin d’une solution de transport rapidement ?
+</h2>
 
 
-        <p className="mt-5 text-gray-300 text-lg">
-          Contactez directement Flashride Logistics.
-        </p>
+<p className="mt-5 text-gray-300 text-lg">
+  Notre équipe est à votre écoute pour comprendre votre besoin
+  et vous proposer une solution adaptée à votre situation.
+</p>
 
 
-
-        <a
-          href="tel:0752988155"
-          className="inline-block mt-8 bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg"
-        >
-          📞 07 52 98 81 55
-        </a>
+<a
+  href="tel:0752988155"
+  className="inline-block mt-8 bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg"
+>
+  📞 Contacter notre équipe
+</a>
 
 
       </section>
