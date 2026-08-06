@@ -3,7 +3,7 @@ export default function FlashrideLogisticsWebsite() {
     <main className="bg-white text-gray-900 min-h-screen">
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md text-white">
+      <nav className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md text-white">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
 
           <div className="flex items-center">
