@@ -122,11 +122,11 @@ export default function FlashrideLogisticsWebsite() {
             </p>
 
             <h2 className="text-5xl font-black mt-4">
-              Des solutions adaptées à vos besoins
+              Des solutions de transport adaptées à chaque besoin
             </h2>
 
             <p className="mt-5 text-gray-600 text-lg">
-              Transport express, palettes et logistique professionnelle.
+              Flashride Logistics accompagne professionnels et particuliers avec des prestations fiables, flexibles et adaptées à chaque mission.
             </p>
 
           </div>
@@ -135,32 +135,31 @@ export default function FlashrideLogisticsWebsite() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
             {[
-              {
-                title: "Transport express",
-                text: "Livraisons urgentes avec une prise en charge rapide."
-              },
-              {
-                title: "Transport palettes",
-                text: "Acheminement sécurisé de vos marchandises."
-              },
-              {
-                title: "Sous-traitance transport",
-                text: "Un partenaire fiable pour vos besoins réguliers."
-              },
-              {
-                title: "Livraison professionnelle",
-                text: "Solutions adaptées aux entreprises."
-              },
-              {
-                title: "Transport national",
-                text: "Interventions partout en France."
-              },
-              {
-                title: "Transport européen",
-                text: "Une couverture adaptée à vos flux internationaux."
-              }
-
-            ].map((service, index) => (
+  {
+    title: "Tournées régulières",
+    text: "Des solutions de livraison récurrentes pour accompagner durablement votre activité."
+  },
+  {
+    title: "Transport express",
+    text: "Une prise en charge rapide pour vos envois urgents et vos demandes spécifiques."
+  },
+  {
+    title: "Transport dédié",
+    text: "Un véhicule et un service adaptés à vos besoins avec une organisation sur mesure."
+  },
+  {
+    title: "Transport de marchandises",
+    text: "Le transport sécurisé de vos colis, palettes et équipements professionnels."
+  },
+  {
+    title: "Sous-traitance logistique",
+    text: "Un partenaire fiable pour renforcer vos capacités de livraison au quotidien."
+  },
+  {
+    title: "Transport national & européen",
+    text: "Des solutions de transport à Paris, en France et partout en Europe."
+  }
+].map((service, index) => (
 
               <div
                 key={index}
