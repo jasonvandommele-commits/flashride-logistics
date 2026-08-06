@@ -128,52 +128,63 @@ export default function FlashrideLogisticsWebsite() {
       </nav>
 
 
-            {/* Hero */}
+                  {/* Hero */}
       
       <section className="pt-20 md:pt-24 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
       
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
       
       
+          {/* Texte */}
+      
           <div>
       
             <p className="text-orange-400 font-bold uppercase tracking-[0.2em] mb-5">
-              TRANSPORT & LOGISTIQUE PROFESSIONNELLE
+              TRANSPORT & LOGISTIQUE SUR MESURE
             </p>
       
       
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight">
       
-              Votre partenaire transport
+              Votre solution transport
               <span className="text-orange-500">
-                {" "}fiable
+                {" "}sur mesure
               </span>
       
               <br />
       
-              de Paris à l’Europe.
+              pour les professionnels
+              et les particuliers.
       
             </h1>
       
       
             <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl">
       
-              Flashride Logistics accompagne les entreprises avec des solutions
-              adaptées : transport express, tournées dédiées, marchandises,
-              événements et prestations logistiques.
+              Flashride Logistics accompagne les entreprises et les particuliers
+              avec des solutions de transport adaptées : livraisons, tournées,
+              transport de marchandises, événements et besoins ponctuels.
       
             </p>
       
       
+            {/* Moyens de transport */}
+      
             <div className="mt-8 flex flex-wrap gap-4 text-sm font-medium text-gray-300">
       
               <span>✓ 2 roues</span>
-              <span>✓ VL 6m³</span>
-              <span>✓ 20m³ hayon</span>
-              <span>✓ France & Europe</span>
+      
+              <span>✓ Véhicule léger jusqu’à 6m³</span>
+      
+              <span>✓ Fourgon 12/14m³</span>
+      
+              <span>✓ Grand volume 20m³ avec hayon</span>
       
             </div>
       
+      
+      
+            {/* Boutons */}
       
             <div className="mt-10 flex flex-wrap gap-4">
       
@@ -197,14 +208,10 @@ export default function FlashrideLogisticsWebsite() {
             </div>
       
       
-            <div className="mt-10 flex gap-8 text-sm text-gray-400">
       
-              <div>
-                <p className="text-white font-bold text-xl">
-                  24/7
-                </p>
-                Disponibilité
-              </div>
+            {/* Réassurance */}
+      
+            <div className="mt-10 flex flex-wrap gap-10 text-sm text-gray-400">
       
       
               <div>
@@ -217,10 +224,19 @@ export default function FlashrideLogisticsWebsite() {
       
               <div>
                 <p className="text-white font-bold text-xl">
-                  Europe
+                  24/7
                 </p>
-                Couverture
+                Disponibilité
               </div>
+      
+      
+              <div>
+                <p className="text-white font-bold text-xl">
+                  Sur mesure
+                </p>
+                Solutions adaptées
+              </div>
+      
       
             </div>
       
@@ -229,15 +245,19 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
+          {/* Image */}
+      
           <div className="relative">
       
             <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
       
+      
             <img
               src="/images/IMG_0255.jpeg"
-              alt="Transport Flashride Logistics"
+              alt="Flashride Logistics transport"
               className="relative rounded-3xl shadow-2xl w-full h-[520px] object-cover"
             />
+      
       
           </div>
       
