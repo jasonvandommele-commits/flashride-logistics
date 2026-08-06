@@ -854,7 +854,6 @@ export default function FlashrideLogisticsWebsite() {
             <li>Transport de marchandises</li>
             <li>Sous-traitance transport</li>
             <li>Logistique événementielle</li>
-            <li>Transport national & européen</li>
           </ul>
     
         </div>
