@@ -10,7 +10,7 @@ export default function FlashrideLogisticsWebsite() {
   <img
     src="/images/IMG_0265.png"
     alt="Flashride Logistics"
-    className="h-12 w-auto object-contain"
+    <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md text-gray-900 shadow-md">
   />
           </div>
 
