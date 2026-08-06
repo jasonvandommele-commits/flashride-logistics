@@ -303,7 +303,17 @@ export default function FlashrideLogisticsWebsite() {
           </div>
 
 
-          <form className="bg-white rounded-3xl shadow-xl p-8 grid md:grid-cols-2 gap-6">
+          <select
+            className="border rounded-xl p-4"
+           >
+            <option>Type de prestation</option>
+            <option>Tournée dédiée</option>
+            <option>Transport express</option>
+            <option>Transport de marchandises</option>
+            <option>Sous-traitance transport</option>
+            <option>Logistique événementielle</option>
+            <option>Transport national & européen</option>
+           </select>
 
             <input
               className="border rounded-xl p-4"
@@ -320,6 +330,16 @@ export default function FlashrideLogisticsWebsite() {
               placeholder="Email"
             />
 
+            <input
+              type="date"
+              className="border rounded-xl p-4"
+            />
+
+            <input
+              className="border rounded-xl p-4"
+              placeholder="Nombre de colis / palettes / volume"
+            />
+            
             <input
               className="border rounded-xl p-4"
               placeholder="Ville de départ"
