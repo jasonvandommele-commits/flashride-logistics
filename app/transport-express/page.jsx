@@ -68,31 +68,7 @@ export default function TransportExpress() {
 
     </div>
 
-
-
-
-    <div className="mt-10 flex flex-wrap gap-6 text-sm text-gray-300">
-
-
-      <span>
-        ✓ Réactivité
-      </span>
-
-
-      <span>
-        ✓ Ponctualité
-      </span>
-
-
-      <span>
-        ✓ Transport sécurisé
-      </span>
-
-
-    </div>
-
-
-
+    
   </div>
 
 
