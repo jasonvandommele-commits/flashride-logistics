@@ -25,7 +25,7 @@ export async function POST(request) {
 
     const result = await resend.emails.send({
       from: "onboarding@resend.dev",
-      to: "jasonvandommele@icloud.com",
+      to: "contact@flashride-logistics.com",
       subject: "Nouvelle demande de transport Flashride Logistics",
       html: `
         <h2>Nouvelle demande de transport</h2>
