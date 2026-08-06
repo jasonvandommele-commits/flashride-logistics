@@ -410,8 +410,8 @@ export default function FlashrideLogisticsWebsite() {
 
 
       {/* Contact */}
-      id="contact"
-      <section className="py-20 px-6 bg-white">
+      
+      <section id="contact" className="py-20 px-6 bg-white">
          <div className="max-w-6xl mx-auto text-center">
     
       <p className="text-orange-500 font-bold uppercase tracking-widest">
