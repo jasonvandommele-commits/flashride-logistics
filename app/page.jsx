@@ -285,94 +285,126 @@ export default function FlashrideLogisticsWebsite() {
 
 
 
-      {/* Devis */}
+         {/* Devis */}
       <section id="devis" className="py-24 px-6 bg-gray-100">
-
+      
         <div className="max-w-5xl mx-auto">
-
+      
           <div className="text-center mb-12">
-
-            <h2 className="text-5xl font-black">
-              Demandez votre devis
-            </h2>
-
-            <p className="mt-5 text-gray-600 text-lg">
-              Décrivez votre besoin, nous vous répondrons rapidement.
+      
+            <p className="text-orange-500 font-bold uppercase tracking-widest">
+              Demande de transport
             </p>
-
+      
+            <h2 className="text-5xl font-black mt-4">
+              Obtenez votre solution de transport
+            </h2>
+      
+            <p className="mt-5 text-gray-600 text-lg">
+              Décrivez votre besoin. Notre équipe vous propose une solution adaptée
+              à votre activité, vos délais et votre volume de marchandises.
+            </p>
+      
           </div>
-
+      
+      
           <form className="bg-white rounded-3xl shadow-xl p-8 grid md:grid-cols-2 gap-6">
-          
-          <select
-            className="border rounded-xl p-4"
-           >
-            <option>Type de prestation</option>
-            <option>Tournée dédiée</option>
-            <option>Transport express</option>
-            <option>Transport de marchandises</option>
-            <option>Sous-traitance transport</option>
-            <option>Logistique événementielle</option>
-            <option>Transport national & européen</option>
-           </select>
-
+      
+      
+            <select className="border rounded-xl p-4 md:col-span-2">
+              <option>Type de prestation</option>
+              <option>Tournée dédiée</option>
+              <option>Transport express</option>
+              <option>Transport de marchandises</option>
+              <option>Sous-traitance transport</option>
+              <option>Logistique événementielle</option>
+              <option>Transport national & européen</option>
+            </select>
+      
+      
+            <select className="border rounded-xl p-4">
+              <option>Vous êtes</option>
+              <option>Entreprise</option>
+              <option>Particulier</option>
+            </select>
+      
+      
+            <select className="border rounded-xl p-4">
+              <option>Type de véhicule souhaité</option>
+              <option>2 roues</option>
+              <option>Véhicule léger jusqu'à 6m³</option>
+              <option>Utilitaire jusqu'à 12m³</option>
+              <option>Utilitaire 20m³ avec hayon</option>
+              <option>Besoin à définir</option>
+            </select>
+      
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Nom / Entreprise"
             />
-
+      
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Téléphone"
             />
-
+      
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Email"
             />
-
+      
+      
             <input
               type="date"
               className="border rounded-xl p-4"
             />
-
+      
+      
             <input
               className="border rounded-xl p-4"
-              placeholder="Nombre de colis / palettes / volume"
+              placeholder="Volume (colis, palettes, dimensions)"
             />
-            
+      
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Ville de départ"
             />
-
+      
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Ville d'arrivée"
             />
-
+      
+      
             <input
-              className="border rounded-xl p-4"
+              className="border rounded-xl p-4 md:col-span-2"
               placeholder="Type de marchandise"
             />
-
+      
+      
             <textarea
               className="border rounded-xl p-4 md:col-span-2"
-              placeholder="Votre demande"
+              placeholder="Décrivez votre besoin (horaires, contraintes, informations complémentaires...)"
               rows="5"
             />
-
-
+      
+      
             <button
-              className="bg-orange-500 text-white font-bold text-lg rounded-xl p-4 md:col-span-2 hover:bg-orange-600"
+              className="bg-orange-500 text-white font-bold text-lg rounded-xl p-4 md:col-span-2 hover:bg-orange-600 transition"
             >
-              Envoyer ma demande
+              Recevoir ma proposition
             </button>
-
+      
+      
           </form>
-
+      
         </div>
-
+      
       </section>
 
 
