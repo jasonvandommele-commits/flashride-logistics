@@ -2,6 +2,15 @@ export default function MentionsLegales() {
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 py-24">
 
+      <nav className="mb-10">
+        <a
+          href="/"
+          className="text-orange-500 font-bold hover:underline"
+        >
+          ← Retour à l'accueil
+        </a>
+      </nav>
+
       <div className="max-w-4xl mx-auto">
 
         <h1 className="text-4xl font-black mb-8">
