@@ -648,8 +648,10 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
-          <form className="bg-white rounded-3xl shadow-xl p-8 grid md:grid-cols-2 gap-6">
-      
+          <form
+              onSubmit={handleSubmit}
+              className="bg-white rounded-3xl shadow-xl p-8 grid md:grid-cols-2 gap-6"
+            >
       
       
             <select className="border rounded-xl p-4 md:col-span-2">
