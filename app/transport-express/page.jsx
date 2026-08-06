@@ -2,13 +2,11 @@ export default function TransportExpress() {
   return (
     <main className="bg-white text-gray-900 min-h-screen">
 
-
       {/* HERO */}
 
       <section className="pt-20 md:pt-24 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
 
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
-
 
           <div>
 
@@ -21,25 +19,24 @@ export default function TransportExpress() {
 
               Transport express :
               <span className="text-orange-500">
-                {" "}vos livraisons urgentes
+                {" "}une réponse rapide
               </span>
 
               <br />
 
-              quand le délai est essentiel.
+              quand votre délai est essentiel.
 
             </h1>
 
 
             <p className="mt-8 text-gray-300 text-lg leading-relaxed">
 
-              Une urgence professionnelle ? Une marchandise qui doit arriver
-              rapidement ? Flashride Logistics organise votre transport express
-              avec une solution adaptée à votre délai, votre volume et votre
-              destination.
+              Besoin d’acheminer une marchandise rapidement ?
+              Flashride Logistics organise vos transports express pour
+              les professionnels et les particuliers avec une solution
+              adaptée à votre urgence.
 
             </p>
-
 
 
             <div className="mt-10 flex flex-wrap gap-4">
@@ -64,23 +61,22 @@ export default function TransportExpress() {
             </div>
 
 
-
             <div className="mt-10 flex flex-wrap gap-8 text-sm text-gray-400">
 
 
               <div>
                 <p className="text-white font-bold text-xl">
-                  Rapide
+                  Express
                 </p>
-                Prise en charge réactive
+                Réactivité maximale
               </div>
 
 
               <div>
                 <p className="text-white font-bold text-xl">
-                  24/7
+                  IDF
                 </p>
-                Disponibilité selon besoin
+                Départs fréquents
               </div>
 
 
@@ -88,7 +84,7 @@ export default function TransportExpress() {
                 <p className="text-white font-bold text-xl">
                   France
                 </p>
-                Intervention nationale
+                Couverture nationale
               </div>
 
 
@@ -117,29 +113,33 @@ export default function TransportExpress() {
 
         </div>
 
+
       </section>
 
 
 
 
-      {/* DEFINITION */}
+      {/* COMPRENDRE LE SERVICE */}
+
 
       <section className="py-24 px-6 bg-gray-100">
 
 
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
 
 
           <div className="text-center mb-14">
 
+
             <p className="text-orange-500 font-bold uppercase tracking-widest">
-              Comprendre le service
+              Le transport express
             </p>
 
 
             <h2 className="text-3xl md:text-5xl font-black mt-4">
               Qu’est-ce qu’un transport express ?
             </h2>
+
 
           </div>
 
@@ -151,19 +151,18 @@ export default function TransportExpress() {
             <p className="text-gray-600 text-lg leading-relaxed">
 
               Le transport express est une solution de livraison prioritaire
-              destinée aux situations où le temps est un élément essentiel.
-              Contrairement à un transport classique organisé selon des délais
-              standards, l’express permet une prise en charge adaptée aux
-              urgences et aux contraintes spécifiques.
+              destinée aux situations où le délai est un élément essentiel.
+              Il permet d’organiser un acheminement rapide lorsque le transport
+              classique ne correspond pas à votre besoin.
 
             </p>
 
 
             <p className="mt-6 text-gray-600 text-lg leading-relaxed">
 
-              Il peut répondre aux besoins des entreprises comme des particuliers :
-              livraison urgente, transport d’équipements, pièces indispensables,
-              marchandises sensibles ou besoin ponctuel avec un délai court.
+              Il répond notamment aux demandes urgentes des entreprises,
+              aux besoins ponctuels des particuliers, au transport de matériel,
+              de pièces ou de marchandises nécessitant une prise en charge rapide.
 
             </p>
 
@@ -179,7 +178,8 @@ export default function TransportExpress() {
 
 
 
-      {/* QUESTIONS CLIENT */}
+      {/* QUESTIONS CLIENTS */}
+
 
       <section className="py-24 px-6 bg-white">
 
@@ -191,110 +191,58 @@ export default function TransportExpress() {
 
 
             <p className="text-orange-500 font-bold uppercase tracking-widest">
-              Vos questions
+              Vos besoins
             </p>
 
 
             <h2 className="text-3xl md:text-5xl font-black mt-4">
-              Dans quels cas utiliser un transport express ?
+              Dans quelles situations faire appel à nous ?
             </h2>
 
 
           </div>
+                    <div className="grid md:grid-cols-2 gap-8">
 
 
+            {[
+              {
+                question: "Votre activité est bloquée par une urgence ?",
+                answer:
+                  "Une pièce manquante, un équipement indispensable ou une marchandise urgente doit être acheminée rapidement ? Nous organisons une solution adaptée à votre situation."
+              },
+              {
+                question: "Votre client attend une livraison dans un délai court ?",
+                answer:
+                  "Nous vous accompagnons pour respecter vos engagements grâce à une organisation transport réactive et professionnelle."
+              },
+              {
+                question: "Vous avez un besoin ponctuel sans solution logistique ?",
+                answer:
+                  "Flashride Logistics prend en charge vos transports occasionnels avec une prestation flexible adaptée à votre demande."
+              },
+              {
+                question: "Vous êtes un particulier avec un transport urgent ?",
+                answer:
+                  "Nous accompagnons également les particuliers pour le transport de biens, équipements ou objets volumineux nécessitant une solution rapide."
+              }
+            ].map((item, index) => (
 
-          <div className="grid md:grid-cols-2 gap-8">
+              <div
+                key={index}
+                className="bg-gray-100 rounded-3xl p-8 hover:shadow-xl transition"
+              >
 
+                <h3 className="text-2xl font-bold mb-4">
+                  ❓ {item.question}
+                </h3>
 
-            <div className="bg-gray-100 rounded-3xl p-8">
+                <p className="text-gray-600 leading-relaxed">
+                  {item.answer}
+                </p>
 
+              </div>
 
-              <h3 className="text-2xl font-bold mb-4">
-                ❓ Votre activité est bloquée par une urgence ?
-              </h3>
-
-
-              <p className="text-gray-600 leading-relaxed">
-
-                Une pièce manquante, un équipement nécessaire ou une marchandise
-                importante doit être acheminée rapidement ? Nous organisons une
-                solution adaptée.
-
-              </p>
-
-
-            </div>
-
-
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-
-
-              <h3 className="text-2xl font-bold mb-4">
-                ❓ Votre client attend une livraison rapide ?
-              </h3>
-
-
-              <p className="text-gray-600 leading-relaxed">
-
-                Nous vous accompagnons pour respecter vos engagements avec une
-                prise en charge professionnelle.
-
-              </p>
-
-
-            </div>
-
-
-          </div>
-
-
-        </div>
-
-
-      </section>
-                <div className="grid md:grid-cols-2 gap-8 mt-8">
-
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-
-
-              <h3 className="text-2xl font-bold mb-4">
-                ❓ Vous avez besoin d’un transport ponctuel ?
-              </h3>
-
-
-              <p className="text-gray-600 leading-relaxed">
-
-                Le transport express ne concerne pas uniquement les entreprises.
-                Flashride Logistics accompagne également les particuliers pour
-                leurs besoins spécifiques et leurs contraintes de délai.
-
-              </p>
-
-
-            </div>
-
-
-
-            <div className="bg-gray-100 rounded-3xl p-8">
-
-
-              <h3 className="text-2xl font-bold mb-4">
-                ❓ Votre marchandise doit être livrée partout en France ?
-              </h3>
-
-
-              <p className="text-gray-600 leading-relaxed">
-
-                Nous étudions votre demande et organisons votre transport selon
-                votre destination, votre volume et vos impératifs.
-
-              </p>
-
-
-            </div>
+            ))}
 
 
           </div>
@@ -309,6 +257,7 @@ export default function TransportExpress() {
 
 
       {/* POURQUOI FLASHRIDE */}
+
 
       <section className="py-24 px-6 bg-black text-white">
 
@@ -331,8 +280,8 @@ export default function TransportExpress() {
 
             <p className="mt-5 text-gray-300 text-lg">
 
-              Un transport express demande plus qu’un véhicule :
-              il nécessite une organisation fiable et une vraie réactivité.
+              Un transport express nécessite une organisation fiable,
+              une communication claire et une vraie réactivité.
 
             </p>
 
@@ -341,17 +290,17 @@ export default function TransportExpress() {
 
 
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
 
             {[
               {
                 title: "Réactivité",
-                text: "Une prise en charge adaptée aux besoins urgents."
+                text: "Une prise en charge pensée pour les demandes urgentes."
               },
               {
                 title: "Ponctualité",
-                text: "Le respect des délais est au cœur de nos missions."
+                text: "Le respect des délais est au centre de nos missions."
               },
               {
                 title: "Flexibilité",
@@ -359,10 +308,9 @@ export default function TransportExpress() {
               },
               {
                 title: "Suivi",
-                text: "Un accompagnement personnalisé pour chaque transport."
+                text: "Un accompagnement personnalisé selon votre besoin."
               }
-            ].map((item,index)=>(
-
+            ].map((item, index) => (
 
               <div
                 key={index}
@@ -373,14 +321,11 @@ export default function TransportExpress() {
                   {item.title}
                 </h3>
 
-
                 <p className="mt-4 text-gray-300 leading-relaxed">
                   {item.text}
                 </p>
 
-
               </div>
-
 
             ))}
 
@@ -398,6 +343,7 @@ export default function TransportExpress() {
 
       {/* FONCTIONNEMENT */}
 
+
       <section className="py-24 px-6 bg-gray-100">
 
 
@@ -413,7 +359,7 @@ export default function TransportExpress() {
 
 
             <h2 className="text-3xl md:text-5xl font-black mt-4">
-              Comment se déroule votre transport express ?
+              Comment fonctionne un transport express ?
             </h2>
 
 
@@ -425,52 +371,46 @@ export default function TransportExpress() {
 
 
             {[
-              [
-                "01",
-                "Contact",
-                "Vous nous expliquez votre besoin et votre délai."
-              ],
-              [
-                "02",
-                "Analyse",
-                "Nous définissons la solution la plus adaptée."
-              ],
-              [
-                "03",
-                "Transport",
-                "Votre marchandise est prise en charge."
-              ],
-              [
-                "04",
-                "Livraison",
-                "Votre livraison est réalisée selon vos attentes."
-              ]
-            ].map((step,index)=>(
-
+              {
+                number: "01",
+                title: "Contact",
+                text: "Vous nous expliquez votre besoin, votre délai et votre destination."
+              },
+              {
+                number: "02",
+                title: "Analyse",
+                text: "Nous définissons le véhicule et l'organisation adaptés."
+              },
+              {
+                number: "03",
+                title: "Prise en charge",
+                text: "Votre marchandise est récupérée selon les conditions prévues."
+              },
+              {
+                number: "04",
+                title: "Livraison",
+                text: "Votre transport est réalisé avec suivi et professionnalisme."
+              }
+            ].map((step, index) => (
 
               <div
                 key={index}
                 className="bg-white rounded-3xl p-8 text-center shadow-sm"
               >
 
-
                 <p className="text-orange-500 text-4xl font-black">
-                  {step[0]}
+                  {step.number}
                 </p>
-
 
                 <h3 className="text-xl font-bold mt-4">
-                  {step[1]}
+                  {step.title}
                 </h3>
 
-
                 <p className="text-gray-600 mt-3 leading-relaxed">
-                  {step[2]}
+                  {step.text}
                 </p>
 
-
               </div>
-
 
             ))}
 
@@ -482,11 +422,7 @@ export default function TransportExpress() {
 
 
       </section>
-
-
-
-
-      {/* CTA FINAL */}
+            {/* CTA FINAL */}
 
       <section className="py-24 px-6 bg-[#0B1F3A] text-white text-center">
 
@@ -496,16 +432,15 @@ export default function TransportExpress() {
 
           <h2 className="text-3xl md:text-5xl font-black">
 
-            Votre transport express ne peut pas attendre ?
+            Votre livraison ne peut pas attendre ?
 
           </h2>
 
 
+          <p className="mt-6 text-gray-300 text-lg leading-relaxed">
 
-          <p className="mt-6 text-gray-300 text-lg">
-
-            Pour une demande urgente, contactez directement notre équipe.
-            Nous étudions votre besoin et vous proposons une solution adaptée.
+            Pour un besoin urgent, le plus rapide est de nous contacter directement.
+            Notre équipe étudie votre demande et vous propose une solution adaptée.
 
           </p>
 
@@ -538,7 +473,11 @@ export default function TransportExpress() {
 
       </section>
 
+
+
+
       {/* FOOTER */}
+
 
       <footer className="bg-black text-gray-400 py-12 px-6">
 
@@ -551,18 +490,26 @@ export default function TransportExpress() {
 
             <h3 className="text-white text-xl font-black">
 
-              <span className="text-[#0B1F3A]">FLASH</span>
-              <span className="text-orange-500">RIDE</span>
-              <span className="text-white"> LOGISTICS</span>
+              <span className="text-[#0B1F3A]">
+                FLASH
+              </span>
+
+              <span className="text-orange-500">
+                RIDE
+              </span>
+
+              <span className="text-white">
+                {" "}LOGISTICS
+              </span>
 
             </h3>
 
 
             <p className="mt-4 leading-relaxed">
 
-              Société de transport et logistique pour professionnels et particuliers.
-              Des solutions adaptées aux transports express, tournées régulières,
-              marchandises et besoins spécifiques.
+              Société de transport et logistique pour professionnels
+              et particuliers. Des solutions adaptées aux transports
+              express, tournées régulières et besoins spécifiques.
 
             </p>
 
@@ -591,15 +538,11 @@ export default function TransportExpress() {
               </li>
 
               <li>
-                Transport de marchandises
+                Transport marchandises
               </li>
 
               <li>
                 Logistique événementielle
-              </li>
-
-              <li>
-                Sous-traitance transport
               </li>
 
             </ul>
@@ -667,7 +610,7 @@ export default function TransportExpress() {
               href="tel:0752988155"
               className="inline-block mt-5 bg-orange-500 text-white px-5 py-3 rounded-xl font-bold hover:bg-orange-600 transition"
             >
-              Appeler maintenant
+              Appeler
             </a>
 
 
@@ -714,6 +657,7 @@ export default function TransportExpress() {
 
 
       </footer>
+
 
     </main>
   );
