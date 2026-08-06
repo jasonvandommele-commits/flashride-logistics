@@ -10,7 +10,7 @@ export default function FlashrideLogisticsWebsite() {
   <img
     src="/images/IMG_0265.png"
     alt="Flashride Logistics"
-    className="h-12 w-auto"
+    className="h-20 w-auto object-contain"
   />
           </div>
 
