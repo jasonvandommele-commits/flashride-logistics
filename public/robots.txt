@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://flashride-logistics.fr/sitemap.xml
