@@ -160,7 +160,7 @@ export default function FlashrideLogisticsWebsite() {
       
             <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl">
       
-              Flashride Logistics accompagne pour entreprises et particuliers.
+              Flashride Logistics accompagne entreprises et particuliers
               avec des solutions de transport adaptées : livraisons, tournées,
               transport de marchandises, événements et besoins ponctuels.
       
