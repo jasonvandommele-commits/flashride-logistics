@@ -150,79 +150,113 @@ export default function FlashrideLogisticsWebsite() {
       </nav>
 
 
-                  {/* Hero */}
+                  {/* HERO */}
       
-      <section className="pt-20 md:pt-24 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
-      
-        <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
+      <section className="pt-24 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
       
       
-          {/* Texte */}
+        <div className="max-w-7xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
+      
+      
+      
+          {/* TEXTE */}
       
           <div>
       
+      
+      
             <p className="text-orange-400 font-bold uppercase tracking-[0.2em] mb-5">
+      
               TRANSPORT & LOGISTIQUE SUR MESURE
+      
             </p>
       
       
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black leading-tight">
       
-              Votre solution transport
+      
+      
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight">
+      
+      
+              Votre transport,
               <span className="text-orange-500">
-                {" "}sur mesure
+                {" "}simplement organisé.
               </span>
       
-              <br />
-      
-              pour entreprises et particuliers.
       
             </h1>
       
       
-            <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl">
+      
+      
+      
+            <p className="mt-7 text-gray-300 text-lg md:text-xl leading-relaxed max-w-xl">
+      
       
               Flashride Logistics accompagne entreprises et particuliers
-              avec des solutions de transport adaptées : livraisons, tournées,
-              transport de marchandises, événements et besoins ponctuels.
+              pour leurs besoins de transport : livraisons, tournées régulières,
+              transport de marchandises et missions spécifiques en France et en Europe.
+      
       
             </p>
       
       
-            {/* Moyens de transport */}
       
-            <div className="mt-8 flex flex-wrap gap-4 text-sm font-medium text-gray-300">
       
-              <span>✓ 2 roues</span>
       
-              <span>✓ Véhicule léger jusqu’à 6m³</span>
+            <div className="mt-8 flex flex-wrap gap-4 text-sm text-gray-300">
       
-              <span>✓ Fourgon 12/14m³</span>
       
-              <span>✓ Grand volume 20m³ avec hayon</span>
+              <span>
+                ✓ Transport express
+              </span>
+      
+      
+              <span>
+                ✓ Tournées régulières
+              </span>
+      
+      
+              <span>
+                ✓ Transport dédié
+              </span>
+      
+      
+              <span>
+                ✓ France & Europe
+              </span>
+      
       
             </div>
       
       
       
-            {/* Boutons */}
+      
+      
       
             <div className="mt-10 flex flex-wrap gap-4">
       
       
               <a
-                href="#devis"
+                href="tel:0752988155"
                 className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition"
               >
-                Demander un devis
+      
+                📞 Besoin urgent ? Appelez-nous
+      
               </a>
+      
+      
+      
       
       
               <a
-                href="tel:0752988155"
+                href="#devis"
                 className="border border-white/40 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition"
               >
-                Nous appeler
+      
+                Demander un devis
+      
               </a>
       
       
@@ -230,62 +264,77 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
-            {/* Réassurance */}
       
-            <div className="mt-10 flex flex-wrap gap-10 text-sm text-gray-400">
+      
+      
+            <div className="mt-10 flex gap-10 text-sm text-gray-400">
       
       
               <div>
+      
                 <p className="text-white font-bold text-xl">
                   IDF
                 </p>
-                Départ & couverture nationale
+      
+                Départ & organisation nationale
+      
               </div>
       
       
-              <div>
-                <p className="text-white font-bold text-xl">
-                  24/7
-                </p>
-                Disponibilité
-              </div>
+      
       
       
               <div>
+      
                 <p className="text-white font-bold text-xl">
-                  Sur mesure
+                  Pro & Particuliers
                 </p>
+      
                 Solutions adaptées
+      
               </div>
       
       
             </div>
+      
       
       
           </div>
       
       
       
-          {/* Image */}
+      
+      
+      
+      
+      
+          {/* IMAGE */}
       
           <div className="relative">
       
+      
             <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
+      
+      
       
       
             <img
               src="/images/IMG_0255.jpeg"
               alt="Flashride Logistics transport"
-              className="relative rounded-3xl shadow-2xl w-full h-[520px] object-cover"
+              className="relative rounded-3xl shadow-2xl w-full h-[420px] md:h-[520px] object-cover"
             />
+      
       
       
           </div>
       
       
+      
+      
         </div>
       
-      </section>      
+      
+      </section>
             {/* SERVICES */}
 
       <section id="services" className="py-24 px-6 bg-gray-100">
