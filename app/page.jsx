@@ -436,9 +436,12 @@ export default function FlashrideLogisticsWebsite() {
             Téléphone
           </p>
     
-          <p className="mt-3 font-semibold">
-            07 52 98 81 55
-          </p>
+          <a
+          href="tel:0752988155"
+          className="mt-3 font-semibold block hover:text-orange-500"
+        >
+          07 52 98 81 55
+        </a>
         </div>
     
     
@@ -447,9 +450,12 @@ export default function FlashrideLogisticsWebsite() {
             Email
           </p>
     
-          <p className="mt-3 font-semibold">
-            contact@flashride-logistics.com
-          </p>
+          <a
+          href="mailto:contact@flashride-logistics.com"
+          className="mt-3 font-semibold block hover:text-orange-500"
+        >
+          contact@flashride-logistics.com
+        </a>
         </div>
     
     
