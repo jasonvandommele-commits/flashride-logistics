@@ -15,9 +15,9 @@ export default function FlashrideLogisticsWebsite() {
   />
 
   <div className="text-xl font-extrabold tracking-wide">
-    <span className="text-blue-600">FLASH</span>
+    <span className="text-blue-900">FLASH</span>
     <span className="text-orange-500">RIDE</span>
-    <span className="text-blue-600"> LOGISTICS</span>
+    <span className="text-blue-900"> LOGISTICS</span>
   </div>
 </div>
 
