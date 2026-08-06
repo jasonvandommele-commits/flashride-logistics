@@ -42,22 +42,18 @@ export async function POST(request) {
       `,
     });
 
-    return Response.json({
+        return Response.json({
       success: true,
     });
 
   } catch (error) {
-  console.log(error);
+    console.log(error);
 
-  return Response.json(
-    {
-      error: error.message,
-    },
-    {
-      status: 500,
-    }
-  );
-}
+    return Response.json(
+      {
+        error: error.message,
+      },
+      {
         status: 500,
       }
     );
