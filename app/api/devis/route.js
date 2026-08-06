@@ -68,7 +68,7 @@ export async function POST(request) {
       `,
     });
 
-await resend.emails.send({
+const customerEmail = await resend.emails.send({
   from: "Flashride Logistics <contact@flashride-logistics.fr>",
   to: email,
   subject: "Votre demande de transport a bien été reçue - Flashride Logistics",
@@ -111,7 +111,7 @@ await resend.emails.send({
   `,
 });
 
-    console.log(result);
+    console.log(result, customerEmail);
 
     return Response.json({
       success: true,
