@@ -118,7 +118,7 @@ export default function FlashrideLogisticsWebsite() {
           <div className="text-center mb-16">
 
             <p className="text-orange-500 font-bold uppercase tracking-widest">
-              Nos expertises
+              Nos services
             </p>
 
             <h2 className="text-5xl font-black mt-4">
