@@ -2,6 +2,11 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+console.log(
+  "API KEY PRESENT:",
+  process.env.RESEND_API_KEY ? "YES" : "NO"
+);
+
 export async function POST(request) {
   try {
     const data = await request.json();
