@@ -1,6 +1,9 @@
 import { useState } from "react";
+
 export default function FlashrideLogisticsWebsite() {
-const [menuOpen, setMenuOpen] = useState(false);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <main className="bg-white text-gray-900 min-h-screen">
 
