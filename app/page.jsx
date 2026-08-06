@@ -5,7 +5,7 @@ export default function FlashrideLogisticsWebsite() {
       {/* Navigation */}
 <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md text-gray-900 shadow-md">
 
-  <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+  <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
     <div className="flex items-center">
       <img
@@ -16,19 +16,19 @@ export default function FlashrideLogisticsWebsite() {
           </div>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium">
-            <a href="#" className="hover:text-orange-400">
+            <a href="#" className="hover:text-orange-500 transition">
               Accueil
             </a>
 
-            <a href="#services" className="hover:text-orange-400">
+            <a href="#services" className="hover:text-orange-500 transition">
               Services
             </a>
 
-            <a href="#about" className="hover:text-orange-400">
+            <a href="#about" className="hover:text-orange-500 transition">
               Entreprise
             </a>
 
-            <a href="#contact" className="hover:text-orange-400">
+            <a href="#contact" className="hover:text-orange-500 transition">
               Contact
             </a>
 
