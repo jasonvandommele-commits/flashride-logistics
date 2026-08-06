@@ -14,7 +14,7 @@ export default function FlashrideLogisticsWebsite() {
     className="h-14 w-auto object-contain"
   />
 
-  <div className="text-xl font-black tracking-wider">
+  <div className="text-xl font-black tracking-widest uppercase">
     <span className="text-blue-900">FLASH</span>
     <span className="text-orange-500">RIDE</span>
     <span className="text-blue-900"> LOGISTICS</span>
