@@ -762,11 +762,11 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <button
+              type="submit"
               className="bg-orange-500 text-white font-bold text-lg rounded-xl p-4 md:col-span-2 hover:bg-orange-600 transition"
             >
               Recevoir ma proposition
             </button>
-      
       
       
           </form>
