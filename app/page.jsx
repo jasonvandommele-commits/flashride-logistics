@@ -278,8 +278,9 @@ export default function FlashrideLogisticsWebsite() {
             </p>
       
       
-            <h2 className="text-5xl font-black mt-4">
-              Des solutions de transport pensées pour chaque mission
+            <h2 className="text-3xl md:text-5xl font-black mt-4 leading-tight">
+              Des solutions de transport
+              pensées pour chaque mission
             </h2>
       
       
