@@ -1,4 +1,6 @@
+import { useState } from "react";
 export default function FlashrideLogisticsWebsite() {
+const [menuOpen, setMenuOpen] = useState(false);
   return (
     <main className="bg-white text-gray-900 min-h-screen">
 
@@ -55,14 +57,65 @@ export default function FlashrideLogisticsWebsite() {
           </div>
       
       
-          {/* Menu mobile */}
-          <div className="md:hidden">
+                {/* Menu mobile */}
+      <div className="md:hidden">
       
-            <button className="text-gray-900 text-3xl font-bold">
-              ☰
-            </button>
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="text-gray-900 text-3xl font-bold"
+        >
+          ☰
+        </button>
       
-          </div>
+      </div>
+      
+      
+      {/* Menu mobile déroulant */}
+      {menuOpen && (
+        <div className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden">
+      
+          <a
+            href="#"
+            className="block px-6 py-4 hover:text-orange-500"
+            onClick={() => setMenuOpen(false)}
+          >
+            Accueil
+          </a>
+      
+          <a
+            href="#services"
+            className="block px-6 py-4 hover:text-orange-500"
+            onClick={() => setMenuOpen(false)}
+          >
+            Services
+          </a>
+      
+          <a
+            href="#about"
+            className="block px-6 py-4 hover:text-orange-500"
+            onClick={() => setMenuOpen(false)}
+          >
+            Entreprise
+          </a>
+      
+          <a
+            href="#contact"
+            className="block px-6 py-4 hover:text-orange-500"
+            onClick={() => setMenuOpen(false)}
+          >
+            Contact
+          </a>
+      
+          <a
+            href="#devis"
+            className="block mx-6 mb-5 bg-orange-500 text-white text-center py-3 rounded-xl font-bold"
+            onClick={() => setMenuOpen(false)}
+          >
+            Demander un devis
+          </a>
+      
+        </div>
+      )}
       
       
         </div>
