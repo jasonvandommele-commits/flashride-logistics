@@ -554,8 +554,9 @@ export default function FlashrideLogisticsWebsite() {
             </p>
       
       
-            <h2 className="text-5xl font-black mt-5 leading-tight">
-              Un partenaire transport pensé pour répondre à chaque mission.
+            <h2 className="text-3xl md:text-5xl font-black mt-5 leading-tight">
+              Un partenaire transport
+              pensé pour chaque mission.
             </h2>
       
       
