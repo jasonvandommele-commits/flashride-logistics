@@ -153,15 +153,14 @@ export default function FlashrideLogisticsWebsite() {
       
               <br />
       
-              pour les professionnels
-              et les particuliers.
+              pour entreprises et particuliers.
       
             </h1>
       
       
             <p className="mt-8 text-gray-300 text-lg leading-relaxed max-w-xl">
       
-              Flashride Logistics accompagne les entreprises et les particuliers
+              Flashride Logistics accompagne pour entreprises et particuliers.
               avec des solutions de transport adaptées : livraisons, tournées,
               transport de marchandises, événements et besoins ponctuels.
       
@@ -218,7 +217,7 @@ export default function FlashrideLogisticsWebsite() {
                 <p className="text-white font-bold text-xl">
                   IDF
                 </p>
-                Zone principale
+                Départ & couverture nationale
               </div>
       
       
