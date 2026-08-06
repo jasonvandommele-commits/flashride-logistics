@@ -18,7 +18,7 @@ export async function POST(request) {
       message,
     } = data;
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: "jasonvandommele@icloud.com",
       subject: "Nouvelle demande de transport Flashride Logistics",
@@ -32,6 +32,9 @@ export async function POST(request) {
         <p><strong>Prestation :</strong> ${prestation}</p>
         <p><strong>Véhicule :</strong> ${vehicule}</p>
 
+        <p><strong>Date :</strong> ${data.date}</p>
+        <p><strong>Volume :</strong> ${data.volume}</p>
+
         <p><strong>Départ :</strong> ${depart}</p>
         <p><strong>Arrivée :</strong> ${arrivee}</p>
 
@@ -42,8 +45,11 @@ export async function POST(request) {
       `,
     });
 
-        return Response.json({
+    console.log(result);
+
+    return Response.json({
       success: true,
+      result,
     });
 
   } catch (error) {
