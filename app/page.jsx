@@ -361,6 +361,103 @@ export default function FlashrideLogisticsWebsite() {
       
       </section>
 
+      {/* Moyens de transport */}
+      
+      <section className="py-24 px-6 bg-white">
+      
+        <div className="max-w-7xl mx-auto">
+      
+      
+          <div className="text-center mb-16">
+      
+            <p className="text-orange-500 font-bold uppercase tracking-widest">
+              Nos moyens
+            </p>
+      
+      
+            <h2 className="text-5xl font-black mt-4">
+              Des véhicules adaptés à chaque volume
+            </h2>
+      
+      
+            <p className="mt-5 text-gray-600 text-lg">
+              Flashride Logistics dispose de solutions de transport adaptées
+              aux différents besoins de livraison, de marchandises et de logistique.
+            </p>
+      
+          </div>
+      
+      
+      
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+      
+      
+            {[
+              {
+                title: "Deux roues",
+                volume: "Petits volumes",
+                text: "Idéal pour les plis, documents, petits colis et livraisons urbaines."
+              },
+              {
+                title: "Véhicule léger",
+                volume: "Jusqu’à 6m³",
+                text: "Adapté aux livraisons professionnelles et marchandises de faible volume."
+              },
+              {
+                title: "Fourgon",
+                volume: "12 à 14m³",
+                text: "Une capacité intermédiaire pour vos besoins réguliers et transports polyvalents."
+              },
+              {
+                title: "Grand volume",
+                volume: "20m³ avec hayon",
+                text: "Solution adaptée aux palettes, équipements, événements et volumes importants."
+              }
+            ].map((vehicle, index) => (
+      
+      
+              <div
+                key={index}
+                className="bg-gray-100 rounded-3xl p-8 hover:shadow-xl transition"
+              >
+      
+      
+                <div className="w-14 h-14 bg-[#0B1F3A] rounded-2xl mb-6 flex items-center justify-center">
+      
+                  <div className="w-5 h-5 bg-orange-500 rounded-full"></div>
+      
+                </div>
+      
+      
+                <h3 className="text-2xl font-bold">
+                  {vehicle.title}
+                </h3>
+      
+      
+                <p className="text-orange-500 font-bold mt-2">
+                  {vehicle.volume}
+                </p>
+      
+      
+                <p className="text-gray-600 mt-4 leading-relaxed">
+                  {vehicle.text}
+                </p>
+      
+      
+              </div>
+      
+      
+            ))}
+      
+      
+          </div>
+      
+      
+        </div>
+      
+      
+      </section>
+
       {/* Pourquoi nous */}
       <section className="py-24 px-6">
 
