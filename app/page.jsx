@@ -7,13 +7,19 @@ export default function FlashrideLogisticsWebsite() {
 
   <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-    <div className="flex items-center">
-      <img
-        src="/images/IMG_0265.png"
-        alt="Flashride Logistics"
-        className="h-16 w-auto object-contain"
-      />
-          </div>
+    <div className="flex items-center gap-3">
+  <img
+    src="/images/IMG_0265.png"
+    alt="Flashride Logistics"
+    className="h-16 w-auto object-contain"
+  />
+
+  <div className="text-xl font-extrabold tracking-wide">
+    <span className="text-blue-600">FLASH</span>
+    <span className="text-orange-500">RIDE</span>
+    <span className="text-blue-600"> LOGISTICS</span>
+  </div>
+</div>
 
           <div className="hidden md:flex gap-8 items-center text-sm font-medium">
             <a href="#" className="hover:text-orange-500 transition">
