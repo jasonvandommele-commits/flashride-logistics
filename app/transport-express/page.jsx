@@ -3,77 +3,100 @@ export default function TransportExpress() {
     <main className="bg-white text-gray-900 min-h-screen">
 
 
-      {/* BANNIERE */}
+      {/* BANNIÈRE HERO */}
 
-      <section
-        className="relative pt-24 min-h-[650px] flex items-center bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('/images/IMG_0255.jpeg')",
-        }}
+<section
+  className="relative pt-24 min-h-[650px] flex items-center bg-cover bg-center"
+  style={{
+    backgroundImage:
+      "url('/images/IMG_0255.jpeg')",
+  }}
+>
+
+  <div className="absolute inset-0 bg-[#0B1F3A]/85"></div>
+
+
+  <div className="relative max-w-7xl mx-auto px-6 py-20 text-white">
+
+
+    <p className="text-orange-400 font-bold uppercase tracking-[0.2em] mb-5">
+      TRANSPORT EXPRESS
+    </p>
+
+
+    <h1 className="text-4xl md:text-6xl font-black leading-tight max-w-4xl">
+
+      Transport express :
+      <span className="text-orange-500">
+        {" "}quand chaque minute compte.
+      </span>
+
+    </h1>
+
+
+
+    <p className="mt-8 text-gray-200 text-lg md:text-xl leading-relaxed max-w-3xl">
+
+      Un imprévu peut arriver à tout moment : une pièce urgente,
+      une marchandise à déplacer rapidement ou une livraison qui
+      ne peut pas attendre. Flashride Logistics met en place une
+      solution express pour vous permettre de respecter vos engagements.
+
+    </p>
+
+
+
+    <div className="mt-10 flex flex-wrap gap-4">
+
+
+      <a
+        href="tel:0752988155"
+        className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition"
       >
-
-        <div className="absolute inset-0 bg-[#0B1F3A]/85"></div>
-
-
-        <div className="relative max-w-7xl mx-auto px-6 py-20 text-white">
-
-
-          <p className="text-orange-400 font-bold uppercase tracking-widest mb-5">
-            Transport express
-          </p>
-
-
-          <h1 className="text-4xl md:text-6xl font-black leading-tight max-w-4xl">
-
-            Votre livraison ne peut pas attendre ?
-
-            <span className="text-orange-500">
-              {" "}Nous trouvons la solution.
-            </span>
-
-          </h1>
-
-
-          <p className="mt-8 text-gray-200 text-lg md:text-xl max-w-2xl">
-
-            Flashride Logistics organise vos transports urgents
-            pour les professionnels et les particuliers lorsque
-            chaque heure compte.
-
-          </p>
+        📞 Appeler pour une urgence
+      </a>
 
 
 
-          <div className="mt-10 flex flex-wrap gap-4">
+      <a
+        href="/#devis"
+        className="border border-white/40 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition"
+      >
+        Demander un devis
+      </a>
 
 
-            <a
-              href="tel:0752988155"
-              className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition"
-            >
-              📞 Appeler maintenant
-            </a>
-
-
-            <a
-              href="/#devis"
-              className="border border-white/40 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition"
-            >
-              Demander un devis
-            </a>
-
-
-          </div>
-
-
-        </div>
-
-
-      </section>
+    </div>
 
 
 
+
+    <div className="mt-10 flex flex-wrap gap-6 text-sm text-gray-300">
+
+
+      <span>
+        ✓ Réactivité
+      </span>
+
+
+      <span>
+        ✓ Ponctualité
+      </span>
+
+
+      <span>
+        ✓ Transport sécurisé
+      </span>
+
+
+    </div>
+
+
+
+  </div>
+
+
+</section>
 
       {/* BESOIN */}
 
