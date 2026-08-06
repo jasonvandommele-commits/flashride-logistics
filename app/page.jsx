@@ -235,17 +235,30 @@ export default function FlashrideLogisticsWebsite() {
 
             <a
               href="tel:0752988155"
-              className="bg-orange-500 w-52 text-center px-5 py-3 rounded-xl font-bold text-sm md:text-base hover:bg-orange-600 transition"
+              className="bg-orange-500 w-52 h-12 rounded-xl font-semibold text-base hover:bg-orange-600 transition flex items-center justify-center gap-2"
             >
-              📞 Appeler notre équipe
+              <span className="text-lg leading-none">
+                📞
+              </span>
+          
+              <span className="leading-none">
+                Appeler notre équipe
+              </span>
+          
             </a>
+          
+          
           
           
             <a
               href="#devis"
-              className="border border-white/40 w-52 text-center px-5 py-3 rounded-xl font-bold text-sm md:text-base hover:bg-white hover:text-black transition"
+              className="border border-white/40 w-52 h-12 rounded-xl font-semibold text-base hover:bg-white hover:text-black transition flex items-center justify-center"
             >
-              Demander un devis
+          
+              <span className="leading-none">
+                Demander un devis
+              </span>
+          
             </a>
           
           
