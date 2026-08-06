@@ -20,7 +20,7 @@ export async function POST(request) {
 
     await resend.emails.send({
       from: "onboarding@resend.dev",
-      to: "contact@flashride-logistics.com",
+      to: "jasonvandommele@icloud.com",
       subject: "Nouvelle demande de transport Flashride Logistics",
       html: `
         <h2>Nouvelle demande de transport</h2>
@@ -47,11 +47,17 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    return Response.json(
-      {
-        error: "Erreur lors de l'envoi",
-      },
-      {
+  console.log(error);
+
+  return Response.json(
+    {
+      error: error.message,
+    },
+    {
+      status: 500,
+    }
+  );
+}
         status: 500,
       }
     );
