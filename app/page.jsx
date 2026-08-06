@@ -654,7 +654,10 @@ export default function FlashrideLogisticsWebsite() {
             >
       
       
-            <select className="border rounded-xl p-4 md:col-span-2">
+            <select
+              name="prestation"
+              className="border rounded-xl p-4 md:col-span-2"
+            >
               <option>Type de prestation</option>
               <option>Tournée régulière</option>
               <option>Transport express</option>
@@ -666,7 +669,10 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
-            <select className="border rounded-xl p-4">
+            <select
+              name="client"
+              className="border rounded-xl p-4"
+            >
               <option>Vous êtes</option>
               <option>Entreprise</option>
               <option>Particulier</option>
