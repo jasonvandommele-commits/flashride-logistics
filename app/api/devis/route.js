@@ -28,26 +28,48 @@ export async function POST(request) {
 to: "contact@flashride-logistics.fr",
       subject: "Nouvelle demande de transport Flashride Logistics",
       html: `
-        <h2>Nouvelle demande de transport</h2>
-
+    <div style="font-family: Arial, sans-serif; background:#f5f5f5; padding:30px;">
+      <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:10px;">
+    
+        <h1 style="color:#111;">
+          Flashride Logistics
+        </h1>
+    
+        <h2>
+          Nouvelle demande de devis transport 🚚
+        </h2>
+    
+        <hr>
+    
+        <h3>Informations client</h3>
+    
         <p><strong>Nom / Entreprise :</strong> ${nom}</p>
         <p><strong>Téléphone :</strong> ${telephone}</p>
         <p><strong>Email :</strong> ${email}</p>
-
+    
+        <h3>Détails du transport</h3>
+    
         <p><strong>Prestation :</strong> ${prestation}</p>
         <p><strong>Véhicule :</strong> ${vehicule}</p>
-
-        <p><strong>Date :</strong> ${data.date}</p>
-        <p><strong>Volume :</strong> ${data.volume}</p>
-
         <p><strong>Départ :</strong> ${depart}</p>
         <p><strong>Arrivée :</strong> ${arrivee}</p>
-
         <p><strong>Marchandise :</strong> ${marchandise}</p>
-
-        <p><strong>Message :</strong></p>
-        <p>${message}</p>
-      `,
+    
+        <h3>Message du client</h3>
+    
+        <p>
+          ${message}
+        </p>
+    
+        <hr>
+    
+        <p>
+          📞 Contacter rapidement le client pour établir le devis.
+        </p>
+    
+      </div>
+    </div>
+    `,
     });
 
     console.log(result);
