@@ -234,33 +234,30 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
-            <div className="mt-10 flex flex-wrap gap-4">
-      
-      
-              <a
-                href="tel:0752988155"
-                className="bg-orange-500 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition"
-              >
-      
-                📞 Besoin urgent ? Appelez-nous
-      
-              </a>
-      
-      
-      
-      
-      
-              <a
-                href="#devis"
-                className="border border-white/40 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-black transition"
-              >
-      
-                Demander un devis
-      
-              </a>
-      
-      
-            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+
+
+            <a
+              href="tel:0752988155"
+              className="bg-orange-500 px-5 py-3 rounded-xl font-bold text-sm md:text-base hover:bg-orange-600 transition"
+            >
+          
+              📞 Appeler notre équipe
+          
+            </a>
+          
+          
+            <a
+              href="#devis"
+              className="border border-white/40 px-5 py-3 rounded-xl font-bold text-sm md:text-base hover:bg-white hover:text-black transition"
+            >
+          
+              Demander un devis
+          
+            </a>
+          
+          
+          </div>
       
       
       
