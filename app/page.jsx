@@ -57,9 +57,6 @@ export default function FlashrideLogisticsWebsite() {
 
         </div>
       </nav>
-      
-        </div>
-      </nav>
 
 
       {/* Hero */}
