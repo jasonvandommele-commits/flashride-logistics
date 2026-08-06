@@ -8,7 +8,7 @@ export default function FlashrideLogisticsWebsite() {
 
           <div className="flex items-center">
   <img
-    src="/images/5ee9a16e-98e8-475c-8835-83ed59cfa798.jpeg"
+    src="/images/IMG_0265.png"
     alt="Flashride Logistics"
     className="h-12 w-auto"
   />
