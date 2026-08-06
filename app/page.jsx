@@ -3,8 +3,30 @@
 import { useState } from "react";
 
 export default function FlashrideLogisticsWebsite() {
-  
+
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    const response = await fetch("/api/devis", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      alert("Demande envoyée. Notre équipe vous recontactera sous 24h.");
+      e.target.reset();
+    } else {
+      alert("Erreur lors de l’envoi.");
+    }
+  };
 
   return (
     <main className="bg-white text-gray-900 min-h-screen">
