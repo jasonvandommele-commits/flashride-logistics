@@ -66,10 +66,7 @@ export default function FlashrideLogisticsWebsite() {
       <div className="md:hidden">
       
               <button
-        onClick={() => {
-          alert("test menu");
-          setMenuOpen(!menuOpen);
-        }}
+        onClick={() => setMenuOpen(!menuOpen)}
         className="text-gray-900 text-3xl font-bold"
       >
         ☰
