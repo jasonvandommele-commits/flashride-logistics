@@ -75,7 +75,7 @@ export default function FlashrideLogisticsWebsite() {
       
       {/* Menu mobile déroulant */}
       {menuOpen && (
-        <div className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden">
+        <div className="absolute top-full left-0 w-full bg-white shadow-xl z-[999] md:hidden">
       
           <a
             href="#"
