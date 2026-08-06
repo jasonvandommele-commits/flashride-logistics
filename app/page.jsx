@@ -376,7 +376,7 @@ export default function FlashrideLogisticsWebsite() {
             </p>
       
       
-            <h2 className="text-5xl font-black mt-4">
+            <h2 className="text-3xl md:text-5xl font-black mt-4">
               Des véhicules adaptés à chaque volume
             </h2>
       
@@ -472,7 +472,7 @@ export default function FlashrideLogisticsWebsite() {
               Notre différence
             </p>
       
-            <h2 className="text-5xl font-black mt-4">
+            <h2 className="text-3xl md:text-5xl font-black mt-4">
               Pourquoi choisir Flashride Logistics ?
             </h2>
       
@@ -607,7 +607,7 @@ export default function FlashrideLogisticsWebsite() {
               Demande de transport
             </p>
       
-            <h2 className="text-5xl font-black mt-4">
+            <h2 className="text-3xl md:text-5xl font-black mt-4">
               Obtenez votre solution de transport
             </h2>
       
@@ -729,7 +729,7 @@ export default function FlashrideLogisticsWebsite() {
         Contact
       </p>
     
-      <h2 className="text-5xl font-black mt-4">
+      <h2 className="text-3xl md:text-5xl font-black mt-4">
         Parlons de votre projet transport
       </h2>
     
