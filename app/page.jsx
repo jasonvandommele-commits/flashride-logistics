@@ -58,20 +58,22 @@ export default function FlashrideLogisticsWebsite() {
           <div>
 
             <p className="text-orange-400 font-bold uppercase tracking-widest mb-5">
-              Transport Express Premium
+              TRANSPORT & LOGISTIQUE SUR MESURE
             </p>
 
-            <h1 className="text-5xl lg:text-7xl font-black leading-tight">
+          <h1 className="text-5xl lg:text-7xl font-black leading-tight">
               Vos solutions de
             <span className="text-orange-500">
               {" "}transport
-            </span>
+           </span>
               {" "}à Paris, en France et en Europe.
           </h1>
 
-            <p className="mt-8 text-xl text-gray-300 leading-relaxed">
-              Flashride Logistics accompagne professionnels et particuliers avec des solutions de transport fiables, flexibles et sur mesure à Paris, en France et en Europe.
-            </p>
+            <div className="mt-8 flex flex-wrap gap-6 text-gray-300 text-sm font-medium">
+          <span>✓ Paris & Île-de-France</span>
+          <span>✓ France & Europe</span>
+          <span>✓ Solutions sur mesure</span>
+        </div>
 
 
             <div className="mt-10 flex flex-wrap gap-4">
