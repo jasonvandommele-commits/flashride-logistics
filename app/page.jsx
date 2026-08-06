@@ -596,41 +596,50 @@ export default function FlashrideLogisticsWebsite() {
       </section>
 
 
-         {/* Devis */}
+               {/* Devis */}
+      
       <section id="devis" className="py-24 px-6 bg-gray-100">
       
         <div className="max-w-5xl mx-auto">
       
+      
           <div className="text-center mb-12">
+      
       
             <p className="text-orange-500 font-bold uppercase tracking-widest">
               Demande de transport
             </p>
       
-            <h2 className="text-3xl md:text-5xl font-black mt-4">
-              Obtenez votre solution de transport
+      
+            <h2 className="text-3xl md:text-5xl font-black mt-4 leading-tight">
+              Obtenez votre solution de transport personnalisée
             </h2>
       
+      
             <p className="mt-5 text-gray-600 text-lg">
-              Décrivez votre besoin. Notre équipe vous propose une solution adaptée
-              à votre activité, vos délais et votre volume de marchandises.
+              Décrivez votre projet. Flashride Logistics vous accompagne avec
+              une solution adaptée à votre activité, vos délais et votre volume.
             </p>
       
+      
           </div>
+      
       
       
           <form className="bg-white rounded-3xl shadow-xl p-8 grid md:grid-cols-2 gap-6">
       
       
+      
             <select className="border rounded-xl p-4 md:col-span-2">
               <option>Type de prestation</option>
-              <option>Tournée dédiée</option>
+              <option>Tournée régulière</option>
               <option>Transport express</option>
+              <option>Transport dédié</option>
               <option>Transport de marchandises</option>
-              <option>Sous-traitance transport</option>
               <option>Logistique événementielle</option>
-              <option>Transport national & européen</option>
+              <option>Sous-traitance transport</option>
             </select>
+      
       
       
             <select className="border rounded-xl p-4">
@@ -640,14 +649,16 @@ export default function FlashrideLogisticsWebsite() {
             </select>
       
       
+      
             <select className="border rounded-xl p-4">
               <option>Type de véhicule souhaité</option>
               <option>2 roues</option>
               <option>Véhicule léger jusqu'à 6m³</option>
-              <option>Utilitaire jusqu'à 12m³</option>
-              <option>Utilitaire 20m³ avec hayon</option>
+              <option>Fourgon 12/14m³</option>
+              <option>Grand volume 20m³ avec hayon</option>
               <option>Besoin à définir</option>
             </select>
+      
       
       
             <input
@@ -674,6 +685,7 @@ export default function FlashrideLogisticsWebsite() {
             />
       
       
+      
             <input
               className="border rounded-xl p-4"
               placeholder="Volume (colis, palettes, dimensions)"
@@ -692,17 +704,20 @@ export default function FlashrideLogisticsWebsite() {
             />
       
       
+      
             <input
               className="border rounded-xl p-4 md:col-span-2"
               placeholder="Type de marchandise"
             />
       
       
+      
             <textarea
               className="border rounded-xl p-4 md:col-span-2"
-              placeholder="Décrivez votre besoin (horaires, contraintes, informations complémentaires...)"
+              placeholder="Informations complémentaires (horaires, contraintes, accès...)"
               rows="5"
             />
+      
       
       
             <button
@@ -712,7 +727,9 @@ export default function FlashrideLogisticsWebsite() {
             </button>
       
       
+      
           </form>
+      
       
         </div>
       
