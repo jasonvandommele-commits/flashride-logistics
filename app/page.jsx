@@ -672,7 +672,10 @@ export default function FlashrideLogisticsWebsite() {
       
       
       
-            <select className="border rounded-xl p-4">
+              <select
+                name="vehicule"
+                className="border rounded-xl p-4"
+              >
               <option>Type de véhicule souhaité</option>
               <option>2 roues</option>
               <option>Véhicule léger jusqu'à 6m³</option>
@@ -684,24 +687,28 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <input
+              name="nom"
               className="border rounded-xl p-4"
               placeholder="Nom / Entreprise"
             />
       
       
             <input
+              name="telephone"
               className="border rounded-xl p-4"
               placeholder="Téléphone"
             />
       
       
             <input
+              name="email"
               className="border rounded-xl p-4"
               placeholder="Email"
             />
       
       
             <input
+              name="date"
               type="date"
               className="border rounded-xl p-4"
             />
@@ -709,25 +716,28 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <input
+              name="volume"
               className="border rounded-xl p-4"
               placeholder="Volume (colis, palettes, dimensions)"
             />
       
       
             <input
+              name="depart"
               className="border rounded-xl p-4"
               placeholder="Ville de départ"
             />
       
       
             <input
+              name="arrivee"
               className="border rounded-xl p-4"
               placeholder="Ville d'arrivée"
             />
       
       
-      
             <input
+              name="marchandise"
               className="border rounded-xl p-4 md:col-span-2"
               placeholder="Type de marchandise"
             />
@@ -735,8 +745,9 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <textarea
+              name="message"
               className="border rounded-xl p-4 md:col-span-2"
-              placeholder="Informations complémentaires (horaires, contraintes, accès...)"
+              placeholder="Décrivez votre besoin (horaires, contraintes, informations complémentaires...)"
               rows="5"
             />
       
