@@ -162,11 +162,13 @@ export default function FlashrideLogisticsWebsite() {
 ].map((service, index) => (
 
               <div
-                key={index}
-                className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition"
-              >
+                  key={index}
+                    className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
+                  >
 
-                <div className="w-14 h-14 bg-orange-500 rounded-2xl mb-6"></div>
+                <div className="w-14 h-14 bg-orange-500 rounded-2xl mb-6 flex items-center justify-center">
+                <div className="w-5 h-5 bg-white rounded-full"></div>
+              </div>
 
                 <h3 className="text-2xl font-bold mb-3">
                   {service.title}
