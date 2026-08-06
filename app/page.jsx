@@ -197,36 +197,40 @@ export default function FlashrideLogisticsWebsite() {
           <div className="text-center mb-16">
 
             <p className="text-orange-500 font-bold uppercase tracking-widest">
-              Notre engagement
+              Notre différence
             </p>
 
             <h2 className="text-5xl font-black mt-4">
-              Pourquoi choisir Flashride ?
+              Pourquoi choisir Flashride Logistics ?
             </h2>
 
           </div>
 
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {[
-              ["24/7", "Disponibilité"],
-              ["France", "Couverture nationale"],
-              ["Europe", "Transport international"],
-              ["100%", "Engagement qualité"]
+              ["01", "Fiabilité", "Des prestations organisées pour garantir des livraisons sécurisées et ponctuelles."],
+              ["02", "Flexibilité", "Des solutions adaptées aux professionnels comme aux particuliers."],
+              ["03", "Réactivité", "Une prise en charge rapide et une organisation adaptée à vos contraintes."],
+              ["04", "Couverture", "Une présence à Paris, en Île-de-France, en France et en Europe."]
             ].map((item,index)=>(
 
               <div
                 key={index}
-                className="bg-gray-100 rounded-3xl p-8 text-center"
+                className="bg-white border border-gray-200 rounded-3xl p-8 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
               >
 
                 <h3 className="text-4xl font-black text-orange-500">
                   {item[0]}
                 </h3>
 
-                <p className="mt-3 text-gray-600">
+                <h4 className="mt-3 text-xl font-bold">
                   {item[1]}
+                </h4>
+
+                <p className="mt-3 text-gray-600 text-sm leading-relaxed">
+                  {item[2]}
                 </p>
 
               </div>
