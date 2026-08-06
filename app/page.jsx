@@ -51,7 +51,7 @@ export default function FlashrideLogisticsWebsite() {
 
 
       {/* Hero */}
-      <section className="pt-32 bg-gradient-to-br from-black via-slate-900 to-black text-white">
+      <section className="pt-24 md:pt-32 bg-gradient-to-br from-black via-slate-900 to-black text-white">
 
         <div className="max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-12 items-center">
 
