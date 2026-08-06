@@ -62,16 +62,15 @@ export default function FlashrideLogisticsWebsite() {
             </p>
 
             <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-              Vos livraisons
-              <span className="text-orange-500">
-                {" "}rapides
-              </span>
-              {" "}en France et en Europe.
-            </h1>
+              Vos solutions de
+            <span className="text-orange-500">
+              {" "}transport
+            </span>
+              {" "}à Paris, en France et en Europe.
+          </h1>
 
             <p className="mt-8 text-xl text-gray-300 leading-relaxed">
-              Flashride Logistics accompagne les entreprises avec des solutions
-              de transport fiables, flexibles et adaptées aux urgences.
+              Flashride Logistics accompagne professionnels et particuliers avec des solutions de transport fiables, flexibles et sur mesure à Paris, en France et en Europe.
             </p>
 
 
