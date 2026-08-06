@@ -46,6 +46,18 @@ export default function FlashrideLogisticsWebsite() {
             </a>
           </div>
 
+          </div>
+
+          {/* Menu mobile */}
+          <div className="md:hidden">
+            <button className="text-gray-900 text-3xl">
+              ☰
+            </button>
+          </div>
+
+        </div>
+      </nav>
+      
         </div>
       </nav>
 
