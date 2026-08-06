@@ -24,8 +24,8 @@ export async function POST(request) {
     } = data;
 
     const result = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: "contact@flashride-logistics.com",
+      from: "Flashride Logistics <contact@flashride-logistics.fr>",
+to: "contact@flashride-logistics.fr",
       subject: "Nouvelle demande de transport Flashride Logistics",
       html: `
         <h2>Nouvelle demande de transport</h2>
