@@ -126,7 +126,7 @@ export default function FlashrideLogisticsWebsite() {
             </h2>
 
             <p className="mt-5 text-gray-600 text-lg">
-              Flashride Logistics accompagne professionnels et particuliers avec des prestations fiables, flexibles et adaptées à chaque mission.
+              Flashride Logistics accompagne professionnels et particuliers avec des solutions de transport, livraison et logistique adaptées à chaque besoin.
             </p>
 
           </div>
@@ -254,18 +254,20 @@ export default function FlashrideLogisticsWebsite() {
             </p>
 
             <h2 className="text-5xl font-black mt-5 leading-tight">
-              Un partenaire transport pensé pour les professionnels.
+              Un partenaire transport et logistique pour chaque mission.
             </h2>
 
             <p className="mt-8 text-gray-300 text-lg leading-relaxed">
-              Nous accompagnons les entreprises avec des solutions de transport
-              rapides et fiables. Notre objectif : garantir une livraison
-              sécurisée, ponctuelle et adaptée à chaque besoin.
+              Flashride Logistics accompagne professionnels et particuliers avec des
+              solutions de transport, livraison et logistique adaptées à chaque besoin.
+              De la tournée régulière au transport ponctuel, nous apportons une réponse
+              fiable et flexible.
             </p>
 
             <p className="mt-5 text-gray-300 text-lg leading-relaxed">
-              De la livraison urgente aux missions régulières, Flashride
-              Logistics s'engage à fournir un service professionnel.
+              Nos prestations couvrent les tournées dédiées, le transport express,
+              la sous-traitance, la logistique événementielle et l’acheminement de
+              marchandises en France et en Europe.
             </p>
 
           </div>
