@@ -457,101 +457,141 @@ export default function FlashrideLogisticsWebsite() {
       
       
       </section>
-
-      {/* Pourquoi nous */}
+      
+         {/* Pourquoi nous */}
+      
       <section className="py-24 px-6">
-
+      
         <div className="max-w-7xl mx-auto">
-
+      
+      
           <div className="text-center mb-16">
-
+      
             <p className="text-orange-500 font-bold uppercase tracking-widest">
               Notre différence
             </p>
-
+      
             <h2 className="text-5xl font-black mt-4">
               Pourquoi choisir Flashride Logistics ?
             </h2>
-
+      
           </div>
-
-
+      
+      
+      
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
+      
+      
             {[
-              ["01", "Fiabilité", "Des prestations organisées pour garantir des livraisons sécurisées et ponctuelles."],
-              ["02", "Flexibilité", "Des solutions adaptées aux professionnels comme aux particuliers."],
-              ["03", "Réactivité", "Une prise en charge rapide et une organisation adaptée à vos contraintes."],
-              ["04", "Couverture", "Une présence à Paris, en Île-de-France, en France et en Europe."]
+              [
+                "01",
+                "Fiabilité",
+                "Une organisation rigoureuse pour garantir des prestations sécurisées et ponctuelles."
+              ],
+              [
+                "02",
+                "Flexibilité",
+                "Des solutions adaptées aux contraintes des entreprises comme aux besoins des particuliers."
+              ],
+              [
+                "03",
+                "Réactivité",
+                "Une prise en charge efficace avec une organisation adaptée à chaque mission."
+              ],
+              [
+                "04",
+                "Sur mesure",
+                "Un accompagnement personnalisé selon vos volumes, délais et contraintes."
+              ]
             ].map((item,index)=>(
-
+      
+      
               <div
                 key={index}
                 className="bg-white border border-gray-200 rounded-3xl p-8 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
               >
-
+      
                 <h3 className="text-4xl font-black text-orange-500">
                   {item[0]}
                 </h3>
-
+      
                 <h4 className="mt-3 text-xl font-bold">
                   {item[1]}
                 </h4>
-
+      
                 <p className="mt-3 text-gray-600 text-sm leading-relaxed">
                   {item[2]}
                 </p>
-
+      
               </div>
-
+      
+      
             ))}
-
+      
+      
           </div>
-
+      
+      
         </div>
-
-      </section>      
+      
+      </section>
+      
+      
+      
       {/* Entreprise */}
+      
       <section id="about" className="py-24 px-6 bg-black text-white">
-
+      
+      
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-
+      
+      
           <div>
-
+      
+      
             <p className="text-orange-400 font-bold uppercase tracking-widest">
               Flashride Logistics
             </p>
-
+      
+      
             <h2 className="text-5xl font-black mt-5 leading-tight">
-              Un partenaire transport et logistique pour chaque mission.
+              Un partenaire transport pensé pour répondre à chaque mission.
             </h2>
-
+      
+      
             <p className="mt-8 text-gray-300 text-lg leading-relaxed">
-              Flashride Logistics accompagne professionnels et particuliers avec des
-              solutions de transport, livraison et logistique adaptées à chaque besoin.
-              De la tournée régulière au transport ponctuel, nous apportons une réponse
-              fiable et flexible.
+      
+              Flashride Logistics accompagne entreprises et particuliers avec
+              des solutions de transport et de logistique adaptées. Notre objectif :
+              proposer un service fiable, organisé et flexible, quel que soit le besoin.
+      
             </p>
-
+      
+      
             <p className="mt-5 text-gray-300 text-lg leading-relaxed">
-              Nos prestations couvrent les tournées dédiées, le transport express,
-              la sous-traitance, la logistique événementielle et l’acheminement de
-              marchandises en France et en Europe.
+      
+              Grâce à une gamme de moyens de transport allant du deux roues au
+              grand volume 20m³ avec hayon, nous répondons aux demandes ponctuelles,
+              aux tournées régulières et aux prestations événementielles.
+      
             </p>
-
+      
+      
           </div>
-
-
+      
+      
+      
           <img
             src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=1200"
-            alt="Logistique professionnelle"
+            alt="Flashride Logistics transport et logistique"
             className="rounded-3xl shadow-2xl w-full h-[450px] object-cover"
           />
-
+      
+      
         </div>
-
+      
+      
       </section>
-
 
 
          {/* Devis */}
