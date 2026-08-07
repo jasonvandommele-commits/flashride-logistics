@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import Footer from "../components/Footer";
 
 export default function TourneesRegulieres() {
 
@@ -521,127 +521,7 @@ export default function TourneesRegulieres() {
 
       {/* FOOTER */}
 
-      <footer className="bg-black text-gray-400 py-12 px-6">
-
-
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
-
-
-          <div>
-
-            <h3 className="text-white text-xl font-black">
-
-              <span className="text-[#0B1F3A]">
-                FLASH
-              </span>
-
-              <span className="text-orange-500">
-                RIDE
-              </span>
-
-              <span className="text-white">
-                {" "}LOGISTICS
-              </span>
-
-            </h3>
-
-
-            <p className="mt-4 leading-relaxed">
-              Société de transport et logistique pour professionnels et particuliers.
-            </p>
-
-
-          </div>
-
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Nos prestations
-            </h4>
-
-
-            <ul className="space-y-2">
-
-              <li>Tournées régulières</li>
-              <li>Transport express</li>
-              <li>Transport dédié</li>
-              <li>Transport marchandises</li>
-
-            </ul>
-
-
-          </div>
-
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Zones d’intervention
-            </h4>
-
-
-            <ul className="space-y-2">
-
-              <li>Paris</li>
-              <li>Île-de-France</li>
-              <li>France</li>
-              <li>Europe</li>
-
-            </ul>
-
-
-          </div>
-
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Contact
-            </h4>
-
-
-            <p>
-              📞 07 52 98 81 55
-            </p>
-
-
-            <p className="mt-2">
-              ✉ contact@flashride-logistics.com
-            </p>
-
-
-            <a
-              href="/#devis"
-              className="inline-block mt-5 bg-orange-500 text-white px-5 py-3 rounded-xl font-bold"
-            >
-              Demander un devis
-            </a>
-
-
-          </div>
-
-
-        </div>
-
-
-
-        <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
-
-
-          © 2026 Flashride Logistics — Tous droits réservés.
-
-
-        </div>
-
-
-      </footer>
+      <Footer />
 
 
 
