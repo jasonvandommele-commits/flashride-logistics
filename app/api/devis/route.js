@@ -7,16 +7,19 @@ export async function POST(request) {
     const data = await request.json();
 
     const {
-      nom,
-      telephone,
-      email,
-      prestation,
-      vehicule,
-      depart,
-      arrivee,
-      marchandise,
-      message,
-    } = data;
+        nom,
+        telephone,
+        email,
+        prestation,
+        vehicule,
+        depart,
+        arrivee,
+        marchandise,
+        message,
+        date,
+        volume,
+        client,
+      } = data;
 
     const result = await resend.emails.send({
       from: "Flashride Logistics <contact@flashride-logistics.fr>",
