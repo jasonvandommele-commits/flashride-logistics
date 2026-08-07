@@ -4,6 +4,10 @@ export const metadata = {
   title: "Flashride Logistics | Transport & Logistique en France et Europe",
   description:
     "Flashride Logistics accompagne professionnels et particuliers pour leurs besoins de transport : transport express, tournées régulières, transport dédié, marchandises et logistique en France et en Europe.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
