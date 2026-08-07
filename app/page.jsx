@@ -316,7 +316,7 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <img
-              src="/images/hero-acceuil.jpg"
+              src="/images/hero-accueil.jpg"
               alt="Flashride Logistics transport"
               className="relative rounded-3xl shadow-2xl w-full h-[420px] md:h-[520px] object-cover"
             />
