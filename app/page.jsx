@@ -803,11 +803,17 @@ export default function FlashrideLogisticsWebsite() {
             />
       
       
-            <input
-              name="date"
-              type="date"
-              className="border rounded-xl p-4"
-            />
+            <div>
+  <label className="block font-semibold mb-2">
+    Date souhaitée du transport
+  </label>
+
+  <input
+    name="date"
+    type="date"
+    className="border rounded-xl p-4 w-full"
+  />
+</div>
       
       
       
