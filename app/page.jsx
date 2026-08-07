@@ -5,6 +5,7 @@ import { useState } from "react";
 export default function FlashrideLogisticsWebsite() {
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +22,7 @@ export default function FlashrideLogisticsWebsite() {
     });
 
     if (response.ok) {
-      alert("Demande envoyée. Notre équipe vous recontactera sous 24h.");
+      setSent(true);
       e.target.reset();
     } else {
       alert("Erreur lors de l’envoi.");
@@ -30,11 +31,6 @@ export default function FlashrideLogisticsWebsite() {
 
   return (
     <main className="bg-white text-gray-900 min-h-screen">
-
-            {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white border-b border-gray-100 shadow-md text-gray-900">
-      
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
       
       
           {/* Logo + Nom */}
