@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Footer from "../components/Footer";
+
 
 export default function LogistiqueEvenementielle() {
 
@@ -319,100 +321,7 @@ export default function LogistiqueEvenementielle() {
       {/* FOOTER */}
 
 
-      <footer className="bg-black text-gray-400 py-12 px-6">
-
-
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
-
-
-          <div>
-
-            <h3 className="text-white text-xl font-black">
-
-              <span className="text-[#0B1F3A]">
-                FLASH
-              </span>
-
-              <span className="text-orange-500">
-                RIDE
-              </span>
-
-              <span className="text-white">
-                {" "}LOGISTICS
-              </span>
-
-            </h3>
-
-
-            <p className="mt-4">
-              Société de transport et logistique pour professionnels et particuliers.
-            </p>
-
-
-          </div>
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Prestations
-            </h4>
-
-            <p>Tournées régulières</p>
-            <p>Transport express</p>
-            <p>Transport dédié</p>
-            <p>Transport marchandises</p>
-
-          </div>
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Zones
-            </h4>
-
-            <p>Paris</p>
-            <p>Île-de-France</p>
-            <p>France</p>
-
-          </div>
-
-
-
-          <div>
-
-            <h4 className="text-white font-bold mb-4">
-              Contact
-            </h4>
-
-            <p>
-              📞 07 52 98 81 55
-            </p>
-
-
-            <p className="mt-2">
-              ✉ contact@flashride-logistics.com
-            </p>
-
-
-          </div>
-
-
-        </div>
-
-
-
-        <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
-
-          © 2026 Flashride Logistics — Tous droits réservés.
-
-        </div>
-
-
-      </footer>
+     <Footer />
 
 
     </main>
