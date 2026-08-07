@@ -863,7 +863,11 @@ export default function FlashrideLogisticsWebsite() {
       
       
           </form>
-      
+              {sent && (
+          <div className="mt-6 bg-green-100 text-green-700 p-4 rounded-xl text-center font-semibold">
+            ✅ Votre demande a bien été envoyée. Notre équipe vous recontactera sous 24h.
+          </div>
+        )}
       
         </div>
       
