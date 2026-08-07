@@ -45,7 +45,10 @@ export async function POST(request) {
             <p><strong>Nom / Entreprise :</strong> ${nom}</p>
             <p><strong>Téléphone :</strong> ${telephone}</p>
             <p><strong>Email :</strong> ${email}</p>
-
+            <p><strong>Type de client :</strong> ${client}</p>
+            <p><strong>Date souhaitée :</strong> ${date}</p>
+            <p><strong>Volume :</strong> ${volume}</p>
+            
             <h3>Détails du transport</h3>
 
             <p><strong>Prestation :</strong> ${prestation}</p>
@@ -98,7 +101,9 @@ const customerEmail = await resend.emails.send({
         <p><strong>Prestation :</strong> ${prestation}</p>
         <p><strong>Départ :</strong> ${depart}</p>
         <p><strong>Arrivée :</strong> ${arrivee}</p>
-
+        <p><strong>Date souhaitée :</strong> ${date}</p>
+        <p><strong>Volume :</strong> ${volume}</p>
+        
         <hr>
 
         <p>
