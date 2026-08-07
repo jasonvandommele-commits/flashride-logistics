@@ -316,7 +316,7 @@ export default function FlashrideLogisticsWebsite() {
       
       
             <img
-              src="/images/IMG_0255.jpeg"
+              src="/images/hero-acceuil.jpg"
               alt="Flashride Logistics transport"
               className="relative rounded-3xl shadow-2xl w-full h-[420px] md:h-[520px] object-cover"
             />
@@ -693,7 +693,7 @@ export default function FlashrideLogisticsWebsite() {
       
       
           <img
-            src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=1200"
+            src="/images/carte.jpg"
             alt="Flashride Logistics transport et logistique"
             className="rounded-3xl shadow-2xl w-full h-[450px] object-cover"
           />
