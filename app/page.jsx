@@ -32,6 +32,9 @@ export default function FlashrideLogisticsWebsite() {
   return (
     <main className="bg-white text-gray-900 min-h-screen">
       
+      <nav className="fixed top-0 w-full z-50 bg-white border-b border-gray-100 shadow-md text-gray-900">
+
+  <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
       
           {/* Logo + Nom */}
           <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
