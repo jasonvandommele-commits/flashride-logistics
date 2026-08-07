@@ -650,7 +650,8 @@ export default function FlashrideLogisticsWebsite() {
       
       {/* Entreprise */}
       
-      <section id="about" className="py-24 px-6 bg-black text-white">
+        <section id="about" className="py-24 px-6 bg-gradient-to-br from-black via-[#0B1F3A] to-black text-white">
+
       
       
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
@@ -958,7 +959,7 @@ export default function FlashrideLogisticsWebsite() {
 
 
           {/* Footer */}
-    <footer className="bg-black text-gray-400 py-12 px-6">
+    <footer className="bg-gradient-to-br from-black via-[#0B1F3A] to-black text-gray-400 py-12 px-6">
     
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
     
