@@ -542,77 +542,78 @@ export default function FlashrideLogisticsWebsite() {
       </section>
       
             {/* Avis clients */}
-      <section className="py-24 px-6 bg-gray-100">
-        <div className="max-w-7xl mx-auto">
-      
-          <div className="text-center mb-16">
-            <p className="text-orange-500 font-bold uppercase tracking-widest">
-              Avis clients
-            </p>
-      
-            <h2 className="text-3xl md:text-5xl font-black mt-4">
-              Ce que nos clients en disent
-            </h2>
-      
-            <div className="mt-5 flex items-center justify-center gap-2 text-lg">
-              <span className="text-orange-500 font-black text-2xl">5,0 ★</span>
-              <span className="text-gray-600">— 16 avis vérifiés sur Yoojo</span>
-            </div>
+<section className="py-24 px-6 bg-gray-100">
+  <div className="max-w-7xl mx-auto">
+
+    <div className="text-center mb-16">
+      <p className="text-orange-500 font-bold uppercase tracking-widest">
+        Avis clients
+      </p>
+
+      <h2 className="text-3xl md:text-5xl font-black mt-4">
+        Ce que nos clients en disent
+      </h2>
+
+      <div className="mt-5 flex items-center justify-center gap-2 text-lg">
+        <span className="text-orange-500 font-black text-2xl">5,0 ★</span>
+        <span className="text-gray-600">— 16 avis vérifiés sur Yoojo</span>
+      </div>
+    </div>
+
+    <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 scrollbar-hide">
+      {[
+        {
+          name: "Fernanda",
+          service: "Débarrasser des encombrants",
+          text: "J'ai fait appel à ce prestataire pour un enlèvement d'encombrants et je suis très satisfaite du service. Il a été ponctuel, efficace et surtout très sympa. Je recommande sans hésiter !"
+        },
+        {
+          name: "Claudia",
+          service: "Louer un camion avec chauffeur",
+          text: "Jason est arrivé à l'heure et a effectué le service de déménagement avec rapidité et efficacité. Il a été très aimable, attentif tout au long de l'intervention. Une personne de confiance."
+        },
+        {
+          name: "Sylvie",
+          service: "Déplacer un meuble",
+          text: "TOP, Jason est vraiment SUPER, à l'heure au RV, très soigneux, très patient, vraiment à recommander."
+        },
+        {
+          name: "Vincent",
+          service: "Démonter, transporter, remonter un meuble",
+          text: "Jason est un vrai pro, super volontaire et très sympa."
+        },
+        {
+          name: "Sharon",
+          service: "Aide au déménagement",
+          text: "Super prestataire, gentil et discret, professionnel et méthodique, arrive à l'heure, je recommande x100."
+        },
+        {
+          name: "Maurice",
+          service: "Enlèvement de déchets verts",
+          text: "Prestataire parfait, équipé d'un camion de 20m³. Recommandé, rapide et efficace."
+        }
+      ].map((review, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[85%] sm:w-[380px] snap-start"
+        >
+          <div className="text-orange-500 mb-4">★★★★★</div>
+
+          <p className="text-gray-700 leading-relaxed flex-grow italic">
+            "{review.text}"
+          </p>
+
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <p className="font-bold">{review.name}</p>
+            <p className="text-sm text-gray-500">{review.service}</p>
           </div>
-      
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Fernanda",
-                service: "Débarrasser des encombrants",
-                text: "J'ai fait appel à ce prestataire pour un enlèvement d'encombrants et je suis très satisfaite du service. Il a été ponctuel, efficace et surtout très sympa. Je recommande sans hésiter !"
-              },
-              {
-                name: "Claudia",
-                service: "Louer un camion avec chauffeur",
-                text: "Jason est arrivé à l'heure et a effectué le service de déménagement avec rapidité et efficacité. Il a été très aimable, attentif tout au long de l'intervention. Une personne de confiance."
-              },
-              {
-                name: "Sylvie",
-                service: "Déplacer un meuble",
-                text: "TOP, Jason est vraiment SUPER, à l'heure au RV, très soigneux, très patient, vraiment à recommander."
-              },
-              {
-                name: "Vincent",
-                service: "Démonter, transporter, remonter un meuble",
-                text: "Jason est un vrai pro, super volontaire et très sympa."
-              },
-              {
-                name: "Sharon",
-                service: "Aide au déménagement",
-                text: "Super prestataire, gentil et discret, professionnel et méthodique, arrive à l'heure, je recommande x100."
-              },
-              {
-                name: "Maurice",
-                service: "Enlèvement de déchets verts",
-                text: "Prestataire parfait, équipé d'un camion de 20m³. Recommandé, rapide et efficace."
-              }
-            ].map((review, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col"
-              >
-                <div className="text-orange-500 mb-4">★★★★★</div>
-      
-                <p className="text-gray-700 leading-relaxed flex-grow italic">
-                  "{review.text}"
-                </p>
-      
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <p className="font-bold">{review.name}</p>
-                  <p className="text-sm text-gray-500">{review.service}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-      
         </div>
-      </section>
+      ))}
+    </div>
+
+  </div>
+</section>
+
       
       
       {/* Entreprise */}
