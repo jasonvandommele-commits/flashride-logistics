@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-
-
+import FAQ from "../components/FAQ";
 
 
 export default function TransportExpress() {
@@ -310,6 +309,20 @@ export default function TransportExpress() {
 
       </section>
 
+<FAQ items={[
+  {
+    question: "Sous quel délai pouvez-vous intervenir ?",
+    answer: "Selon votre localisation en Île-de-France, nous pouvons généralement intervenir sous 1 à 2 heures après confirmation de la demande."
+  },
+  {
+    question: "Le transport express est-il disponible le week-end ?",
+    answer: "Contactez-nous directement par téléphone pour vérifier nos disponibilités selon les jours et horaires."
+  },
+  {
+    question: "Quels types de colis ou marchandises acceptez-vous ?",
+    answer: "Documents, plis, petits colis jusqu'aux volumes plus importants selon le véhicule mobilisé. Précisez votre besoin lors de la demande de devis."
+  }
+]} />
 
 
 
