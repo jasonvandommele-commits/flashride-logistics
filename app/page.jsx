@@ -180,7 +180,12 @@ export default function FlashrideLogisticsWebsite() {
                 Solutions adaptées
       
               </div>
-      
+              
+              <div>
+          <p className="text-white font-bold text-xl">Assuré</p>
+          Marchandises couvertes
+        </div>
+
       
             </div>
       
