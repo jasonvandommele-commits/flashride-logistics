@@ -316,7 +316,7 @@ export default function TransportExpress() {
   },
   {
     question: "Le transport express est-il disponible le week-end ?",
-    answer: "Nous sommes disponible du Lundi au Dimanche, 24/24."
+    answer: "Oui, nous sommes disponibles 7j/7 et 24h/24 pour vos besoins de transport urgents."
   },
   {
     question: "Quels types de colis ou marchandises acceptez-vous ?",
