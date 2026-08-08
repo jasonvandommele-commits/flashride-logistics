@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-
+import FAQ from "../components/FAQ";
 
 
 export default function LogistiqueEvenementielle() {
@@ -193,6 +193,16 @@ export default function LogistiqueEvenementielle() {
       </section>
 
 
+<FAQ items={[
+  {
+    question: "Intervenez-vous pour des événements privés et professionnels ?",
+    answer: "Oui, nous accompagnons aussi bien les particuliers que les entreprises pour l'acheminement de matériel événementiel."
+  },
+  {
+    question: "Combien de temps à l'avance dois-je réserver ?",
+    answer: "Nous recommandons de nous contacter dès que possible, idéalement plusieurs jours avant l'événement, pour garantir la disponibilité."
+  }
+]} />
 
 
 
