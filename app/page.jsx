@@ -403,12 +403,11 @@ export default function FlashrideLogisticsWebsite() {
       
       
               <div
-                key={index}
-                className="bg-gray-100 rounded-3xl p-8 hover:shadow-xl transition"
-              >
-      
-      
-                <div className="w-14 h-14 bg-[#0B1F3A] rounded-2xl mb-6 flex items-center justify-center">
+              key={index}
+              className="bg-gray-100 rounded-3xl p-6 hover:shadow-xl transition"
+            >
+              <div className="w-12 h-12 bg-[#0B1F3A] rounded-2xl mb-4 flex items-center justify-center">
+
       
                   <div className="w-5 h-5 bg-orange-500 rounded-full"></div>
       
