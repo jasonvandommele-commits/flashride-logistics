@@ -5,7 +5,7 @@ export default function Footer() {
 
         <div>
           <h3 className="text-white text-xl font-black">
-            <span className="text-white">FLASH</span>
+            <span className="text-[#0B1F3A]">FLASH</span>
             <span className="text-orange-500">RIDE</span>
             <span className="text-white"> LOGISTICS</span>
           </h3>
