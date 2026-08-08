@@ -94,6 +94,7 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-bold mb-4">Contact</h4>
           <p>📞 07 52 98 81 55</p>
+          <p className="text-sm text-orange-400 font-semibold mt-1">Disponible 24h/24 · 7j/7</p>
           <p className="mt-2">✉ contact@flashride-logistics.com</p>
           <p className="mt-2 text-sm text-gray-500">Transport assuré · Activité conforme à la réglementation</p>
 
@@ -107,18 +108,20 @@ export default function Footer() {
 
       </div>
 
-      <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
-        <p>© 2026 Flashride Logistics — Tous droits réservés.</p>
-
-        <div className="mt-4 flex justify-center gap-6">
-          <a href="/mentions-legales" className="hover:text-orange-500">
-            Mentions légales
-          </a>
-          <a href="/confidentialite" className="hover:text-orange-500">
-            Politique de confidentialité
-          </a>
-        </div>
+          <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
+      <p>© 2026 Flashride Logistics — Tous droits réservés.</p>
+      <p className="mt-2 text-gray-500">SIRET : 101 518 934 00019</p>
+    
+      <div className="mt-4 flex justify-center gap-6">
+        <a href="/mentions-legales" className="hover:text-orange-500">
+          Mentions légales
+        </a>
+        <a href="/confidentialite" className="hover:text-orange-500">
+          Politique de confidentialité
+        </a>
       </div>
+    </div>
+
     </footer>
   );
 }
