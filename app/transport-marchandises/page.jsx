@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 
 export default function TransportMarchandises() {
 
-  const [menuOpen, setMenuOpen] = useState(false);
-
-
+  
   return (
 
     <main className="bg-white text-gray-900 min-h-screen">
@@ -16,109 +15,7 @@ export default function TransportMarchandises() {
 
       {/* HEADER */}
 
-      <nav className="fixed top-0 w-full z-50 bg-white border-b border-gray-100 shadow-md">
-
-
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
-
-
-          <div className="flex items-center gap-2">
-
-            <img
-              src="/images/IMG_0265.png"
-              alt="Flashride Logistics"
-              className="h-10 md:h-14 w-auto"
-            />
-
-
-            <div className="text-sm md:text-xl font-black whitespace-nowrap">
-
-              <span className="text-[#0B1F3A]">FLASH</span>
-              <span className="text-orange-500">RIDE</span>
-              <span className="text-[#0B1F3A]"> LOGISTICS</span>
-
-            </div>
-
-          </div>
-
-
-
-          <div className="hidden md:flex gap-8 items-center text-sm font-medium">
-
-            <a href="/" className="hover:text-orange-500">
-              Accueil
-            </a>
-
-            <a href="/#services" className="hover:text-orange-500">
-              Services
-            </a>
-
-            <a href="/#about" className="hover:text-orange-500">
-              Entreprise
-            </a>
-
-            <a href="/#contact" className="hover:text-orange-500">
-              Contact
-            </a>
-
-            <a
-              href="/#devis"
-              className="bg-orange-500 text-white px-5 py-3 rounded-xl font-bold"
-            >
-              Demander un devis
-            </a>
-
-          </div>
-
-
-
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-3xl"
-          >
-            {menuOpen ? "✕" : "☰"}
-          </button>
-
-
-        </div>
-
-
-
-        {menuOpen && (
-
-          <div className="md:hidden bg-white shadow-xl">
-
-            <a href="/" className="block px-6 py-4">
-              Accueil
-            </a>
-
-            <a href="/#services" className="block px-6 py-4">
-              Services
-            </a>
-
-            <a href="/#about" className="block px-6 py-4">
-              Entreprise
-            </a>
-
-            <a href="/#contact" className="block px-6 py-4">
-              Contact
-            </a>
-
-            <a
-              href="/#devis"
-              className="block mx-6 mb-5 bg-orange-500 text-white text-center py-3 rounded-xl font-bold"
-            >
-              Demander un devis
-            </a>
-
-          </div>
-
-        )}
-
-      </nav>
-
-
-
+      <Navbar />
 
 
       {/* HERO */}
