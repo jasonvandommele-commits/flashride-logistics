@@ -316,11 +316,11 @@ export default function TransportExpress() {
   },
   {
     question: "Le transport express est-il disponible le week-end ?",
-    answer: "Contactez-nous directement par téléphone pour vérifier nos disponibilités selon les jours et horaires."
+    answer: "Nous sommes disponible du Lundi au Dimanche, 24/24."
   },
   {
     question: "Quels types de colis ou marchandises acceptez-vous ?",
-    answer: "Documents, plis, petits colis jusqu'aux volumes plus importants selon le véhicule mobilisé. Précisez votre besoin lors de la demande de devis."
+    answer: "Documents, plis, colis jusqu'aux volumes plus importants selon le véhicule mobilisé. Précisez votre besoin lors de la demande de devis."
   }
 ]} />
 
