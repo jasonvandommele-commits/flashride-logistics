@@ -41,6 +41,7 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-bold mb-4">Contact</h4>
           <p>📞 07 52 98 81 55</p>
+          <p className="mt-2">✉ contact@flashride-logistics.com</p>
           <p className="mt-2 text-sm text-gray-500">Transport assuré · Activité conforme à la réglementation</p>
 
           <a
