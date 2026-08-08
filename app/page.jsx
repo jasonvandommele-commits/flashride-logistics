@@ -154,27 +154,28 @@ export default function FlashrideLogisticsWebsite() {
           
           </div>
       
-          <div className="mt-10 flex flex-wrap gap-10 text-sm text-gray-400">
+              <div className="mt-10 grid grid-cols-4 gap-2 sm:gap-8 text-gray-400">
       <div>
-        <p className="text-white font-bold text-xl">IDF</p>
-        Départ & organisation nationale
+        <p className="text-white font-bold text-sm sm:text-xl leading-tight">IDF</p>
+        <p className="text-[10px] sm:text-sm leading-tight mt-1">Départ & organisation nationale</p>
       </div>
     
       <div>
-        <p className="text-white font-bold text-xl">Pro & Particuliers</p>
-        Solutions adaptées
+        <p className="text-white font-bold text-sm sm:text-xl leading-tight">Pro & Particuliers</p>
+        <p className="text-[10px] sm:text-sm leading-tight mt-1">Solutions adaptées</p>
       </div>
     
       <div>
-        <p className="text-white font-bold text-xl">Assuré</p>
-        Marchandises couvertes
+        <p className="text-white font-bold text-sm sm:text-xl leading-tight">Assuré</p>
+        <p className="text-[10px] sm:text-sm leading-tight mt-1">Marchandises couvertes</p>
       </div>
     
       <div>
-        <p className="text-white font-bold text-xl">24/7</p>
-        Disponible jour et nuit
+        <p className="text-white font-bold text-sm sm:text-xl leading-tight">24/7</p>
+        <p className="text-[10px] sm:text-sm leading-tight mt-1">Jour et nuit</p>
       </div>
     </div>
+
 
       
           </div>
