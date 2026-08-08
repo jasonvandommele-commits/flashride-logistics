@@ -123,30 +123,31 @@ export default function Reviews() {
         <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 scrollbar-hide">
           {reviews.map((review, index) => (
             <div
-              key={index}
-              className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[85%] sm:w-[380px] snap-start"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-orange-500">★★★★★</div>
-                <span className="text-xs text-gray-400">{review.date}</span>
-              </div>
-
-              <p className="text-gray-700 leading-relaxed flex-grow italic">
-                "{review.text}"
-              </p>
-
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold">{review.name}</p>
-                  {review.clientRegulier && (
-                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">
-                      Client régulier
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500">{review.service}</p>
-              </div>
+          key={index}
+          className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[75%] sm:w-[260px] snap-start"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-orange-500 text-sm">★★★★★</div>
+            <span className="text-xs text-gray-400">{review.date}</span>
+          </div>
+        
+          <p className="text-gray-700 text-sm leading-relaxed flex-grow italic">
+            "{review.text}"
+          </p>
+        
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <p className="font-bold text-sm">{review.name}</p>
+              {review.clientRegulier && (
+                <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">
+                  Client régulier
+                </span>
+              )}
             </div>
+            <p className="text-xs text-gray-500">{review.service}</p>
+          </div>
+        </div>
+
           ))}
         </div>
 
