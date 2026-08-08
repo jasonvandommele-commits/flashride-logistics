@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import FAQ from "../components/FAQ";
 
 
 export default function TransportDedie() {
@@ -169,6 +170,17 @@ export default function TransportDedie() {
       </section>
 
 
+<FAQ items={[
+  {
+    question: "Qu'est-ce qui différencie le transport dédié du transport classique ?",
+    answer: "Un interlocuteur unique et une organisation entièrement construite autour de vos contraintes spécifiques : volumes, horaires, zones."
+  },
+  {
+  question: "Le transport dédié est-il réservé aux entreprises ?",
+  answer: "Non, cette solution s'adresse aussi bien aux entreprises qu'aux particuliers ayant des besoins récurrents ou spécifiques nécessitant une organisation sur mesure."
+}
+
+]} />
 
 
 
