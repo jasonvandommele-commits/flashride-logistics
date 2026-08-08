@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import FAQ from "../components/FAQ";
 
 
 export default function TourneesRegulieres() {
@@ -380,6 +381,20 @@ export default function TourneesRegulieres() {
       </section>
 
 
+<FAQ items={[
+  {
+    question: "Quelle fréquence de tournée proposez-vous ?",
+    answer: "Quotidienne, hebdomadaire ou selon un planning personnalisé défini avec vous en fonction de votre activité."
+  },
+  {
+    question: "Puis-je modifier ma tournée en cours de contrat ?",
+    answer: "Oui, nos solutions sont flexibles et s'adaptent à l'évolution de vos besoins."
+  },
+  {
+    question: "Y a-t-il un engagement minimum ?",
+    answer: "Nous étudions chaque demande individuellement pour proposer une organisation adaptée, sans contrainte excessive."
+  }
+]} />
 
 
 
