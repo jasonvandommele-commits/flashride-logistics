@@ -95,7 +95,7 @@ export default function Footer() {
           <h4 className="text-white font-bold mb-4">Contact</h4>
           <p>📞 07 52 98 81 55</p>
           <p className="text-sm text-orange-400 font-semibold mt-1">Disponible 24h/24 · 7j/7</p>
-          <p className="mt-2">✉ contact@flashride-logistics.com</p>
+          <p className="mt-2">✉ contact@flashride-logistics.fr</p>
           <p className="mt-2 text-sm text-gray-500">Transport assuré · Activité conforme à la réglementation</p>
 
           <a
