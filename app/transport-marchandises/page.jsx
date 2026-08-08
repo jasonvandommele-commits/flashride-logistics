@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import FAQ from "../components/FAQ";
 
 
 export default function TransportMarchandises() {
@@ -186,6 +187,17 @@ export default function TransportMarchandises() {
       </section>
 
 
+<FAQ items={[
+  {
+    question: "Quel volume de marchandises pouvez-vous transporter ?",
+    answer: "Du petit colis jusqu'à 20m³ avec hayon, selon le véhicule le plus adapté à votre besoin."
+  },
+  {
+  question: "Les marchandises sont-elles assurées pendant le transport ?",
+  answer: "Oui, nos prestations sont couvertes par une assurance transport, dans les conditions et limites prévues par le contrat d'assurance en vigueur."
+}
+
+]} />
 
 
 
