@@ -1,11 +1,11 @@
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-black via-[#0B1F3A] to-black text-gray-400 py-12 px-6">
+    <footer className="bg-[#0B1F3A] text-gray-400 py-12 px-6">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
 
         <div>
           <h3 className="text-white text-xl font-black">
-            <span className="text-[#0B1F3A]">FLASH</span>
+            <span className="text-white">FLASH</span>
             <span className="text-orange-500">RIDE</span>
             <span className="text-white"> LOGISTICS</span>
           </h3>
@@ -15,21 +15,74 @@ export default function Footer() {
             Des solutions adaptées aux tournées, livraisons, événements et besoins
             spécifiques.
           </p>
+
+          {/* Réseaux sociaux */}
+          <div className="mt-5 flex items-center gap-4">
+            <a
+              href="https://www.instagram.com/flashridelogistics.fr"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram Flashride Logistics"
+              className="hover:text-orange-500 transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+            {/* LinkedIn à ajouter prochainement ici */}
+          </div>
         </div>
 
         <div>
           <h4 className="text-white font-bold mb-4">Nos prestations</h4>
           <ul className="space-y-2">
-            <li>Tournées dédiées</li>
-            <li>Transport express</li>
-            <li>Transport de marchandises</li>
-            <li>Sous-traitance transport</li>
-            <li>Logistique événementielle</li>
+            <li>
+              <a href="/transport-express" className="hover:text-orange-500 transition">
+                Transport express
+              </a>
+            </li>
+            <li>
+              <a href="/tournees-regulieres" className="hover:text-orange-500 transition">
+                Tournées régulières
+              </a>
+            </li>
+            <li>
+              <a href="/transport-dedie" className="hover:text-orange-500 transition">
+                Transport dédié
+              </a>
+            </li>
+            <li>
+              <a href="/transport-marchandises" className="hover:text-orange-500 transition">
+                Transport de marchandises
+              </a>
+            </li>
+            <li>
+              <a href="/logistique-evenementielle" className="hover:text-orange-500 transition">
+                Logistique événementielle
+              </a>
+            </li>
+            <li>
+              <a href="/transport-national" className="hover:text-orange-500 transition">
+                Transport national & européen
+              </a>
+            </li>
           </ul>
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-4">Zones d’intervention</h4>
+          <h4 className="text-white font-bold mb-4">Zones d'intervention</h4>
           <ul className="space-y-2">
             <li>Paris</li>
             <li>Île-de-France</li>
@@ -69,4 +122,3 @@ export default function Footer() {
     </footer>
   );
 }
-
