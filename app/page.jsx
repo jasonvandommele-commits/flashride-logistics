@@ -289,13 +289,12 @@ export default function FlashrideLogisticsWebsite() {
             ].map((service,index)=>(
       
       
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
-              >
-      
-      
-                <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mb-6">
+             <div
+              key={index}
+              className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
+            >
+              <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-4">
+
       
                   <div className="w-5 h-5 bg-white rounded-full"></div>
       
