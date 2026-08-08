@@ -203,16 +203,6 @@ export default function TransportNational() {
       </section>
 
 
-
-
-
-
-      {/* FOOTER */}
-
-
-      <Footer />
-
-
 <FAQ items={[
   {
     question: "Quelles zones couvrez-vous en dehors de l'Île-de-France ?",
@@ -223,6 +213,14 @@ export default function TransportNational() {
     answer: "Oui, pour des besoins ponctuels ou réguliers vers l'Europe, contactez-nous pour étudier votre demande."
   }
 ]} />
+
+
+
+      {/* FOOTER */}
+
+
+      <Footer />
+
 
 
     </main>
