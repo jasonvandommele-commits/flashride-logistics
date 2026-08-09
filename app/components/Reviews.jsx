@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef, useEffect, useState } from "react";
+
 export default function Reviews() {
   const reviews = [
     {
@@ -101,6 +105,38 @@ export default function Reviews() {
     }
   ];
 
+  // On duplique la liste pour créer une boucle infinie sans "saut" visible
+  const loopedReviews = [...reviews, ...reviews];
+
+  const scrollerRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    let animationFrameId;
+    const speed = 0.6; // pixels par frame — ajuste pour aller plus vite/lentement
+
+    const step = () => {
+      if (!isPaused && scroller) {
+        scroller.scrollLeft += speed;
+
+        // Quand on a défilé la largeur d'un set complet, on revient au début
+        // sans que ça se voie, puisque le deuxième set est identique au premier
+        const singleSetWidth = scroller.scrollWidth / 2;
+        if (scroller.scrollLeft >= singleSetWidth) {
+          scroller.scrollLeft -= singleSetWidth;
+        }
+      }
+      animationFrameId = requestAnimationFrame(step);
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isPaused]);
+
   return (
     <section className="py-24 px-6 bg-gray-100">
       <div className="max-w-7xl mx-auto">
@@ -120,34 +156,41 @@ export default function Reviews() {
           </div>
         </div>
 
-        <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 scrollbar-hide">
-          {reviews.map((review, index) => (
-            <div
-          key={index}
-          className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[75%] sm:w-[260px] snap-start"
+        <div
+          ref={scrollerRef}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+          className="flex gap-6 overflow-x-auto pb-6 -mx-6 px-6 scrollbar-hide"
+          style={{ scrollBehavior: "auto" }}
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-orange-500 text-sm">★★★★★</div>
-            <span className="text-xs text-gray-400">{review.date}</span>
-          </div>
-        
-          <p className="text-gray-700 text-sm leading-relaxed flex-grow italic">
-            "{review.text}"
-          </p>
-        
-          <div className="mt-4 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <p className="font-bold text-sm">{review.name}</p>
-              {review.clientRegulier && (
-                <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">
-                  Client régulier
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-gray-500">{review.service}</p>
-          </div>
-        </div>
+          {loopedReviews.map((review, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[75%] sm:w-[260px]"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-orange-500 text-sm">★★★★★</div>
+                <span className="text-xs text-gray-400">{review.date}</span>
+              </div>
 
+              <p className="text-gray-700 text-sm leading-relaxed flex-grow italic">
+                "{review.text}"
+              </p>
+
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm">{review.name}</p>
+                  {review.clientRegulier && (
+                    <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">
+                      Client régulier
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">{review.service}</p>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -155,4 +198,3 @@ export default function Reviews() {
     </section>
   );
 }
-
