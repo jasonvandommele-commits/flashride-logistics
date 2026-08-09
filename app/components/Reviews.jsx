@@ -138,7 +138,7 @@ export default function Reviews() {
           <div
             className="flex gap-6 w-max"
             style={{
-              animation: "reviews-marquee 45s linear infinite",
+              animation: "reviews-marquee 80s linear infinite",
               animationPlayState: isPaused ? "paused" : "running",
             }}
           >
