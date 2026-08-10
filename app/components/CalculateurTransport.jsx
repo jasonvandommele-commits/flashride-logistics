@@ -33,7 +33,19 @@ function AddressInput({
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
 
+  // Empêche une nouvelle recherche après
+  // la sélection d'une suggestion.
+  const selectionRef = useRef(false);
+
   useEffect(() => {
+    // Une adresse vient d'être sélectionnée.
+    // Le changement de value ne doit donc pas
+    // déclencher une nouvelle recherche.
+    if (selectionRef.current) {
+      selectionRef.current = false;
+      return;
+    }
+
     const text = String(value || "").trim();
 
     if (abortRef.current) {
@@ -53,13 +65,16 @@ function AddressInput({
 
       abortRef.current = controller;
 
-      const requestId = ++requestIdRef.current;
+      const requestId =
+        ++requestIdRef.current;
 
       setLoadingSuggestions(true);
 
       try {
         const response = await fetch(
-          `/api/autocomplete?text=${encodeURIComponent(text)}`,
+          `/api/autocomplete?text=${encodeURIComponent(
+            text
+          )}`,
           {
             method: "GET",
             cache: "no-store",
@@ -73,20 +88,31 @@ function AddressInput({
           );
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
-        if (requestId !== requestIdRef.current) {
+        if (
+          requestId !==
+          requestIdRef.current
+        ) {
           return;
         }
 
-        const results = Array.isArray(data.suggestions)
-          ? data.suggestions
-          : [];
+        const results =
+          Array.isArray(
+            data.suggestions
+          )
+            ? data.suggestions
+            : [];
 
         setSuggestions(results);
-        setShowSuggestions(results.length > 0);
+        setShowSuggestions(
+          results.length > 0
+        );
       } catch (error) {
-        if (error?.name === "AbortError") {
+        if (
+          error?.name === "AbortError"
+        ) {
           return;
         }
 
@@ -95,12 +121,18 @@ function AddressInput({
           error
         );
 
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId ===
+          requestIdRef.current
+        ) {
           setSuggestions([]);
           setShowSuggestions(false);
         }
       } finally {
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId ===
+          requestIdRef.current
+        ) {
           setLoadingSuggestions(false);
         }
       }
@@ -115,7 +147,9 @@ function AddressInput({
     function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
+        !wrapperRef.current.contains(
+          event.target
+        )
       ) {
         setShowSuggestions(false);
       }
@@ -148,7 +182,25 @@ function AddressInput({
       return;
     }
 
-    onSelect(name, formatted, suggestion);
+    // Signale au useEffect que le changement
+    // de value vient d'une sélection utilisateur.
+    selectionRef.current = true;
+
+    // Annule immédiatement toute recherche
+    // encore en cours.
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
+    // Invalide les anciennes requêtes.
+    requestIdRef.current += 1;
+
+    onSelect(
+      name,
+      formatted,
+      suggestion
+    );
 
     setSuggestions([]);
     setShowSuggestions(false);
@@ -171,7 +223,9 @@ function AddressInput({
           value={value}
           onChange={onChange}
           onFocus={() => {
-            if (suggestions.length > 0) {
+            if (
+              suggestions.length > 0
+            ) {
               setShowSuggestions(true);
             }
           }}
@@ -188,69 +242,76 @@ function AddressInput({
         )}
       </div>
 
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-          {suggestions.map((suggestion, index) => {
-            const addressLine1 =
-              suggestion.addressLine1 ||
-              [
-                suggestion.housenumber,
-                suggestion.street,
-              ]
-                .filter(Boolean)
-                .join(" ") ||
-              suggestion.formatted;
+      {showSuggestions &&
+        suggestions.length > 0 && (
+          <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+            {suggestions.map(
+              (suggestion, index) => {
+                const addressLine1 =
+                  suggestion.addressLine1 ||
+                  [
+                    suggestion.housenumber,
+                    suggestion.street,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  suggestion.formatted;
 
-            const addressLine2 =
-              suggestion.addressLine2 ||
-              [
-                suggestion.postcode,
-                suggestion.city,
-              ]
-                .filter(Boolean)
-                .join(" ");
+                const addressLine2 =
+                  suggestion.addressLine2 ||
+                  [
+                    suggestion.postcode,
+                    suggestion.city,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
 
-            return (
-              <button
-                key={
-                  suggestion.placeId ||
-                  `${suggestion.formatted}-${index}`
-                }
-                type="button"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  handleSelect(suggestion);
-                }}
-                className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 text-orange-500">
-                    📍
-                  </div>
+                return (
+                  <button
+                    key={
+                      suggestion.placeId ||
+                      `${suggestion.formatted}-${index}`
+                    }
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
 
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900">
-                      {addressLine1}
-                    </p>
+                      handleSelect(
+                        suggestion
+                      );
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 text-orange-500">
+                        📍
+                      </div>
 
-                    {addressLine2 && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {addressLine2}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">
+                          {addressLine1}
+                        </p>
+
+                        {addressLine2 && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            {addressLine2}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        )}
     </div>
   );
 }
 
 export default function CalculateurTransport() {
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] =
+    useState(INITIAL_FORM);
 
   const [selectedAddresses, setSelectedAddresses] =
     useState({
@@ -258,9 +319,14 @@ export default function CalculateurTransport() {
       arrivee: null,
     });
 
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [result, setResult] =
+    useState(null);
+
+  const [error, setError] =
+    useState("");
 
   function handleChange(event) {
     const {
@@ -282,10 +348,12 @@ export default function CalculateurTransport() {
       name === "depart" ||
       name === "arrivee"
     ) {
-      setSelectedAddresses((previous) => ({
-        ...previous,
-        [name]: null,
-      }));
+      setSelectedAddresses(
+        (previous) => ({
+          ...previous,
+          [name]: null,
+        })
+      );
 
       setResult(null);
       setError("");
@@ -302,27 +370,42 @@ export default function CalculateurTransport() {
       [name]: value,
     }));
 
-    setSelectedAddresses((previous) => ({
-      ...previous,
-      [name]: suggestion
-        ? {
-            latitude:
-              suggestion.latitude ?? null,
-            longitude:
-              suggestion.longitude ?? null,
-            postcode:
-              suggestion.postcode || "",
-            city:
-              suggestion.city || "",
-            formatted:
-              suggestion.formatted || value,
-            housenumber:
-              suggestion.housenumber || "",
-            street:
-              suggestion.street || "",
-          }
-        : null,
-    }));
+    setSelectedAddresses(
+      (previous) => ({
+        ...previous,
+        [name]: suggestion
+          ? {
+              latitude:
+                suggestion.latitude ??
+                null,
+
+              longitude:
+                suggestion.longitude ??
+                null,
+
+              postcode:
+                suggestion.postcode ||
+                "",
+
+              city:
+                suggestion.city ||
+                "",
+
+              formatted:
+                suggestion.formatted ||
+                value,
+
+              housenumber:
+                suggestion.housenumber ||
+                "",
+
+              street:
+                suggestion.street ||
+                "",
+            }
+          : null,
+      })
+    );
 
     setResult(null);
     setError("");
@@ -346,17 +429,19 @@ export default function CalculateurTransport() {
           selectedAddresses.arrivee,
       };
 
-      const response = await fetch(
-        "/api/calculateur",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response =
+        await fetch(
+          "/api/calculateur",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify(body),
+          }
+        );
 
       const data =
         await response.json();
@@ -399,6 +484,7 @@ export default function CalculateurTransport() {
   return (
     <section className="py-24 px-6 bg-gray-100">
       <div className="max-w-5xl mx-auto">
+
         <div className="text-center mb-12">
           <p className="text-orange-500 font-bold uppercase tracking-widest">
             Calculateur transport
@@ -420,13 +506,16 @@ export default function CalculateurTransport() {
           className="bg-white rounded-3xl shadow-xl p-8"
         >
           <div className="grid md:grid-cols-2 gap-6">
+
             <AddressInput
               name="depart"
               label="Ville ou adresse de départ"
               placeholder="Ex. 3 rue Delaporte, Maisons-Alfort"
               value={form.depart}
               onChange={handleChange}
-              onSelect={handleAddressSelect}
+              onSelect={
+                handleAddressSelect
+              }
             />
 
             <AddressInput
@@ -435,8 +524,11 @@ export default function CalculateurTransport() {
               placeholder="Ex. 10 avenue de Paris, Versailles"
               value={form.arrivee}
               onChange={handleChange}
-              onSelect={handleAddressSelect}
+              onSelect={
+                handleAddressSelect
+              }
             />
+
           </div>
 
           <div className="mt-8">
@@ -445,8 +537,13 @@ export default function CalculateurTransport() {
             </p>
 
             <div className="grid sm:grid-cols-2 gap-4">
+
               {[
-                ["urgent", "Urgent", "+20 € HT"],
+                [
+                  "urgent",
+                  "Urgent",
+                  "+20 € HT",
+                ],
                 [
                   "express",
                   "Express / prioritaire",
@@ -457,7 +554,11 @@ export default function CalculateurTransport() {
                   "Attente 30 min",
                   "+30 € HT",
                 ],
-                ["samedi", "Samedi", "+10 %"],
+                [
+                  "samedi",
+                  "Samedi",
+                  "+10 %",
+                ],
                 [
                   "nuit",
                   "Nuit 22h–6h",
@@ -469,7 +570,11 @@ export default function CalculateurTransport() {
                   "+30 %",
                 ],
               ].map(
-                ([name, title, price]) => (
+                ([
+                  name,
+                  title,
+                  price,
+                ]) => (
                   <label
                     key={name}
                     className="flex items-center gap-3 border rounded-xl p-4 cursor-pointer hover:border-orange-300 transition"
@@ -478,7 +583,9 @@ export default function CalculateurTransport() {
                       type="checkbox"
                       name={name}
                       checked={form[name]}
-                      onChange={handleChange}
+                      onChange={
+                        handleChange
+                      }
                       className="w-5 h-5 accent-orange-500"
                     />
 
@@ -496,6 +603,7 @@ export default function CalculateurTransport() {
                   </label>
                 )
               )}
+
             </div>
           </div>
 
@@ -522,6 +630,7 @@ export default function CalculateurTransport() {
             className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
           >
             <div className="text-center">
+
               <p className="text-gray-500 font-semibold">
                 Estimation de votre transport
               </p>
@@ -536,9 +645,11 @@ export default function CalculateurTransport() {
               <p className="text-gray-500 mt-2">
                 Transport 20 m³ avec chauffeur
               </p>
+
             </div>
 
             <div className="mt-8 grid md:grid-cols-3 gap-4">
+
               <div className="bg-gray-100 rounded-2xl p-5 text-center">
                 <p className="text-gray-500 text-sm">
                   Départ
@@ -585,11 +696,15 @@ export default function CalculateurTransport() {
                     result.arrivee.ville}
                 </p>
               </div>
+
             </div>
 
             <div className="mt-8 border-t pt-6">
+
               <div className="flex justify-between py-2">
-                <span>Tarif de base</span>
+                <span>
+                  Tarif de base
+                </span>
 
                 <strong>
                   {result.tarif.baseHT} € HT
@@ -597,7 +712,8 @@ export default function CalculateurTransport() {
               </div>
 
               {result.tarif
-                .supplementDistanceHT > 0 && (
+                .supplementDistanceHT >
+                0 && (
                 <div className="flex justify-between py-2">
                   <span>
                     Ajustement distance
@@ -615,7 +731,10 @@ export default function CalculateurTransport() {
               )}
 
               {result.supplements?.map(
-                (supplement, index) => (
+                (
+                  supplement,
+                  index
+                ) => (
                   <div
                     key={index}
                     className="flex justify-between py-2"
@@ -625,16 +744,19 @@ export default function CalculateurTransport() {
                     </span>
 
                     <strong>
-                      {supplement.amount !== null
+                      {supplement.amount !==
+                      null
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
                   </div>
                 )
               )}
+
             </div>
 
             <div className="mt-6 bg-orange-50 rounded-2xl p-5">
+
               <p className="font-bold">
                 À prévoir en supplément
               </p>
@@ -643,9 +765,11 @@ export default function CalculateurTransport() {
                 Péages facturés en supplément.
                 Manutention sur devis.
               </p>
+
             </div>
 
             <div className="mt-6 text-center">
+
               <p className="text-xs text-gray-500 leading-relaxed">
                 Tarif indicatif calculé
                 automatiquement. Le montant
@@ -655,6 +779,7 @@ export default function CalculateurTransport() {
                 le stationnement, la manutention
                 ou les contraintes particulières.
               </p>
+
             </div>
 
             <a
@@ -663,8 +788,10 @@ export default function CalculateurTransport() {
             >
               Confirmer ma demande de devis
             </a>
+
           </div>
         )}
+
       </div>
     </section>
   );
