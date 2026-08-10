@@ -1,4 +1,4 @@
-import { NextResponse } from "next";
+import { NextResponse } from "next/server";
 
 const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
@@ -71,12 +71,12 @@ const VEHICLE_PRICES = {
   },
 
   fourgon: {
-    paris_paris: 69,
-    paris_petite: 79,
-    petite_petite: 79,
-    paris_grande: 99,
-    petite_grande: 94,
-    grande_grande: 99,
+    paris_paris: 39,
+    paris_petite: 45,
+    petite_petite: 45,
+    paris_grande: 55,
+    petite_grande: 52,
+    grande_grande: 59,
   },
 
   "20m3": {
@@ -116,12 +116,12 @@ const DISTANCE_SUPPLEMENTS = {
 
   fourgon: [
     [10, 0],
-    [20, 8],
+    [20, 7],
     [30, 12],
-    [40, 17],
-    [50, 22],
-    [75, 30],
-    [100, 40],
+    [40, 18],
+    [50, 24],
+    [75, 32],
+    [100, 42],
   ],
 
   "20m3": [
