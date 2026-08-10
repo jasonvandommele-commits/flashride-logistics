@@ -62,21 +62,21 @@ const VEHICLE_PRICES = {
   },
 
   petit_fourgon: {
-    paris_paris: 29,
-    paris_petite: 35,
-    petite_petite: 35,
-    paris_grande: 45,
-    petite_grande: 42,
-    grande_grande: 49,
+    paris_paris: 35,
+    paris_petite: 41,
+    petite_petite: 41,
+    paris_grande: 51,
+    petite_grande: 48,
+    grande_grande: 55,
   },
 
-  fourgon: {
-    paris_paris: 39,
-    paris_petite: 45,
-    petite_petite: 45,
-    paris_grande: 55,
-    petite_grande: 52,
-    grande_grande: 59,
+    fourgon: {
+    paris_paris: 65,
+    paris_petite: 75,
+    petite_petite: 75,
+    paris_grande: 95,
+    petite_grande: 90,
+    grande_grande: 95,
   },
 
   "20m3": {
@@ -106,22 +106,22 @@ const DISTANCE_SUPPLEMENTS = {
 
   petit_fourgon: [
     [10, 0],
-    [20, 5],
-    [30, 10],
-    [40, 15],
+    [20, 6],
+    [30, 11],
+    [40, 16],
     [50, 20],
     [75, 30],
     [100, 40],
   ],
 
-  fourgon: [
+    fourgon: [
     [10, 0],
-    [20, 7],
+    [20, 8],
     [30, 12],
-    [40, 18],
-    [50, 24],
-    [75, 32],
-    [100, 42],
+    [40, 17],
+    [50, 22],
+    [75, 30],
+    [100, 40],
   ],
 
   "20m3": [
