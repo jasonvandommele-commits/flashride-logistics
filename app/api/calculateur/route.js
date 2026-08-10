@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
-
-/* =========================================================
-   RATE LIMIT
-========================================================= */
-
-const CALCULATEUR_LIMIT = 5; // requêtes
-const CALCULATEUR_WINDOW_MS = 60 * 1000; // par minute
 
 /* =========================================================
    ZONES TARIFAIRES
@@ -281,51 +273,6 @@ async function geocode(address) {
   }
 
   /* =======================================================
-     CONFIANCE
-     On écarte les correspondances trop incertaines, sauf si
-     elles matchent exactement le numéro demandé (fiable même
-     avec une confidence Geoapify modeste).
-  ======================================================= */
-
-  const MIN_CONFIDENCE = 0.5;
-
-  const wantedNumber = requestedNumber
-    .trim()
-    .toLowerCase();
-
-  const filteredFeatures = features.filter((feature) => {
-    const properties = feature.properties || {};
-
-    const returnedNumber = String(
-      properties.housenumber ||
-        properties.house_number ||
-        ""
-    )
-      .trim()
-      .toLowerCase();
-
-    if (
-      wantedNumber &&
-      returnedNumber === wantedNumber
-    ) {
-      return true;
-    }
-
-    const confidence = Number(
-      properties.rank?.confidence
-    );
-
-    return (
-      !Number.isFinite(confidence) ||
-      confidence >= MIN_CONFIDENCE
-    );
-  });
-
-  if (filteredFeatures.length > 0) {
-    features = filteredFeatures;
-  }
-
-  /* =======================================================
      DOUBLONS
   ======================================================= */
 
@@ -468,8 +415,6 @@ async function geocode(address) {
     longitude:
       Number(coordinates[0]),
 
-    // On privilégie le "formatted" de Geoapify (déjà résolu et
-    // cohérent) plutôt que le texte brut saisi par l'utilisateur.
     formatted:
       properties.formatted ||
       normalized,
@@ -736,45 +681,13 @@ export async function POST(
 ) {
   try {
     if (!GEOAPIFY_API_KEY) {
-      console.error("GEOAPIFY_API_KEY non configurée.");
-
       return NextResponse.json(
         {
           success: false,
           error:
-            "Service temporairement indisponible.",
+            "GEOAPIFY_API_KEY non configurée.",
         },
         { status: 500 }
-      );
-    }
-
-    /* =====================================================
-       RATE LIMIT
-    ===================================================== */
-
-    const ip = getClientIp(request);
-
-    const rateLimit = checkRateLimit(
-      `calculateur:${ip}`,
-      CALCULATEUR_LIMIT,
-      CALCULATEUR_WINDOW_MS
-    );
-
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Trop de simulations en peu de temps. Merci de réessayer dans une minute, ou appelez-nous directement.",
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(
-              Math.ceil(rateLimit.resetInMs / 1000)
-            ),
-          },
-        }
       );
     }
 
@@ -998,7 +911,8 @@ export async function POST(
         success: false,
 
         error:
-          "Une erreur est survenue pendant le calcul. Merci de réessayer.",
+          error?.message ||
+          "Une erreur est survenue pendant le calcul.",
       },
       { status: 500 }
     );
