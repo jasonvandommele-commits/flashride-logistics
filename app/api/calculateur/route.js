@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
-
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: "API calculateur Flashride opérationnelle",
+    geoapifyConfigured: !!GEOAPIFY_API_KEY,
+  });
+}
 export async function POST(request) {
   try {
     if (!GEOAPIFY_API_KEY) {
