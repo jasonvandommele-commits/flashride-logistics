@@ -53,12 +53,12 @@ function getZoneLabel(zone) {
 
 const VEHICLE_PRICES = {
   moto: {
-    paris_paris: 20,
-    paris_petite: 25,
-    petite_petite: 25,
-    paris_grande: 32,
-    petite_grande: 30,
-    grande_grande: 35,
+    paris_paris: 15,
+    paris_petite: 20,
+    petite_petite: 22,
+    paris_grande: 28,
+    petite_grande: 26,
+    grande_grande: 32,
   },
 
   petit_fourgon: {
