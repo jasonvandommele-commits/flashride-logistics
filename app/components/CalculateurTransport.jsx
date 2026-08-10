@@ -22,8 +22,10 @@ function AddressInput({
   onSelect,
 }) {
   const [suggestions, setSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] =
+    useState(false);
+  const [showSuggestions, setShowSuggestions] =
+    useState(false);
 
   const wrapperRef = useRef(null);
   const abortControllerRef = useRef(null);
@@ -53,7 +55,9 @@ function AddressInput({
 
       try {
         const response = await fetch(
-          `/api/calculateur?autocomplete=${encodeURIComponent(text)}`,
+          `/api/autocomplete?text=${encodeURIComponent(
+            text
+          )}`,
           {
             method: "GET",
             cache: "no-store",
@@ -73,72 +77,14 @@ function AddressInput({
           return;
         }
 
-        const results = Array.isArray(data.results)
-          ? data.results
+        const results = Array.isArray(
+          data.suggestions
+        )
+          ? data.suggestions
           : [];
 
-        const userTypedNumber = /^\s*\d+[A-Za-z]?\b/.test(
-          text
-        );
-
-        const sortedResults = [...results].sort((a, b) => {
-          const aProperties = a.properties || {};
-          const bProperties = b.properties || {};
-
-          const aFormatted =
-            aProperties.formatted ||
-            aProperties.address_line1 ||
-            "";
-
-          const bFormatted =
-            bProperties.formatted ||
-            bProperties.address_line1 ||
-            "";
-
-          const aHasNumber =
-            /^\s*\d+[A-Za-z]?\b/.test(aFormatted) ||
-            /\b\d+[A-Za-z]?\s+(rue|avenue|boulevard|chemin|route|place|impasse|allée|allee|cours)\b/i.test(
-              aFormatted
-            );
-
-          const bHasNumber =
-            /^\s*\d+[A-Za-z]?\b/.test(bFormatted) ||
-            /\b\d+[A-Za-z]?\s+(rue|avenue|boulevard|chemin|route|place|impasse|allée|allee|cours)\b/i.test(
-              bFormatted
-            );
-
-          if (userTypedNumber && aHasNumber !== bHasNumber) {
-            return aHasNumber ? -1 : 1;
-          }
-
-          const aType =
-            aProperties.result_type || "";
-
-          const bType =
-            bProperties.result_type || "";
-
-          const preferredTypes = [
-            "building",
-            "house",
-            "amenity",
-            "street",
-          ];
-
-          const aPreferred =
-            preferredTypes.includes(aType);
-
-          const bPreferred =
-            preferredTypes.includes(bType);
-
-          if (aPreferred !== bPreferred) {
-            return aPreferred ? -1 : 1;
-          }
-
-          return 0;
-        });
-
-        setSuggestions(sortedResults.slice(0, 6));
-        setShowSuggestions(sortedResults.length > 0);
+        setSuggestions(results);
+        setShowSuggestions(results.length > 0);
       } catch (error) {
         if (error.name !== "AbortError") {
           console.error(
@@ -150,11 +96,13 @@ function AddressInput({
           setShowSuggestions(false);
         }
       } finally {
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId === requestIdRef.current
+        ) {
           setLoadingSuggestions(false);
         }
       }
-    }, 250);
+    }, 180);
 
     return () => clearTimeout(timer);
   }, [value]);
@@ -163,7 +111,9 @@ function AddressInput({
     function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
+        !wrapperRef.current.contains(
+          event.target
+        )
       ) {
         setShowSuggestions(false);
       }
@@ -183,18 +133,13 @@ function AddressInput({
   }, []);
 
   function handleSelect(suggestion) {
-    const properties =
-      suggestion.properties || {};
-
     const formatted =
-      properties.formatted ||
+      suggestion.formatted ||
       [
-        properties.housenumber,
-        properties.street,
-        properties.postcode,
-        properties.city ||
-          properties.town ||
-          properties.village,
+        suggestion.housenumber,
+        suggestion.street,
+        suggestion.postcode,
+        suggestion.city,
       ]
         .filter(Boolean)
         .join(", ");
@@ -247,38 +192,21 @@ function AddressInput({
           <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
             {suggestions.map(
               (suggestion, index) => {
-                const properties =
-                  suggestion.properties || {};
-
-                const formatted =
-                  properties.formatted ||
-                  [
-                    properties.housenumber,
-                    properties.street,
-                    properties.postcode,
-                    properties.city ||
-                      properties.town ||
-                      properties.village,
-                  ]
-                    .filter(Boolean)
-                    .join(", ");
-
                 const addressLine1 =
-                  properties.address_line1 ||
+                  suggestion.addressLine1 ||
                   [
-                    properties.housenumber,
-                    properties.street,
+                    suggestion.housenumber,
+                    suggestion.street,
                   ]
                     .filter(Boolean)
-                    .join(" ");
+                    .join(" ") ||
+                  suggestion.formatted;
 
                 const addressLine2 =
-                  properties.address_line2 ||
+                  suggestion.addressLine2 ||
                   [
-                    properties.postcode,
-                    properties.city ||
-                      properties.town ||
-                      properties.village,
+                    suggestion.postcode,
+                    suggestion.city,
                   ]
                     .filter(Boolean)
                     .join(" ");
@@ -286,13 +214,15 @@ function AddressInput({
                 return (
                   <button
                     key={
-                      properties.place_id ||
-                      `${formatted}-${index}`
+                      suggestion.placeId ||
+                      `${suggestion.formatted}-${index}`
                     }
                     type="button"
                     onMouseDown={(event) => {
                       event.preventDefault();
-                      handleSelect(suggestion);
+                      handleSelect(
+                        suggestion
+                      );
                     }}
                     className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
                   >
@@ -303,8 +233,7 @@ function AddressInput({
 
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900">
-                          {addressLine1 ||
-                            formatted}
+                          {addressLine1}
                         </p>
 
                         {addressLine2 && (
@@ -455,7 +384,6 @@ export default function CalculateurTransport() {
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-xl p-8"
         >
-
           <div className="grid md:grid-cols-2 gap-6">
 
             <AddressInput
@@ -464,9 +392,7 @@ export default function CalculateurTransport() {
               placeholder="Ex. 3 rue Delaporte, Maisons-Alfort"
               value={form.depart}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
 
             <AddressInput
@@ -475,15 +401,12 @@ export default function CalculateurTransport() {
               placeholder="Ex. 10 avenue de Paris, Versailles"
               value={form.arrivee}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
 
           </div>
 
           <div className="mt-8">
-
             <p className="font-bold text-lg mb-4">
               Options
             </p>
@@ -494,19 +417,12 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="urgent"
-                  checked={
-                    form.urgent
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.urgent}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
-                  <strong>
-                    Urgent
-                  </strong>
+                  <strong>Urgent</strong>
                   <br />
                   <span className="text-gray-500 text-sm">
                     +20 € HT
@@ -518,15 +434,10 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="express"
-                  checked={
-                    form.express
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.express}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
                   <strong>
                     Express / prioritaire
@@ -542,15 +453,10 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="attente"
-                  checked={
-                    form.attente
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.attente}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
                   <strong>
                     Attente 30 min
@@ -566,19 +472,12 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="samedi"
-                  checked={
-                    form.samedi
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.samedi}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
-                  <strong>
-                    Samedi
-                  </strong>
+                  <strong>Samedi</strong>
                   <br />
                   <span className="text-gray-500 text-sm">
                     +10 %
@@ -590,15 +489,10 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="nuit"
-                  checked={
-                    form.nuit
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.nuit}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
                   <strong>
                     Nuit 22h–6h
@@ -614,15 +508,10 @@ export default function CalculateurTransport() {
                 <input
                   type="checkbox"
                   name="dimanche"
-                  checked={
-                    form.dimanche
-                  }
-                  onChange={
-                    handleChange
-                  }
+                  checked={form.dimanche}
+                  onChange={handleChange}
                   className="w-5 h-5 accent-orange-500"
                 />
-
                 <span>
                   <strong>
                     Dimanche / jour férié
@@ -646,7 +535,6 @@ export default function CalculateurTransport() {
               ? "Calcul en cours..."
               : "Calculer mon estimation"}
           </button>
-
         </form>
 
         {error && (
@@ -660,9 +548,7 @@ export default function CalculateurTransport() {
             id="resultat-calculateur"
             className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
           >
-
             <div className="text-center">
-
               <p className="text-gray-500 font-semibold">
                 Estimation de votre transport
               </p>
@@ -677,7 +563,6 @@ export default function CalculateurTransport() {
               <p className="text-gray-500 mt-2">
                 Transport 20 m³ avec chauffeur
               </p>
-
             </div>
 
             <div className="mt-8 grid md:grid-cols-3 gap-4">
@@ -706,14 +591,10 @@ export default function CalculateurTransport() {
                   {result.trajet.distanceKm} km
                 </p>
 
-                {result.trajet
-                  .dureeMinutes && (
+                {result.trajet.dureeMinutes && (
                   <p className="text-sm text-gray-500 mt-1">
                     Environ{" "}
-                    {
-                      result.trajet
-                        .dureeMinutes
-                    }{" "}
+                    {result.trajet.dureeMinutes}{" "}
                     min
                   </p>
                 )}
@@ -739,18 +620,14 @@ export default function CalculateurTransport() {
             <div className="mt-8 border-t pt-6">
 
               <div className="flex justify-between py-2">
-                <span>
-                  Tarif de base
-                </span>
+                <span>Tarif de base</span>
 
                 <strong>
-                  {result.tarif.baseHT}{" "}
-                  € HT
+                  {result.tarif.baseHT} € HT
                 </strong>
               </div>
 
-              {result.tarif
-                .supplementDistanceHT >
+              {result.tarif.supplementDistanceHT >
                 0 && (
                 <div className="flex justify-between py-2">
                   <span>
@@ -769,23 +646,17 @@ export default function CalculateurTransport() {
               )}
 
               {result.supplements?.map(
-                (
-                  supplement,
-                  index
-                ) => (
+                (supplement, index) => (
                   <div
                     key={index}
                     className="flex justify-between py-2"
                   >
                     <span>
-                      {
-                        supplement.label
-                      }
+                      {supplement.label}
                     </span>
 
                     <strong>
-                      {supplement.amount !==
-                      null
+                      {supplement.amount !== null
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
@@ -796,32 +667,25 @@ export default function CalculateurTransport() {
             </div>
 
             <div className="mt-6 bg-orange-50 rounded-2xl p-5">
-
               <p className="font-bold">
                 À prévoir en supplément
               </p>
 
               <p className="text-gray-600 text-sm mt-2">
-                Péages facturés en
-                supplément.
+                Péages facturés en supplément.
                 Manutention sur devis.
               </p>
-
             </div>
 
             <div className="mt-6 text-center">
-
               <p className="text-xs text-gray-500 leading-relaxed">
-                Tarif indicatif calculé
-                automatiquement. Le montant
-                définitif peut être ajusté
-                selon les conditions réelles
-                de la mission, notamment
-                l'accès, le stationnement,
-                la manutention ou les
-                contraintes particulières.
+                Tarif indicatif calculé automatiquement.
+                Le montant définitif peut être ajusté
+                selon les conditions réelles de la mission,
+                notamment l'accès, le stationnement,
+                la manutention ou les contraintes
+                particulières.
               </p>
-
             </div>
 
             <a
@@ -830,10 +694,8 @@ export default function CalculateurTransport() {
             >
               Confirmer ma demande de devis
             </a>
-
           </div>
         )}
-
       </div>
     </section>
   );
