@@ -6,11 +6,15 @@ import {
   useState,
 } from "react";
 
+/* =========================================================
+   FORMULAIRE INITIAL
+========================================================= */
+
 const INITIAL_FORM = {
   depart: "",
   arrivee: "",
 
-  vehicle: "camion20",
+  vehicle: "20m3",
 
   priorite: "standard",
 
@@ -19,30 +23,38 @@ const INITIAL_FORM = {
   dimanche: false,
 };
 
+/* =========================================================
+   VÉHICULES
+========================================================= */
+
 const VEHICLES = [
   {
-    key: "moto",
+    value: "moto",
     label: "Moto",
-    volume: "2 roues",
-    icon: "🏍️",
+    description:
+      "Transport rapide et agile",
   },
+
   {
-    key: "voiture",
-    label: "Voiture",
-    volume: "3 m³",
-    icon: "🚗",
+    value: "voiture",
+    label: "Voiture 3 m³",
+    description:
+      "Véhicule léger jusqu'à 3 m³",
   },
+
   {
-    key: "fourgon",
-    label: "Fourgon",
-    volume: "8 m³",
-    icon: "🚐",
+    value: "fourgon",
+    label: "Fourgon 8 m³",
+    description:
+      "Utilitaire jusqu'à 8 m³",
   },
+
   {
-    key: "camion20",
-    label: "20 m³",
-    volume: "20 m³",
-    icon: "🚚",
+    value: "20m3",
+    label:
+      "Utilitaire avec hayon 20 m³",
+    description:
+      "Utilitaire avec hayon jusqu'à 20 m³",
   },
 ];
 
@@ -61,21 +73,19 @@ function AddressInput({
   const [suggestions, setSuggestions] =
     useState([]);
 
-  const [loadingSuggestions, setLoadingSuggestions] =
-    useState(false);
+  const [
+    loadingSuggestions,
+    setLoadingSuggestions,
+  ] = useState(false);
 
-  const [showSuggestions, setShowSuggestions] =
-    useState(false);
+  const [
+    showSuggestions,
+    setShowSuggestions,
+  ] = useState(false);
 
-  const wrapperRef =
-    useRef(null);
-
-  const abortRef =
-    useRef(null);
-
-  const requestIdRef =
-    useRef(0);
-
+  const wrapperRef = useRef(null);
+  const abortRef = useRef(null);
+  const requestIdRef = useRef(0);
   const justSelectedRef =
     useRef(false);
 
@@ -87,12 +97,8 @@ function AddressInput({
     const text =
       String(value || "").trim();
 
-    if (
-      justSelectedRef.current
-    ) {
-      justSelectedRef.current =
-        false;
-
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
       return;
     }
 
@@ -105,12 +111,11 @@ function AddressInput({
       setSuggestions([]);
       setShowSuggestions(false);
       setLoadingSuggestions(false);
-
       return;
     }
 
-    const timer =
-      setTimeout(async () => {
+    const timer = setTimeout(
+      async () => {
         const controller =
           new AbortController();
 
@@ -192,7 +197,9 @@ function AddressInput({
             setLoadingSuggestions(false);
           }
         }
-      }, 220);
+      },
+      220
+    );
 
     return () => {
       clearTimeout(timer);
@@ -259,8 +266,7 @@ function AddressInput({
 
     requestIdRef.current += 1;
 
-    justSelectedRef.current =
-      true;
+    justSelectedRef.current = true;
 
     setShowSuggestions(false);
     setSuggestions([]);
@@ -381,16 +387,12 @@ function AddressInput({
 
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900">
-                          {
-                            addressLine1
-                          }
+                          {addressLine1}
                         </p>
 
                         {addressLine2 && (
                           <p className="text-sm text-gray-500 mt-1">
-                            {
-                              addressLine2
-                            }
+                            {addressLine2}
                           </p>
                         )}
                       </div>
@@ -445,6 +447,7 @@ export default function CalculateurTransport() {
     setForm((previous) => {
       const next = {
         ...previous,
+
         [name]:
           type === "checkbox"
             ? checked
@@ -479,6 +482,17 @@ export default function CalculateurTransport() {
         })
       );
 
+      setResult(null);
+      setError("");
+    }
+
+    if (
+      name === "vehicle" ||
+      name === "priorite" ||
+      name === "samedi" ||
+      name === "nuit" ||
+      name === "dimanche"
+    ) {
       setResult(null);
       setError("");
     }
@@ -584,16 +598,13 @@ export default function CalculateurTransport() {
         await response.json();
 
       /*
-       * Hors zone ou hors grille :
-       * ce n'est pas une erreur technique.
-       * On affiche directement le message.
+       * Le serveur peut retourner
+       * success:false pour un trajet
+       * hors IDF.
        */
-
       if (
         data.reason ===
-          "hors_zone" ||
-        data.reason ===
-          "distance_hors_grille"
+        "hors_zone"
       ) {
         setResult(data);
 
@@ -653,17 +664,6 @@ export default function CalculateurTransport() {
   }
 
   /* =======================================================
-     VÉHICULE SÉLECTIONNÉ
-  ======================================================= */
-
-  const selectedVehicle =
-    VEHICLES.find(
-      (vehicle) =>
-        vehicle.key ===
-        form.vehicle
-    ) || VEHICLES[3];
-
-  /* =======================================================
      RENDER
   ======================================================= */
 
@@ -686,7 +686,7 @@ export default function CalculateurTransport() {
           </h2>
 
           <p className="mt-5 text-gray-600 text-lg">
-            Sélectionnez votre véhicule,
+            Choisissez votre véhicule,
             indiquez votre trajet et obtenez
             une estimation instantanée.
           </p>
@@ -703,75 +703,10 @@ export default function CalculateurTransport() {
         >
 
           {/* =================================================
-              VÉHICULE
-          ================================================= */}
-
-          <div>
-
-            <p className="font-bold text-lg mb-4">
-              Type de véhicule
-            </p>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-              {VEHICLES.map(
-                (vehicle) => (
-                  <label
-                    key={
-                      vehicle.key
-                    }
-                    className={`border rounded-2xl p-4 cursor-pointer transition ${
-                      form.vehicle ===
-                      vehicle.key
-                        ? "border-orange-500 bg-orange-50 shadow-sm"
-                        : "border-gray-200 hover:border-orange-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="vehicle"
-                      value={
-                        vehicle.key
-                      }
-                      checked={
-                        form.vehicle ===
-                        vehicle.key
-                      }
-                      onChange={
-                        handleChange
-                      }
-                      className="sr-only"
-                    />
-
-                    <div className="text-3xl mb-2">
-                      {
-                        vehicle.icon
-                      }
-                    </div>
-
-                    <p className="font-bold">
-                      {
-                        vehicle.label
-                      }
-                    </p>
-
-                    <p className="text-sm text-gray-500 mt-1">
-                      {
-                        vehicle.volume
-                      }
-                    </p>
-                  </label>
-                )
-              )}
-
-            </div>
-          </div>
-
-          {/* =================================================
               ADRESSES
           ================================================= */}
 
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
+          <div className="grid md:grid-cols-2 gap-6">
 
             <AddressInput
               name="depart"
@@ -798,6 +733,76 @@ export default function CalculateurTransport() {
           </div>
 
           {/* =================================================
+              VÉHICULE
+          ================================================= */}
+
+          <div className="mt-8">
+
+            <p className="font-bold text-lg mb-4">
+              Type de véhicule
+            </p>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+
+              {VEHICLES.map(
+                (vehicle) => (
+                  <label
+                    key={
+                      vehicle.value
+                    }
+                    className={`border rounded-xl p-4 cursor-pointer transition ${
+                      form.vehicle ===
+                      vehicle.value
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-200 hover:border-orange-300"
+                    }`}
+                  >
+
+                    <div className="flex items-start gap-3">
+
+                      <input
+                        type="radio"
+                        name="vehicle"
+                        value={
+                          vehicle.value
+                        }
+                        checked={
+                          form.vehicle ===
+                          vehicle.value
+                        }
+                        onChange={
+                          handleChange
+                        }
+                        className="mt-1 accent-orange-500"
+                      />
+
+                      <div>
+
+                        <strong className="text-gray-900">
+                          {
+                            vehicle.label
+                          }
+                        </strong>
+
+                        <p className="text-gray-500 text-sm mt-1">
+                          {
+                            vehicle.description
+                          }
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </label>
+                )
+              )}
+
+            </div>
+
+          </div>
+
+          {/* =================================================
               PRIORITÉ
           ================================================= */}
 
@@ -809,6 +814,8 @@ export default function CalculateurTransport() {
 
             <div className="grid sm:grid-cols-3 gap-4">
 
+              {/* STANDARD */}
+
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
@@ -817,6 +824,7 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="radio"
                   name="priorite"
@@ -836,9 +844,12 @@ export default function CalculateurTransport() {
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  Tarif normal
+                  Transport planifié
                 </p>
+
               </label>
+
+              {/* URGENCE */}
 
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
@@ -848,6 +859,7 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="radio"
                   name="priorite"
@@ -863,40 +875,33 @@ export default function CalculateurTransport() {
                 />
 
                 <strong>
-                  Urgent
+                  Urgence
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  +{" "}
-                  {selectedVehicle.key ===
-                  "moto"
-                    ? 10
-                    : selectedVehicle.key ===
-                      "voiture"
-                    ? 15
-                    : selectedVehicle.key ===
-                      "fourgon"
-                    ? 20
-                    : 25}{" "}
-                  € HT
+                  Départ prioritaire
                 </p>
+
               </label>
+
+              {/* COURSE DÉDIÉE */}
 
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
-                  "express"
+                  "dedicated"
                     ? "border-orange-500 bg-orange-50"
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="radio"
                   name="priorite"
-                  value="express"
+                  value="dedicated"
                   checked={
                     form.priorite ===
-                    "express"
+                    "dedicated"
                   }
                   onChange={
                     handleChange
@@ -905,23 +910,14 @@ export default function CalculateurTransport() {
                 />
 
                 <strong>
-                  Express / prioritaire
+                  Course dédiée
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  +{" "}
-                  {selectedVehicle.key ===
-                  "moto"
-                    ? 20
-                    : selectedVehicle.key ===
-                      "voiture"
-                    ? 30
-                    : selectedVehicle.key ===
-                      "fourgon"
-                    ? 35
-                    : 45}{" "}
-                  € HT
+                  Véhicule exclusivement
+                  dédié à votre mission
                 </p>
+
               </label>
 
             </div>
@@ -934,7 +930,7 @@ export default function CalculateurTransport() {
           <div className="mt-8">
 
             <p className="font-bold text-lg mb-4">
-              Majorations
+              Conditions de transport
             </p>
 
             <div className="grid sm:grid-cols-3 gap-4">
@@ -948,6 +944,7 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="checkbox"
                   name="samedi"
@@ -961,6 +958,7 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
+
                   <strong>
                     Samedi
                   </strong>
@@ -970,7 +968,9 @@ export default function CalculateurTransport() {
                   <span className="text-gray-500 text-sm">
                     +10 %
                   </span>
+
                 </span>
+
               </label>
 
               {/* NUIT */}
@@ -982,6 +982,7 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="checkbox"
                   name="nuit"
@@ -995,6 +996,7 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
+
                   <strong>
                     Nuit 22h–6h
                   </strong>
@@ -1002,9 +1004,11 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    +20 à +25 %
+                    +25 % ou +20 %
                   </span>
+
                 </span>
+
               </label>
 
               {/* DIMANCHE */}
@@ -1016,6 +1020,7 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
+
                 <input
                   type="checkbox"
                   name="dimanche"
@@ -1029,6 +1034,7 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
+
                   <strong>
                     Dimanche / jour férié
                   </strong>
@@ -1036,9 +1042,11 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    +25 à +30 %
+                    +25 % ou +30 %
                   </span>
+
                 </span>
+
               </label>
 
             </div>
@@ -1081,45 +1089,25 @@ export default function CalculateurTransport() {
           >
 
             {/* =================================================
-                HORS ZONE / DEVIS
+                HORS IDF
             ================================================= */}
 
-            {!result.success ? (
+            {result.reason ===
+            "hors_zone" ? (
               <div className="text-center">
 
-                <div className="text-4xl mb-4">
-                  📋
-                </div>
-
-                <p className="text-gray-500 font-semibold">
-                  Estimation personnalisée
+                <p className="text-orange-500 font-bold uppercase tracking-widest">
+                  Demande de devis
                 </p>
 
                 <h3 className="text-3xl font-black mt-3">
-                  Sur devis
+                  Trajet hors Île-de-France
                 </h3>
 
                 <p className="text-gray-600 mt-4">
-                  {result.message}
+                  Ce trajet nécessite un
+                  devis personnalisé.
                 </p>
-
-                <div className="mt-6 bg-gray-100 rounded-2xl p-5">
-
-                  <p className="font-bold">
-                    Véhicule sélectionné
-                  </p>
-
-                  <p className="text-gray-600 mt-1">
-                    {
-                      result.vehicle
-                    }{" "}
-                    —{" "}
-                    {
-                      result.volume
-                    }
-                  </p>
-
-                </div>
 
                 <a
                   href="#devis"
@@ -1142,20 +1130,21 @@ export default function CalculateurTransport() {
                   </p>
 
                   <p className="text-5xl font-black mt-3">
-                    <span className="text-2xl align-middle mr-2">
+
+                    <span className="text-2xl mr-2">
                       À partir de
                     </span>
 
-                    {result.tarif.totalHT}{" "}
+                    {result.tarif.totalHT}
+
                     <span className="text-xl ml-2">
                       € HT
                     </span>
+
                   </p>
 
                   <p className="text-gray-500 mt-2">
-                    {result.vehicle}{" "}
-                    —{" "}
-                    {result.volume}
+                    {result.vehicle}
                   </p>
 
                 </div>
@@ -1174,14 +1163,17 @@ export default function CalculateurTransport() {
 
                     <p className="font-bold mt-1">
                       {
-                        result.depart
-                          .zone
+                        result.depart.zone
                       }
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      {result.depart.codePostal ||
-                        result.depart.ville}
+                      {
+                        result.depart
+                          .codePostal ||
+                        result.depart
+                          .ville
+                      }
                     </p>
 
                   </div>
@@ -1210,14 +1202,17 @@ export default function CalculateurTransport() {
 
                     <p className="font-bold mt-1">
                       {
-                        result.arrivee
-                          .zone
+                        result.arrivee.zone
                       }
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      {result.arrivee.codePostal ||
-                        result.arrivee.ville}
+                      {
+                        result.arrivee
+                          .codePostal ||
+                        result.arrivee
+                          .ville
+                      }
                     </p>
 
                   </div>
@@ -1297,18 +1292,24 @@ export default function CalculateurTransport() {
                 </div>
 
                 {/* =================================================
-                    SUPPLÉMENTS
+                    À PRÉVOIR
                 ================================================= */}
 
                 <div className="mt-6 bg-orange-50 rounded-2xl p-5">
 
                   <p className="font-bold">
-                    À prévoir en supplément
+                    À prévoir
                   </p>
 
                   <p className="text-gray-600 text-sm mt-2">
-                    Péages facturés en supplément.
                     Manutention sur devis.
+                    <br />
+                    30 minutes d'attente
+                    sont incluses dans la
+                    prestation. Au-delà,
+                    l'attente supplémentaire
+                    est facturée selon le
+                    véhicule utilisé.
                   </p>
 
                 </div>
@@ -1322,11 +1323,11 @@ export default function CalculateurTransport() {
                   <p className="text-xs text-gray-500 leading-relaxed">
                     Tarif indicatif calculé
                     automatiquement. Le montant
-                    définitif peut être ajusté selon
-                    les conditions réelles de la
-                    mission, notamment l'accès,
-                    le stationnement, la manutention
-                    ou les contraintes particulières.
+                    définitif peut être ajusté
+                    selon les conditions réelles
+                    de la mission, notamment la
+                    manutention ou les contraintes
+                    particulières.
                   </p>
 
                 </div>
