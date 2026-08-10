@@ -10,49 +10,13 @@ const INITIAL_FORM = {
   depart: "",
   arrivee: "",
 
-  vehicle: "20m3",
-
+  // Priorité
   priorite: "standard",
 
+  // Période
   samedi: false,
   nuit: false,
   dimanche: false,
-
-  attente: false,
-};
-
-/* =========================================================
-   VEHICULES
-========================================================= */
-
-const VEHICLES = {
-  moto: {
-    label: "Moto",
-    volume: "2 roues",
-    description:
-      "Petits plis, documents et colis",
-  },
-
-  voiture: {
-    label: "Voiture",
-    volume: "3 m³",
-    description:
-      "Colis et marchandises légères",
-  },
-
-  fourgon: {
-    label: "Fourgon",
-    volume: "8 m³",
-    description:
-      "Marchandises et volumes intermédiaires",
-  },
-
-  "20m3": {
-    label: "20 m³",
-    volume: "20 m³",
-    description:
-      "Volumes importants et déménagements",
-  },
 };
 
 /* =========================================================
@@ -70,30 +34,21 @@ function AddressInput({
   const [suggestions, setSuggestions] =
     useState([]);
 
-  const [
-    loadingSuggestions,
-    setLoadingSuggestions,
-  ] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] =
+    useState(false);
 
-  const [
-    showSuggestions,
-    setShowSuggestions,
-  ] = useState(false);
+  const [showSuggestions, setShowSuggestions] =
+    useState(false);
 
-  const wrapperRef =
-    useRef(null);
-
-  const abortRef =
-    useRef(null);
-
-  const requestIdRef =
-    useRef(0);
+  const wrapperRef = useRef(null);
+  const abortRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   const justSelectedRef =
     useRef(false);
 
   /* =======================================================
-     AUTOCOMPLETION
+     AUTOCOMPLÉTION
   ======================================================= */
 
   useEffect(() => {
@@ -172,7 +127,9 @@ function AddressInput({
               ? data.suggestions
               : [];
 
-          setSuggestions(results);
+          setSuggestions(
+            results
+          );
 
           setShowSuggestions(
             results.length > 0
@@ -195,14 +152,18 @@ function AddressInput({
             requestIdRef.current
           ) {
             setSuggestions([]);
-            setShowSuggestions(false);
+            setShowSuggestions(
+              false
+            );
           }
         } finally {
           if (
             requestId ===
             requestIdRef.current
           ) {
-            setLoadingSuggestions(false);
+            setLoadingSuggestions(
+              false
+            );
           }
         }
       }, 220);
@@ -213,7 +174,7 @@ function AddressInput({
   }, [value]);
 
   /* =======================================================
-     CLIC EXTERIEUR
+     CLIC EXTÉRIEUR
   ======================================================= */
 
   useEffect(() => {
@@ -226,7 +187,9 @@ function AddressInput({
           event.target
         )
       ) {
-        setShowSuggestions(false);
+        setShowSuggestions(
+          false
+        );
       }
     }
 
@@ -244,7 +207,7 @@ function AddressInput({
   }, []);
 
   /* =======================================================
-     SELECTION
+     SÉLECTION ADRESSE
   ======================================================= */
 
   function handleSelect(
@@ -275,9 +238,15 @@ function AddressInput({
     justSelectedRef.current =
       true;
 
-    setShowSuggestions(false);
+    setShowSuggestions(
+      false
+    );
+
     setSuggestions([]);
-    setLoadingSuggestions(false);
+
+    setLoadingSuggestions(
+      false
+    );
 
     onSelect(
       name,
@@ -287,7 +256,7 @@ function AddressInput({
   }
 
   /* =======================================================
-     CHANGEMENT
+     CHANGEMENT MANUEL
   ======================================================= */
 
   function handleInputChange(
@@ -394,12 +363,16 @@ function AddressInput({
 
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900">
-                          {addressLine1}
+                          {
+                            addressLine1
+                          }
                         </p>
 
                         {addressLine2 && (
                           <p className="text-sm text-gray-500 mt-1">
-                            {addressLine2}
+                            {
+                              addressLine2
+                            }
                           </p>
                         )}
                       </div>
@@ -415,7 +388,7 @@ function AddressInput({
 }
 
 /* =========================================================
-   CALCULATEUR
+   CALCULATEUR TRANSPORT
 ========================================================= */
 
 export default function CalculateurTransport() {
@@ -454,7 +427,6 @@ export default function CalculateurTransport() {
     setForm((previous) => {
       const next = {
         ...previous,
-
         [name]:
           type === "checkbox"
             ? checked
@@ -462,17 +434,26 @@ export default function CalculateurTransport() {
       };
 
       if (
+        name === "priorite"
+      ) {
+        next.priorite =
+          value;
+      }
+
+      if (
         name === "samedi" &&
         checked
       ) {
-        next.dimanche = false;
+        next.dimanche =
+          false;
       }
 
       if (
         name === "dimanche" &&
         checked
       ) {
-        next.samedi = false;
+        next.samedi =
+          false;
       }
 
       return next;
@@ -492,20 +473,10 @@ export default function CalculateurTransport() {
       setResult(null);
       setError("");
     }
-
-    /*
-     * Changement de véhicule :
-     * on efface le résultat précédent.
-     */
-
-    if (name === "vehicle") {
-      setResult(null);
-      setError("");
-    }
   }
 
   /* =======================================================
-     SELECTION ADRESSE
+     SÉLECTION ADRESSE
   ======================================================= */
 
   function handleAddressSelect(
@@ -605,8 +576,9 @@ export default function CalculateurTransport() {
 
       /*
        * Hors IDF :
-       * l'API renvoie success:false
-       * avec reason=hors_zone.
+       * on affiche le message de devis
+       * au lieu de considérer cela
+       * comme une erreur technique.
        */
 
       if (
@@ -672,9 +644,6 @@ export default function CalculateurTransport() {
     }
   }
 
-  const selectedVehicle =
-    VEHICLES[form.vehicle];
-
   /* =======================================================
      RENDER
   ======================================================= */
@@ -688,6 +657,7 @@ export default function CalculateurTransport() {
         ================================================= */}
 
         <div className="text-center mb-12">
+
           <p className="text-orange-500 font-bold uppercase tracking-widest">
             Calculateur transport
           </p>
@@ -697,10 +667,11 @@ export default function CalculateurTransport() {
           </h2>
 
           <p className="mt-5 text-gray-600 text-lg">
-            Sélectionnez votre véhicule,
-            indiquez votre trajet et obtenez
-            une estimation instantanée.
+            Transport 20 m³ avec chauffeur.
+            Obtenez une estimation instantanée
+            selon votre trajet et vos options.
           </p>
+
         </div>
 
         {/* =================================================
@@ -713,85 +684,10 @@ export default function CalculateurTransport() {
         >
 
           {/* =================================================
-              VEHICULE
-          ================================================= */}
-
-          <div>
-            <p className="font-bold text-lg mb-4">
-              Choisissez votre véhicule
-            </p>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-              {Object.entries(
-                VEHICLES
-              ).map(
-                ([
-                  key,
-                  vehicle,
-                ]) => (
-                  <label
-                    key={key}
-                    className={`border rounded-2xl p-5 cursor-pointer transition ${
-                      form.vehicle ===
-                      key
-                        ? "border-orange-500 bg-orange-50 shadow-sm"
-                        : "border-gray-200 hover:border-orange-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="vehicle"
-                      value={key}
-                      checked={
-                        form.vehicle ===
-                        key
-                      }
-                      onChange={
-                        handleChange
-                      }
-                      className="sr-only"
-                    />
-
-                    <div className="text-3xl mb-3">
-                      {key === "moto" &&
-                        "🏍️"}
-
-                      {key === "voiture" &&
-                        "🚗"}
-
-                      {key === "fourgon" &&
-                        "🚐"}
-
-                      {key === "20m3" &&
-                        "🚚"}
-                    </div>
-
-                    <p className="font-bold text-lg">
-                      {vehicle.label}
-                    </p>
-
-                    <p className="text-orange-500 font-semibold mt-1">
-                      {vehicle.volume}
-                    </p>
-
-                    <p className="text-gray-500 text-sm mt-2">
-                      {
-                        vehicle.description
-                      }
-                    </p>
-                  </label>
-                )
-              )}
-
-            </div>
-          </div>
-
-          {/* =================================================
               ADRESSES
           ================================================= */}
 
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
+          <div className="grid md:grid-cols-2 gap-6">
 
             <AddressInput
               name="depart"
@@ -818,7 +714,7 @@ export default function CalculateurTransport() {
           </div>
 
           {/* =================================================
-              PRIORITE
+              PRIORITÉ
           ================================================= */}
 
           <div className="mt-8">
@@ -828,6 +724,8 @@ export default function CalculateurTransport() {
             </p>
 
             <div className="grid sm:grid-cols-3 gap-4">
+
+              {/* STANDARD */}
 
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
@@ -860,6 +758,8 @@ export default function CalculateurTransport() {
                 </p>
               </label>
 
+              {/* URGENT */}
+
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
@@ -887,23 +787,11 @@ export default function CalculateurTransport() {
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  {form.vehicle ===
-                    "moto" &&
-                    "+10 € HT"}
-
-                  {form.vehicle ===
-                    "voiture" &&
-                    "+15 € HT"}
-
-                  {form.vehicle ===
-                    "fourgon" &&
-                    "+20 € HT"}
-
-                  {form.vehicle ===
-                    "20m3" &&
-                    "+25 € HT"}
+                  +25 € HT
                 </p>
               </label>
+
+              {/* EXPRESS */}
 
               <label
                 className={`border rounded-xl p-4 cursor-pointer transition ${
@@ -932,21 +820,7 @@ export default function CalculateurTransport() {
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  {form.vehicle ===
-                    "moto" &&
-                    "+20 € HT"}
-
-                  {form.vehicle ===
-                    "voiture" &&
-                    "+30 € HT"}
-
-                  {form.vehicle ===
-                    "fourgon" &&
-                    "+35 € HT"}
-
-                  {form.vehicle ===
-                    "20m3" &&
-                    "+45 € HT"}
+                  +45 € HT
                 </p>
               </label>
 
@@ -1028,12 +902,7 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    {form.vehicle ===
-                      "moto" ||
-                    form.vehicle ===
-                      "voiture"
-                      ? "+20 %"
-                      : "+25 %"}
+                    +25 %
                   </span>
                 </span>
               </label>
@@ -1067,57 +936,12 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    {form.vehicle ===
-                      "moto" ||
-                    form.vehicle ===
-                      "voiture"
-                      ? "+25 %"
-                      : "+30 %"}
+                    +30 %
                   </span>
                 </span>
               </label>
 
             </div>
-          </div>
-
-          {/* =================================================
-              ATTENTE
-          ================================================= */}
-
-          <div className="mt-4">
-
-            <label
-              className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                form.attente
-                  ? "border-orange-500 bg-orange-50"
-                  : "border-gray-200 hover:border-orange-300"
-              }`}
-            >
-              <input
-                type="checkbox"
-                name="attente"
-                checked={
-                  form.attente
-                }
-                onChange={
-                  handleChange
-                }
-                className="w-5 h-5 accent-orange-500"
-              />
-
-              <span>
-                <strong>
-                  Attente 30 min
-                </strong>
-
-                <br />
-
-                <span className="text-gray-500 text-sm">
-                  +30 € HT
-                </span>
-              </span>
-            </label>
-
           </div>
 
           {/* =================================================
@@ -1147,287 +971,272 @@ export default function CalculateurTransport() {
         )}
 
         {/* =================================================
-            RESULTAT HORS IDF
+            RÉSULTAT
         ================================================= */}
 
-        {result &&
-          result.reason ===
-            "hors_zone" && (
-            <div
-              id="resultat-calculateur"
-              className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
-            >
+        {result && (
+          <div
+            id="resultat-calculateur"
+            className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
+          >
+
+            {/* =================================================
+                HORS IDF
+            ================================================= */}
+
+            {result.reason ===
+            "hors_zone" ? (
               <div className="text-center">
 
                 <p className="text-orange-500 font-bold uppercase tracking-widest">
-                  Demande de devis
+                  Transport sur devis
                 </p>
 
-                <h3 className="text-3xl font-black mt-3">
-                  Ce trajet est hors Île-de-France
+                <h3 className="text-3xl font-black mt-4">
+                  Une étude personnalisée est nécessaire
                 </h3>
 
-                <p className="text-gray-600 mt-4">
-                  Pour ce type de trajet,
-                  nous établissons un devis
-                  personnalisé.
+                <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
+                  Ce trajet sort de notre zone
+                  de tarification automatique
+                  en Île-de-France.
                 </p>
 
-                <div className="mt-6 bg-gray-100 rounded-2xl p-5">
+                <a
+                  href="#devis"
+                  className="mt-8 inline-block bg-orange-500 text-white font-bold rounded-xl px-8 py-4 hover:bg-orange-600 transition"
+                >
+                  Demander un devis
+                </a>
 
-                  <p className="font-bold">
-                    {result.vehicle}
+              </div>
+            ) : (
+              <>
+                {/* =========================================
+                    PRIX
+                ========================================= */}
+
+                <div className="text-center">
+
+                  <p className="text-gray-500 font-semibold">
+                    Estimation de votre transport
                   </p>
 
-                  <p className="text-gray-500 mt-1">
-                    {result.depart?.ville ||
-                      result.depart?.codePostal}
-                    {" → "}
-                    {result.arrivee?.ville ||
-                      result.arrivee?.codePostal}
+                  <p className="text-5xl font-black mt-3">
+                    <span className="text-2xl font-bold mr-2">
+                      À partir de
+                    </span>
+
+                    {result.tarif.totalHT}{" "}
+                    <span className="text-xl ml-2">
+                      € HT
+                    </span>
+                  </p>
+
+                  <p className="text-gray-500 mt-2">
+                    Transport 20 m³ avec chauffeur
                   </p>
 
                 </div>
+
+                {/* =========================================
+                    TRAJET
+                ========================================= */}
+
+                <div className="mt-8 grid md:grid-cols-3 gap-4">
+
+                  <div className="bg-gray-100 rounded-2xl p-5 text-center">
+
+                    <p className="text-gray-500 text-sm">
+                      Départ
+                    </p>
+
+                    <p className="font-bold mt-1">
+                      {
+                        result.depart
+                          .zone
+                      }
+                    </p>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      {
+                        result.depart
+                          .codePostal ||
+                        result.depart
+                          .ville
+                      }
+                    </p>
+
+                  </div>
+
+                  <div className="bg-gray-100 rounded-2xl p-5 text-center">
+
+                    <p className="text-gray-500 text-sm">
+                      Distance
+                    </p>
+
+                    <p className="font-bold text-xl mt-1">
+                      {
+                        result.trajet
+                          .distanceKm
+                      }{" "}
+                      km
+                    </p>
+
+                  </div>
+
+                  <div className="bg-gray-100 rounded-2xl p-5 text-center">
+
+                    <p className="text-gray-500 text-sm">
+                      Arrivée
+                    </p>
+
+                    <p className="font-bold mt-1">
+                      {
+                        result.arrivee
+                          .zone
+                      }
+                    </p>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      {
+                        result.arrivee
+                          .codePostal ||
+                        result.arrivee
+                          .ville
+                      }
+                    </p>
+
+                  </div>
+
+                </div>
+
+                {/* =========================================
+                    DÉTAIL PRIX
+                ========================================= */}
+
+                <div className="mt-8 border-t pt-6">
+
+                  <div className="flex justify-between py-2">
+
+                    <span>
+                      Tarif de base
+                    </span>
+
+                    <strong>
+                      {
+                        result.tarif
+                          .baseHT
+                      }{" "}
+                      € HT
+                    </strong>
+
+                  </div>
+
+                  {result.tarif
+                    .supplementDistanceHT >
+                    0 && (
+                    <div className="flex justify-between py-2">
+
+                      <span>
+                        Ajustement distance
+                      </span>
+
+                      <strong>
+                        +
+                        {
+                          result.tarif
+                            .supplementDistanceHT
+                        }{" "}
+                        €
+                      </strong>
+
+                    </div>
+                  )}
+
+                  {result.supplements?.map(
+                    (
+                      supplement,
+                      index
+                    ) => (
+                      <div
+                        key={index}
+                        className="flex justify-between py-2"
+                      >
+
+                        <span>
+                          {
+                            supplement.label
+                          }
+                        </span>
+
+                        <strong>
+                          {supplement.amount !==
+                          null
+                            ? `+${supplement.amount} €`
+                            : "Appliqué"}
+                        </strong>
+
+                      </div>
+                    )
+                  )}
+
+                </div>
+
+                {/* =========================================
+                    INFORMATIONS
+                ========================================= */}
+
+                <div className="mt-6 bg-orange-50 rounded-2xl p-5">
+
+                  <p className="font-bold">
+                    À prévoir en supplément
+                  </p>
+
+                  <p className="text-gray-600 text-sm mt-2">
+                    Péages facturés en supplément.
+                    Manutention sur devis.
+                  </p>
+
+                </div>
+
+                {/* =========================================
+                    DISCLAIMER
+                ========================================= */}
+
+                <div className="mt-6 text-center">
+
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Tarif indicatif calculé
+                    automatiquement et affiché
+                    à partir du tarif applicable.
+                    Le montant définitif peut être
+                    ajusté selon les conditions
+                    réelles de la mission,
+                    notamment l'accès,
+                    le stationnement, la
+                    manutention ou les contraintes
+                    particulières.
+                  </p>
+
+                </div>
+
+                {/* =========================================
+                    DEVIS
+                ========================================= */}
 
                 <a
                   href="#devis"
                   className="mt-6 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-4 hover:bg-orange-600 transition"
                 >
-                  Demander mon devis
+                  Confirmer ma demande de devis
                 </a>
 
-              </div>
-            </div>
-          )}
+              </>
+            )}
 
-        {/* =================================================
-            RESULTAT NORMAL
-        ================================================= */}
-
-        {result &&
-          result.success && (
-            <div
-              id="resultat-calculateur"
-              className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
-            >
-
-              {/* PRIX */}
-
-              <div className="text-center">
-
-                <p className="text-gray-500 font-semibold">
-                  Estimation de votre transport
-                </p>
-
-                <p className="text-5xl font-black mt-3">
-                  {
-                    result.tarif
-                      .totalHT
-                  }{" "}
-                  <span className="text-xl ml-2">
-                    € HT
-                  </span>
-                </p>
-
-                <p className="text-gray-500 mt-2">
-                  {result.vehicle}
-                  {" — "}
-                  {result.volume}
-                  {" avec chauffeur"}
-                </p>
-
-              </div>
-
-              {/* TRAJET */}
-
-              <div className="mt-8 grid md:grid-cols-3 gap-4">
-
-                <div className="bg-gray-100 rounded-2xl p-5 text-center">
-
-                  <p className="text-gray-500 text-sm">
-                    Départ
-                  </p>
-
-                  <p className="font-bold mt-1">
-                    {
-                      result.depart
-                        .zone
-                    }
-                  </p>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    {
-                      result.depart
-                        .codePostal ||
-                      result.depart
-                        .ville
-                    }
-                  </p>
-
-                </div>
-
-                <div className="bg-gray-100 rounded-2xl p-5 text-center">
-
-                  <p className="text-gray-500 text-sm">
-                    Distance
-                  </p>
-
-                  <p className="font-bold text-xl mt-1">
-                    {
-                      result.trajet
-                        .distanceKm
-                    }{" "}
-                    km
-                  </p>
-
-                  {result.trajet
-                    .dureeMinutes && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Environ{" "}
-                      {
-                        result.trajet
-                          .dureeMinutes
-                      }{" "}
-                      min
-                    </p>
-                  )}
-
-                </div>
-
-                <div className="bg-gray-100 rounded-2xl p-5 text-center">
-
-                  <p className="text-gray-500 text-sm">
-                    Arrivée
-                  </p>
-
-                  <p className="font-bold mt-1">
-                    {
-                      result.arrivee
-                        .zone
-                    }
-                  </p>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    {
-                      result.arrivee
-                        .codePostal ||
-                      result.arrivee
-                        .ville
-                    }
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* DETAIL PRIX */}
-
-              <div className="mt-8 border-t pt-6">
-
-                <div className="flex justify-between py-2">
-                  <span>
-                    Tarif de base
-                  </span>
-
-                  <strong>
-                    {
-                      result.tarif
-                        .baseHT
-                    }{" "}
-                    € HT
-                  </strong>
-                </div>
-
-                {result.tarif
-                  .supplementDistanceHT >
-                  0 && (
-                  <div className="flex justify-between py-2">
-
-                    <span>
-                      Ajustement distance
-                    </span>
-
-                    <strong>
-                      +
-                      {
-                        result.tarif
-                          .supplementDistanceHT
-                      }{" "}
-                      €
-                    </strong>
-
-                  </div>
-                )}
-
-                {result.supplements?.map(
-                  (
-                    supplement,
-                    index
-                  ) => (
-                    <div
-                      key={index}
-                      className="flex justify-between py-2"
-                    >
-                      <span>
-                        {
-                          supplement.label
-                        }
-                      </span>
-
-                      <strong>
-                        {supplement.amount !==
-                        null
-                          ? `+${supplement.amount} €`
-                          : "Appliqué"}
-                      </strong>
-                    </div>
-                  )
-                )}
-
-              </div>
-
-              {/* SUPPLEMENTS */}
-
-              <div className="mt-6 bg-orange-50 rounded-2xl p-5">
-
-                <p className="font-bold">
-                  À prévoir en supplément
-                </p>
-
-                <p className="text-gray-600 text-sm mt-2">
-                  Péages facturés en supplément.
-                  Manutention sur devis.
-                </p>
-
-              </div>
-
-              {/* DISCLAIMER */}
-
-              <div className="mt-6 text-center">
-
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Tarif indicatif calculé
-                  automatiquement. Le montant
-                  définitif peut être ajusté selon
-                  les conditions réelles de la
-                  mission, notamment l'accès,
-                  le stationnement, la manutention
-                  ou les contraintes particulières.
-                </p>
-
-              </div>
-
-              {/* DEVIS */}
-
-              <a
-                href="#devis"
-                className="mt-6 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-4 hover:bg-orange-600 transition"
-              >
-                Confirmer ma demande de devis
-              </a>
-
-            </div>
-          )}
+          </div>
+        )}
 
       </div>
     </section>
