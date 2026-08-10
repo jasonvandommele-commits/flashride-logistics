@@ -54,82 +54,80 @@ function getZoneLabel(zone) {
 }
 
 /* =========================================================
-   NORMALISATION VÉHICULE
+   NORMALISATION VEHICULE
 ========================================================= */
 
 function normalizeVehicle(vehicle) {
   const value = String(vehicle || "")
     .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "");
+    .toLowerCase();
 
   if (
     value === "moto" ||
-    value === "2roues" ||
-    value === "motorcycle"
+    value === "2roues"
   ) {
     return "moto";
   }
 
   if (
     value === "voiture" ||
-    value === "voiture3m3" ||
-    value === "3m3" ||
-    value === "vl"
+    value === "3m3"
   ) {
-    return "voiture_3m3";
+    return "voiture";
   }
 
   if (
     value === "fourgon" ||
-    value === "fourgon8m3" ||
-    value === "8m3" ||
-    value === "trafic"
+    value === "8m3"
   ) {
-    return "fourgon_8m3";
+    return "fourgon";
   }
 
   if (
     value === "20m3" ||
-    value === "20m³" ||
-    value === "fourgon20m3" ||
-    value === "fourgon_20m3"
+    value === "20 m3"
   ) {
-    return "fourgon_20m3";
+    return "20m3";
   }
 
-  // Compatibilité avec l'ancien calculateur
-  return "fourgon_20m3";
+  return "20m3";
 }
 
 /* =========================================================
-   LABEL VÉHICULE
+   INFORMATIONS VEHICULE
 ========================================================= */
 
-function getVehicleLabel(vehicle) {
+function getVehicleInfo(vehicle) {
   switch (vehicle) {
     case "moto":
-      return "Moto";
+      return {
+        name: "Moto",
+        volume: "2 roues",
+      };
 
-    case "voiture_3m3":
-      return "Voiture – 3 m³";
+    case "voiture":
+      return {
+        name: "Voiture",
+        volume: "3 m³",
+      };
 
-    case "fourgon_8m3":
-      return "Fourgon – 8 m³";
+    case "fourgon":
+      return {
+        name: "Fourgon",
+        volume: "8 m³",
+      };
 
-    case "fourgon_20m3":
-      return "Fourgon – 20 m³";
-
+    case "20m3":
     default:
-      return "Fourgon – 20 m³";
+      return {
+        name: "20 m³",
+        volume: "20 m³",
+      };
   }
 }
 
 /* =========================================================
-   TARIFS DE BASE PAR ZONE
-=========================================================
-
-   Prix minimum HT selon les zones.
+   TARIFS DE BASE PAR VEHICULE
 ========================================================= */
 
 const BASE_PRICES = {
@@ -142,7 +140,7 @@ const BASE_PRICES = {
     grande_grande: 35,
   },
 
-  voiture_3m3: {
+  voiture: {
     paris_paris: 29,
     paris_petite: 35,
     petite_petite: 35,
@@ -151,7 +149,7 @@ const BASE_PRICES = {
     grande_grande: 49,
   },
 
-  fourgon_8m3: {
+  fourgon: {
     paris_paris: 39,
     paris_petite: 45,
     petite_petite: 45,
@@ -161,10 +159,10 @@ const BASE_PRICES = {
   },
 
   /*
-   * GRILLE 20 M³ EXISTANTE
-   * Conservée telle quelle.
+   * 20 m³ :
+   * grille existante conservée.
    */
-  fourgon_20m3: {
+  "20m3": {
     paris_paris: 89,
     paris_petite: 99,
     petite_petite: 99,
@@ -175,10 +173,10 @@ const BASE_PRICES = {
 };
 
 /* =========================================================
-   CLÉ TARIFAIRE
+   CLE TARIFAIRE
 ========================================================= */
 
-function getZonePriceKey(
+function getZoneKey(
   zoneDepart,
   zoneArrivee
 ) {
@@ -243,7 +241,7 @@ function getBasePrice(
   zoneArrivee
 ) {
   const key =
-    getZonePriceKey(
+    getZoneKey(
       zoneDepart,
       zoneArrivee
     );
@@ -259,123 +257,168 @@ function getBasePrice(
 }
 
 /* =========================================================
-   SUPPLÉMENTS KILOMÉTRIQUES
-========================================================= */
-
-const DISTANCE_SUPPLEMENTS = {
-  moto: [
-    { max: 10, amount: 0 },
-    { max: 20, amount: 5 },
-    { max: 30, amount: 10 },
-    { max: 40, amount: 15 },
-    { max: 50, amount: 20 },
-    { max: 75, amount: 25 },
-    { max: 100, amount: 35 },
-  ],
-
-  voiture_3m3: [
-    { max: 10, amount: 0 },
-    { max: 20, amount: 5 },
-    { max: 30, amount: 10 },
-    { max: 40, amount: 15 },
-    { max: 50, amount: 20 },
-    { max: 75, amount: 30 },
-    { max: 100, amount: 40 },
-  ],
-
-  fourgon_8m3: [
-    { max: 10, amount: 0 },
-    { max: 20, amount: 7 },
-    { max: 30, amount: 12 },
-    { max: 40, amount: 18 },
-    { max: 50, amount: 24 },
-    { max: 75, amount: 32 },
-    { max: 100, amount: 42 },
-  ],
-
-  /*
-   * 20 M³ :
-   * grille kilométrique existante.
-   */
-  fourgon_20m3: [
-    { max: 10, amount: 0 },
-    { max: 20, amount: 10 },
-    { max: 30, amount: 15 },
-    { max: 40, amount: 20 },
-    { max: 50, amount: 25 },
-    { max: 75, amount: 35 },
-    { max: 100, amount: 50 },
-  ],
-};
-
-/* =========================================================
-   SUPPLÉMENTS / MAJORATIONS
-========================================================= */
-
-const VEHICLE_SURCHARGES = {
-  moto: {
-    urgent: 10,
-    express: 20,
-    nuit: 0.20,
-    samedi: 0.10,
-    dimanche: 0.25,
-  },
-
-  voiture_3m3: {
-    urgent: 15,
-    express: 30,
-    nuit: 0.20,
-    samedi: 0.10,
-    dimanche: 0.25,
-  },
-
-  fourgon_8m3: {
-    urgent: 20,
-    express: 35,
-    nuit: 0.25,
-    samedi: 0.10,
-    dimanche: 0.30,
-  },
-
-  fourgon_20m3: {
-    urgent: 25,
-    express: 45,
-    nuit: 0.25,
-    samedi: 0.10,
-    dimanche: 0.30,
-  },
-};
-
-/* =========================================================
-   CALCUL SUPPLÉMENT DISTANCE
+   SUPPLEMENT DISTANCE
 ========================================================= */
 
 function getDistanceSupplement(
-  vehicle,
   distanceKm
 ) {
-  const grid =
-    DISTANCE_SUPPLEMENTS[
-      vehicle
-    ];
-
-  if (!grid) {
-    return null;
+  if (distanceKm <= 10) {
+    return 0;
   }
 
-  const row =
-    grid.find(
-      (item) =>
-        distanceKm <= item.max
-    );
+  if (distanceKm <= 20) {
+    return 5;
+  }
 
-  return row
-    ? row.amount
-    : null;
+  if (distanceKm <= 30) {
+    return 10;
+  }
+
+  if (distanceKm <= 40) {
+    return 15;
+  }
+
+  if (distanceKm <= 50) {
+    return 20;
+  }
+
+  if (distanceKm <= 75) {
+    return 30;
+  }
+
+  if (distanceKm <= 100) {
+    return 40;
+  }
+
+  /*
+   * Au-delà de 100 km :
+   * toujours en IDF = on conserve le plafond.
+   */
+  return 40;
 }
 
 /* =========================================================
-   NORMALISATION ADRESSE
+   SUPPLEMENT DISTANCE PAR VEHICULE
+========================================================= */
+
+function getVehicleDistanceSupplement(
+  vehicle,
+  distanceKm
+) {
+  /*
+   * Moto / voiture
+   * Fourgon
+   * 20 m³
+   *
+   * Les grilles sont volontairement séparées
+   * afin de pouvoir les modifier indépendamment.
+   */
+
+  const tables = {
+    moto: [
+      [10, 0],
+      [20, 5],
+      [30, 10],
+      [40, 15],
+      [50, 20],
+      [75, 25],
+      [100, 35],
+    ],
+
+    voiture: [
+      [10, 0],
+      [20, 5],
+      [30, 10],
+      [40, 15],
+      [50, 20],
+      [75, 30],
+      [100, 40],
+    ],
+
+    fourgon: [
+      [10, 0],
+      [20, 7],
+      [30, 12],
+      [40, 18],
+      [50, 24],
+      [75, 32],
+      [100, 42],
+    ],
+
+    "20m3": [
+      [10, 0],
+      [20, 10],
+      [30, 15],
+      [40, 20],
+      [50, 25],
+      [75, 35],
+      [100, 50],
+    ],
+  };
+
+  const table =
+    tables[vehicle] ||
+    tables["20m3"];
+
+  for (const [limit, supplement] of table) {
+    if (distanceKm <= limit) {
+      return supplement;
+    }
+  }
+
+  return table[table.length - 1][1];
+}
+
+/* =========================================================
+   MAJORATIONS PAR VEHICULE
+========================================================= */
+
+function getVehicleSurcharges(
+  vehicle
+) {
+  const surcharges = {
+    moto: {
+      urgent: 10,
+      express: 20,
+      nuit: 0.20,
+      samedi: 0.10,
+      dimanche: 0.25,
+    },
+
+    voiture: {
+      urgent: 15,
+      express: 30,
+      nuit: 0.20,
+      samedi: 0.10,
+      dimanche: 0.25,
+    },
+
+    fourgon: {
+      urgent: 20,
+      express: 35,
+      nuit: 0.25,
+      samedi: 0.10,
+      dimanche: 0.30,
+    },
+
+    "20m3": {
+      urgent: 25,
+      express: 45,
+      nuit: 0.25,
+      samedi: 0.10,
+      dimanche: 0.30,
+    },
+  };
+
+  return (
+    surcharges[vehicle] ||
+    surcharges["20m3"]
+  );
+}
+
+/* =========================================================
+   NORMALISATION
 ========================================================= */
 
 function normalizeAddress(text) {
@@ -392,7 +435,7 @@ function normalizeAddress(text) {
 }
 
 /* =========================================================
-   EXTRACTION NUMÉRO
+   EXTRACTION NUMERO
 ========================================================= */
 
 function extractHouseNumber(text) {
@@ -431,7 +474,7 @@ async function fetchGeoapify(url) {
 }
 
 /* =========================================================
-   GÉOCODAGE
+   GEOCODAGE
 ========================================================= */
 
 async function geocode(address) {
@@ -439,9 +482,7 @@ async function geocode(address) {
     normalizeAddress(address);
 
   const requestedNumber =
-    extractHouseNumber(
-      normalized
-    );
+    extractHouseNumber(normalized);
 
   let features = [];
 
@@ -659,7 +700,7 @@ async function geocode(address) {
 }
 
 /* =========================================================
-   COORDONNÉES AUTOCOMPLETE
+   COORDONNEES AUTOCOMPLETE
 ========================================================= */
 
 function getSelectedGeo(
@@ -713,7 +754,7 @@ function getSelectedGeo(
 }
 
 /* =========================================================
-   ITINÉRAIRE
+   ITINERAIRE
 ========================================================= */
 
 async function calculateRoute(
@@ -796,29 +837,22 @@ function calculatePrice({
   vehicle,
   basePrice,
   distanceKm,
-  urgent,
-  express,
+  priorite,
   attente,
   samedi,
   nuit,
   dimanche,
 }) {
-  const vehicleRates =
-    VEHICLE_SURCHARGES[
+  const vehicleSurcharges =
+    getVehicleSurcharges(
       vehicle
-    ];
+    );
 
   const distanceSupplement =
-    getDistanceSupplement(
+    getVehicleDistanceSupplement(
       vehicle,
       distanceKm
     );
-
-  if (
-    distanceSupplement === null
-  ) {
-    return null;
-  }
 
   let price =
     basePrice +
@@ -826,114 +860,101 @@ function calculatePrice({
 
   const supplements = [];
 
-  /* -------------------------------------------------------
-     URGENT
-  ------------------------------------------------------- */
+  /* =======================================================
+     PRIORITE
+  ======================================================= */
 
-  if (urgent) {
-    const amount =
-      vehicleRates.urgent;
-
-    price += amount;
+  if (
+    priorite === "urgent"
+  ) {
+    price +=
+      vehicleSurcharges.urgent;
 
     supplements.push({
       label: "Urgent",
-      amount,
+      amount:
+        vehicleSurcharges.urgent,
     });
   }
 
-  /* -------------------------------------------------------
-     EXPRESS / PRIORITAIRE
-  ------------------------------------------------------- */
-
-  if (express) {
-    const amount =
-      vehicleRates.express;
-
-    price += amount;
+  if (
+    priorite === "express"
+  ) {
+    price +=
+      vehicleSurcharges.express;
 
     supplements.push({
       label:
         "Express / véhicule dédié prioritaire",
-      amount,
+      amount:
+        vehicleSurcharges.express,
     });
   }
 
-  /* -------------------------------------------------------
+  /* =======================================================
      ATTENTE
-  ------------------------------------------------------- */
+  ======================================================= */
 
   if (attente) {
-    const amount = 30;
-
-    price += amount;
+    price += 30;
 
     supplements.push({
-      label:
-        "Attente 30 min",
-      amount,
+      label: "Attente 30 min",
+      amount: 30,
     });
   }
 
-  /* -------------------------------------------------------
-     SAMEDI
-  ------------------------------------------------------- */
+  /* =======================================================
+     MAJORATIONS
+  ======================================================= */
+
+  let percentage = 0;
 
   if (samedi) {
-    const amount =
-      price *
-      vehicleRates.samedi;
-
-    price += amount;
-
-    supplements.push({
-      label:
-        "Samedi +10 %",
-      amount:
-        Math.round(amount),
-    });
+    percentage +=
+      vehicleSurcharges.samedi;
   }
-
-  /* -------------------------------------------------------
-     NUIT
-  ------------------------------------------------------- */
 
   if (nuit) {
-    const amount =
-      price *
-      vehicleRates.nuit;
-
-    price += amount;
-
-    supplements.push({
-      label:
-        `Nuit 22h–6h +${Math.round(
-          vehicleRates.nuit * 100
-        )} %`,
-      amount:
-        Math.round(amount),
-    });
+    percentage +=
+      vehicleSurcharges.nuit;
   }
 
-  /* -------------------------------------------------------
-     DIMANCHE / JOUR FÉRIÉ
-  ------------------------------------------------------- */
-
   if (dimanche) {
-    const amount =
-      price *
-      vehicleRates.dimanche;
+    percentage +=
+      vehicleSurcharges.dimanche;
+  }
 
-    price += amount;
+  if (percentage > 0) {
+    const percentageSupplement =
+      price * percentage;
 
-    supplements.push({
-      label:
-        `Dimanche / jour férié +${Math.round(
-          vehicleRates.dimanche * 100
-        )} %`,
-      amount:
-        Math.round(amount),
-    });
+    price +=
+      percentageSupplement;
+
+    if (samedi) {
+      supplements.push({
+        label:
+          `Samedi +${vehicleSurcharges.samedi * 100} %`,
+        amount: null,
+      });
+    }
+
+    if (nuit) {
+      supplements.push({
+        label:
+          `Nuit 22h–6h +${vehicleSurcharges.nuit * 100} %`,
+        amount: null,
+      });
+    }
+
+    if (dimanche) {
+      supplements.push({
+        label:
+          `Dimanche / jour férié +${vehicleSurcharges.dimanche * 100} %`,
+        amount: null,
+      });
+    }
   }
 
   return {
@@ -977,25 +998,19 @@ export async function POST(
       departGeo,
       arriveeGeo,
 
-      vehicle =
-        "fourgon_20m3",
+      vehicle = "20m3",
 
-      urgent = false,
-      express = false,
+      priorite = "standard",
+
       attente = false,
       samedi = false,
       nuit = false,
       dimanche = false,
     } = body;
 
-    const normalizedVehicle =
-      normalizeVehicle(
-        vehicle
-      );
-
-    /* -------------------------------------------------------
+    /* =====================================================
        VALIDATION
-    ------------------------------------------------------- */
+    ===================================================== */
 
     if (
       !depart ||
@@ -1013,9 +1028,17 @@ export async function POST(
       );
     }
 
-    /* -------------------------------------------------------
-       GÉOCODAGE
-    ------------------------------------------------------- */
+    const selectedVehicle =
+      normalizeVehicle(vehicle);
+
+    const vehicleInfo =
+      getVehicleInfo(
+        selectedVehicle
+      );
+
+    /* =====================================================
+       GEOCODAGE
+    ===================================================== */
 
     const selectedDepart =
       getSelectedGeo(
@@ -1038,7 +1061,7 @@ export async function POST(
       (await geocode(arrivee));
 
     /* =====================================================
-       HORS IDF → SUR DEVIS
+       HORS IDF = SUR DEVIS
     ===================================================== */
 
     if (
@@ -1055,12 +1078,10 @@ export async function POST(
           "Ce trajet sort de la zone tarifaire automatique. Demandez un devis personnalisé.",
 
         vehicle:
-          getVehicleLabel(
-            normalizedVehicle
-          ),
+          vehicleInfo.name,
 
-        vehicleCode:
-          normalizedVehicle,
+        volume:
+          vehicleInfo.volume,
 
         depart: {
           adresse:
@@ -1110,9 +1131,9 @@ export async function POST(
       });
     }
 
-    /* -------------------------------------------------------
-       ITINÉRAIRE
-    ------------------------------------------------------- */
+    /* =====================================================
+       ITINERAIRE
+    ===================================================== */
 
     const route =
       await calculateRoute(
@@ -1121,90 +1142,12 @@ export async function POST(
       );
 
     /* =====================================================
-       PLUS DE 100 KM → SUR DEVIS
-    ===================================================== */
-
-    if (
-      route.distanceKm > 100
-    ) {
-      return NextResponse.json({
-        success: false,
-
-        reason:
-          "distance_hors_grille",
-
-        message:
-          "Pour les trajets de plus de 100 km, le tarif est établi sur devis.",
-
-        vehicle:
-          getVehicleLabel(
-            normalizedVehicle
-          ),
-
-        vehicleCode:
-          normalizedVehicle,
-
-        depart: {
-          adresse:
-            departResolved.formatted,
-
-          ville:
-            departResolved.city,
-
-          codePostal:
-            departResolved.postcode,
-
-          zone:
-            getZoneLabel(
-              departResolved.zone
-            ),
-        },
-
-        arrivee: {
-          adresse:
-            arriveeResolved.formatted,
-
-          ville:
-            arriveeResolved.city,
-
-          codePostal:
-            arriveeResolved.postcode,
-
-          zone:
-            getZoneLabel(
-              arriveeResolved.zone
-            ),
-        },
-
-        trajet: {
-          distanceKm:
-            route.distanceKm,
-
-          dureeMinutes:
-            route.durationMinutes,
-        },
-
-        tarif: null,
-
-        supplements: [],
-
-        fraisSupplementaires: {
-          peages:
-            "À déterminer sur devis",
-
-          manutention:
-            "Sur devis",
-        },
-      });
-    }
-
-    /* -------------------------------------------------------
        TARIF DE BASE
-    ------------------------------------------------------- */
+    ===================================================== */
 
     const basePrice =
       getBasePrice(
-        normalizedVehicle,
+        selectedVehicle,
         departResolved.zone,
         arriveeResolved.zone
       );
@@ -1221,14 +1164,6 @@ export async function POST(
         message:
           "Ce trajet nécessite une étude personnalisée.",
 
-        vehicle:
-          getVehicleLabel(
-            normalizedVehicle
-          ),
-
-        vehicleCode:
-          normalizedVehicle,
-
         depart:
           departResolved,
 
@@ -1240,65 +1175,43 @@ export async function POST(
       });
     }
 
-    /* -------------------------------------------------------
+    /* =====================================================
        CALCUL
-    ------------------------------------------------------- */
+    ===================================================== */
 
     const calculation =
       calculatePrice({
         vehicle:
-          normalizedVehicle,
+          selectedVehicle,
 
         basePrice,
 
         distanceKm:
           route.distanceKm,
 
-        urgent,
-        express,
+        priorite,
+
         attente,
+
         samedi,
+
         nuit,
+
         dimanche,
       });
 
-    if (!calculation) {
-      return NextResponse.json({
-        success: false,
-
-        reason:
-          "distance_hors_grille",
-
-        message:
-          "Cette distance nécessite un devis personnalisé.",
-
-        vehicle:
-          getVehicleLabel(
-            normalizedVehicle
-          ),
-
-        vehicleCode:
-          normalizedVehicle,
-
-        trajet:
-          route,
-      });
-    }
-
-    /* -------------------------------------------------------
-       RÉPONSE
-    ------------------------------------------------------- */
+    /* =====================================================
+       REPONSE
+    ===================================================== */
 
     return NextResponse.json({
       success: true,
 
       vehicle:
-        getVehicleLabel(
-          normalizedVehicle
-        ),
+        vehicleInfo.name,
 
-      vehicleCode:
-        normalizedVehicle,
+      volume:
+        vehicleInfo.volume,
 
       depart: {
         adresse:
