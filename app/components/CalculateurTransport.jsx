@@ -4,7 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
-} from "react"; 
+} from "react";
 
 const INITIAL_FORM = {
   depart: "",
@@ -25,66 +25,47 @@ function AddressInput({
   onChange,
   onSelect,
 }) {
-  const [suggestions, setSuggestions] =
-    useState([]);
-
-  const [loadingSuggestions, setLoadingSuggestions] =
-    useState(false);
-
-  const [showSuggestions, setShowSuggestions] =
-    useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const wrapperRef = useRef(null);
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const text = value.trim();
+    const text = String(value || "").trim();
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
 
     if (text.length < 3) {
       setSuggestions([]);
       setShowSuggestions(false);
       setLoadingSuggestions(false);
-
-      if (abortRef.current) {
-        abortRef.current.abort();
-      }
-
       return;
     }
 
-    /*
-     * 250 ms évite de faire une requête
-     * à chaque caractère.
-     */
     const timer = setTimeout(async () => {
-      if (abortRef.current) {
-        abortRef.current.abort();
-      }
-
-      const controller =
-        new AbortController();
+      const controller = new AbortController();
 
       abortRef.current = controller;
 
-      const requestId =
-        ++requestIdRef.current;
+      const requestId = ++requestIdRef.current;
 
       setLoadingSuggestions(true);
 
       try {
-        const response =
-          await fetch(
-            `/api/autocomplete?text=${encodeURIComponent(
-              text
-            )}`,
-            {
-              method: "GET",
-              cache: "no-store",
-              signal:
-                controller.signal,
-            }
-          );
+        const response = await fetch(
+          `/api/autocomplete?text=${encodeURIComponent(text)}`,
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
 
         if (!response.ok) {
           throw new Error(
@@ -92,50 +73,38 @@ function AddressInput({
           );
         }
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
-        if (
-          requestId !==
-          requestIdRef.current
-        ) {
+        if (requestId !== requestIdRef.current) {
           return;
         }
 
-        const results =
-          Array.isArray(
-            data.suggestions
-          )
-            ? data.suggestions
-            : [];
+        const results = Array.isArray(data.suggestions)
+          ? data.suggestions
+          : [];
 
         setSuggestions(results);
-
-        setShowSuggestions(
-          results.length > 0
-        );
+        setShowSuggestions(results.length > 0);
       } catch (error) {
-        if (
-          error?.name !==
-          "AbortError"
-        ) {
-          console.error(
-            "Erreur autocomplétion :",
-            error
-          );
+        if (error?.name === "AbortError") {
+          return;
+        }
 
+        console.error(
+          "Erreur autocomplétion :",
+          error
+        );
+
+        if (requestId === requestIdRef.current) {
           setSuggestions([]);
           setShowSuggestions(false);
         }
       } finally {
-        if (
-          requestId ===
-          requestIdRef.current
-        ) {
+        if (requestId === requestIdRef.current) {
           setLoadingSuggestions(false);
         }
       }
-    }, 250);
+    }, 220);
 
     return () => {
       clearTimeout(timer);
@@ -146,9 +115,7 @@ function AddressInput({
     function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target
-        )
+        !wrapperRef.current.contains(event.target)
       ) {
         setShowSuggestions(false);
       }
@@ -167,31 +134,25 @@ function AddressInput({
     };
   }, []);
 
-  function handleSelect(
-    suggestion
-  ) {
+  function handleSelect(suggestion) {
     const formatted =
       suggestion.formatted ||
       [
         suggestion.housenumber,
         suggestion.street,
-        suggestion.postcode,
-        suggestion.city,
       ]
         .filter(Boolean)
-        .join(", ");
+        .join(" ");
 
     if (!formatted) {
       return;
     }
 
-    onSelect(
-      name,
-      formatted
-    );
+    onSelect(name, formatted, suggestion);
 
     setSuggestions([]);
     setShowSuggestions(false);
+    setLoadingSuggestions(false);
   }
 
   return (
@@ -210,12 +171,8 @@ function AddressInput({
           value={value}
           onChange={onChange}
           onFocus={() => {
-            if (
-              suggestions.length > 0
-            ) {
-              setShowSuggestions(
-                true
-              );
+            if (suggestions.length > 0) {
+              setShowSuggestions(true);
             }
           }}
           required
@@ -231,88 +188,79 @@ function AddressInput({
         )}
       </div>
 
-      {showSuggestions &&
-        suggestions.length > 0 && (
-          <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-            {suggestions.map(
-              (
-                suggestion,
-                index
-              ) => {
-                const addressLine1 =
-                  suggestion.addressLine1 ||
-                  [
-                    suggestion.housenumber,
-                    suggestion.street,
-                  ]
-                    .filter(Boolean)
-                    .join(" ") ||
-                  suggestion.formatted;
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+          {suggestions.map((suggestion, index) => {
+            const addressLine1 =
+              suggestion.addressLine1 ||
+              [
+                suggestion.housenumber,
+                suggestion.street,
+              ]
+                .filter(Boolean)
+                .join(" ") ||
+              suggestion.formatted;
 
-                const addressLine2 =
-                  suggestion.addressLine2 ||
-                  [
-                    suggestion.postcode,
-                    suggestion.city,
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
+            const addressLine2 =
+              suggestion.addressLine2 ||
+              [
+                suggestion.postcode,
+                suggestion.city,
+              ]
+                .filter(Boolean)
+                .join(" ");
 
-                return (
-                  <button
-                    key={
-                      suggestion.placeId ||
-                      `${suggestion.formatted}-${index}`
-                    }
-                    type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
+            return (
+              <button
+                key={
+                  suggestion.placeId ||
+                  `${suggestion.formatted}-${index}`
+                }
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  handleSelect(suggestion);
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 text-orange-500">
+                    📍
+                  </div>
 
-                      handleSelect(
-                        suggestion
-                      );
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 text-orange-500">
-                        📍
-                      </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900">
+                      {addressLine1}
+                    </p>
 
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900">
-                          {addressLine1}
-                        </p>
-
-                        {addressLine2 && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {addressLine2}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              }
-            )}
-          </div>
-        )}
+                    {addressLine2 && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {addressLine2}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function CalculateurTransport() {
-  const [form, setForm] =
-    useState(INITIAL_FORM);
+  const [form, setForm] = useState(INITIAL_FORM);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [selectedAddresses, setSelectedAddresses] =
+    useState({
+      depart: null,
+      arrivee: null,
+    });
 
-  const [result, setResult] =
-    useState(null);
-
-  const [error, setError] =
-    useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   function handleChange(event) {
     const {
@@ -334,6 +282,11 @@ export default function CalculateurTransport() {
       name === "depart" ||
       name === "arrivee"
     ) {
+      setSelectedAddresses((previous) => ({
+        ...previous,
+        [name]: null,
+      }));
+
       setResult(null);
       setError("");
     }
@@ -341,11 +294,34 @@ export default function CalculateurTransport() {
 
   function handleAddressSelect(
     name,
-    value
+    value,
+    suggestion
   ) {
     setForm((previous) => ({
       ...previous,
       [name]: value,
+    }));
+
+    setSelectedAddresses((previous) => ({
+      ...previous,
+      [name]: suggestion
+        ? {
+            latitude:
+              suggestion.latitude ?? null,
+            longitude:
+              suggestion.longitude ?? null,
+            postcode:
+              suggestion.postcode || "",
+            city:
+              suggestion.city || "",
+            formatted:
+              suggestion.formatted || value,
+            housenumber:
+              suggestion.housenumber || "",
+            street:
+              suggestion.street || "",
+          }
+        : null,
     }));
 
     setResult(null);
@@ -360,19 +336,27 @@ export default function CalculateurTransport() {
     setResult(null);
 
     try {
-      const response =
-        await fetch(
-          "/api/calculateur",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body:
-              JSON.stringify(form),
-          }
-        );
+      const body = {
+        ...form,
+
+        departGeo:
+          selectedAddresses.depart,
+
+        arriveeGeo:
+          selectedAddresses.arrivee,
+      };
+
+      const response = await fetch(
+        "/api/calculateur",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
       const data =
         await response.json();
@@ -404,7 +388,7 @@ export default function CalculateurTransport() {
       });
     } catch (err) {
       setError(
-        err.message ||
+        err?.message ||
           "Une erreur est survenue. Veuillez réessayer."
       );
     } finally {
@@ -425,10 +409,9 @@ export default function CalculateurTransport() {
           </h2>
 
           <p className="mt-5 text-gray-600 text-lg">
-            Transport 20 m³ avec
-            chauffeur. Obtenez une
-            estimation instantanée selon
-            votre trajet et vos options.
+            Transport 20 m³ avec chauffeur.
+            Obtenez une estimation instantanée
+            selon votre trajet et vos options.
           </p>
         </div>
 
@@ -443,9 +426,7 @@ export default function CalculateurTransport() {
               placeholder="Ex. 3 rue Delaporte, Maisons-Alfort"
               value={form.depart}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
 
             <AddressInput
@@ -454,9 +435,7 @@ export default function CalculateurTransport() {
               placeholder="Ex. 10 avenue de Paris, Versailles"
               value={form.arrivee}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
           </div>
 
@@ -467,11 +446,7 @@ export default function CalculateurTransport() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                [
-                  "urgent",
-                  "Urgent",
-                  "+20 € HT",
-                ],
+                ["urgent", "Urgent", "+20 € HT"],
                 [
                   "express",
                   "Express / prioritaire",
@@ -482,11 +457,7 @@ export default function CalculateurTransport() {
                   "Attente 30 min",
                   "+30 € HT",
                 ],
-                [
-                  "samedi",
-                  "Samedi",
-                  "+10 %",
-                ],
+                ["samedi", "Samedi", "+10 %"],
                 [
                   "nuit",
                   "Nuit 22h–6h",
@@ -498,11 +469,7 @@ export default function CalculateurTransport() {
                   "+30 %",
                 ],
               ].map(
-                ([
-                  name,
-                  title,
-                  price,
-                ]) => (
+                ([name, title, price]) => (
                   <label
                     key={name}
                     className="flex items-center gap-3 border rounded-xl p-4 cursor-pointer hover:border-orange-300 transition"
@@ -510,12 +477,8 @@ export default function CalculateurTransport() {
                     <input
                       type="checkbox"
                       name={name}
-                      checked={
-                        form[name]
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      checked={form[name]}
+                      onChange={handleChange}
                       className="w-5 h-5 accent-orange-500"
                     />
 
@@ -560,8 +523,7 @@ export default function CalculateurTransport() {
           >
             <div className="text-center">
               <p className="text-gray-500 font-semibold">
-                Estimation de votre
-                transport
+                Estimation de votre transport
               </p>
 
               <p className="text-5xl font-black mt-3">
@@ -572,8 +534,7 @@ export default function CalculateurTransport() {
               </p>
 
               <p className="text-gray-500 mt-2">
-                Transport 20 m³ avec
-                chauffeur
+                Transport 20 m³ avec chauffeur
               </p>
             </div>
 
@@ -599,22 +560,13 @@ export default function CalculateurTransport() {
                 </p>
 
                 <p className="font-bold text-xl mt-1">
-                  {
-                    result.trajet
-                      .distanceKm
-                  }{" "}
-                  km
+                  {result.trajet.distanceKm} km
                 </p>
 
-                {result.trajet
-                  .dureeMinutes && (
+                {result.trajet.dureeMinutes && (
                   <p className="text-sm text-gray-500 mt-1">
                     Environ{" "}
-                    {
-                      result.trajet
-                        .dureeMinutes
-                    }{" "}
-                    min
+                    {result.trajet.dureeMinutes} min
                   </p>
                 )}
               </div>
@@ -637,19 +589,15 @@ export default function CalculateurTransport() {
 
             <div className="mt-8 border-t pt-6">
               <div className="flex justify-between py-2">
-                <span>
-                  Tarif de base
-                </span>
+                <span>Tarif de base</span>
 
                 <strong>
-                  {result.tarif.baseHT} €
-                  HT
+                  {result.tarif.baseHT} € HT
                 </strong>
               </div>
 
               {result.tarif
-                .supplementDistanceHT >
-                0 && (
+                .supplementDistanceHT > 0 && (
                 <div className="flex justify-between py-2">
                   <span>
                     Ajustement distance
@@ -667,23 +615,17 @@ export default function CalculateurTransport() {
               )}
 
               {result.supplements?.map(
-                (
-                  supplement,
-                  index
-                ) => (
+                (supplement, index) => (
                   <div
                     key={index}
                     className="flex justify-between py-2"
                   >
                     <span>
-                      {
-                        supplement.label
-                      }
+                      {supplement.label}
                     </span>
 
                     <strong>
-                      {supplement.amount !==
-                      null
+                      {supplement.amount !== null
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
@@ -698,23 +640,20 @@ export default function CalculateurTransport() {
               </p>
 
               <p className="text-gray-600 text-sm mt-2">
-                Péages facturés en
-                supplément. Manutention
-                sur devis.
+                Péages facturés en supplément.
+                Manutention sur devis.
               </p>
             </div>
 
             <div className="mt-6 text-center">
               <p className="text-xs text-gray-500 leading-relaxed">
                 Tarif indicatif calculé
-                automatiquement. Le
-                montant définitif peut
-                être ajusté selon les
-                conditions réelles de la
-                mission, notamment
-                l'accès, le stationnement,
-                la manutention ou les
-                contraintes particulières.
+                automatiquement. Le montant
+                définitif peut être ajusté selon
+                les conditions réelles de la
+                mission, notamment l'accès,
+                le stationnement, la manutention
+                ou les contraintes particulières.
               </p>
             </div>
 
@@ -722,8 +661,7 @@ export default function CalculateurTransport() {
               href="#devis"
               className="mt-6 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-4 hover:bg-orange-600 transition"
             >
-              Confirmer ma demande
-              de devis
+              Confirmer ma demande de devis
             </a>
           </div>
         )}
