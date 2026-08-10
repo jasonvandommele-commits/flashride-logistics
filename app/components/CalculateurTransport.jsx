@@ -25,12 +25,9 @@ function AddressInput({
   onChange,
   onSelect,
 }) {
-  const [suggestions, setSuggestions] =
-    useState([]);
-
+  const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] =
     useState(false);
-
   const [showSuggestions, setShowSuggestions] =
     useState(false);
 
@@ -41,96 +38,71 @@ function AddressInput({
   useEffect(() => {
     const text = value.trim();
 
-    if (text.length < 3) {
+    if (text.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       setLoadingSuggestions(false);
       return;
     }
 
-    const timer = setTimeout(
-      async () => {
-        if (abortRef.current) {
-          abortRef.current.abort();
-        }
+    const timer = setTimeout(async () => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
 
-        const controller =
-          new AbortController();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-        abortRef.current = controller;
+      const requestId = ++requestIdRef.current;
 
-        const requestId =
-          ++requestIdRef.current;
+      setLoadingSuggestions(true);
 
-        setLoadingSuggestions(true);
-
-        try {
-          const response =
-            await fetch(
-              `/api/autocomplete?text=${encodeURIComponent(
-                text
-              )}`,
-              {
-                method: "GET",
-                cache: "no-store",
-                signal:
-                  controller.signal,
-              }
-            );
-
-          if (!response.ok) {
-            throw new Error(
-              "Erreur lors de la recherche d'adresse."
-            );
+      try {
+        const response = await fetch(
+          `/api/autocomplete?text=${encodeURIComponent(
+            text
+          )}`,
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
           }
+        );
 
-          const data =
-            await response.json();
-
-          if (
-            requestId !==
-            requestIdRef.current
-          ) {
-            return;
-          }
-
-          const results =
-            Array.isArray(
-              data.suggestions
-            )
-              ? data.suggestions
-              : [];
-
-          setSuggestions(results);
-          setShowSuggestions(
-            results.length > 0
+        if (!response.ok) {
+          throw new Error(
+            "Erreur lors de la recherche d'adresse."
           );
-        } catch (error) {
-          if (
-            error.name !==
-            "AbortError"
-          ) {
-            console.error(
-              "Erreur autocomplétion :",
-              error
-            );
-
-            setSuggestions([]);
-            setShowSuggestions(false);
-          }
-        } finally {
-          if (
-            requestId ===
-            requestIdRef.current
-          ) {
-            setLoadingSuggestions(
-              false
-            );
-          }
         }
-      },
-      120
-    );
+
+        const data = await response.json();
+
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        const results = Array.isArray(data.suggestions)
+          ? data.suggestions
+          : [];
+
+        setSuggestions(results);
+        setShowSuggestions(results.length > 0);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error(
+            "Erreur autocomplétion :",
+            error
+          );
+
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setLoadingSuggestions(false);
+        }
+      }
+    }, 180);
 
     return () => {
       clearTimeout(timer);
@@ -138,14 +110,10 @@ function AddressInput({
   }, [value]);
 
   useEffect(() => {
-    function handleOutsideClick(
-      event
-    ) {
+    function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target
-        )
+        !wrapperRef.current.contains(event.target)
       ) {
         setShowSuggestions(false);
       }
@@ -164,9 +132,7 @@ function AddressInput({
     };
   }, []);
 
-  function handleSelect(
-    suggestion
-  ) {
+  function handleSelect(suggestion) {
     const formatted =
       suggestion.formatted ||
       [
@@ -182,10 +148,7 @@ function AddressInput({
       return;
     }
 
-    onSelect(
-      name,
-      formatted
-    );
+    onSelect(name, formatted);
 
     setSuggestions([]);
     setShowSuggestions(false);
@@ -207,12 +170,8 @@ function AddressInput({
           value={value}
           onChange={onChange}
           onFocus={() => {
-            if (
-              suggestions.length > 0
-            ) {
-              setShowSuggestions(
-                true
-              );
+            if (suggestions.length > 0) {
+              setShowSuggestions(true);
             }
           }}
           required
@@ -232,10 +191,7 @@ function AddressInput({
         suggestions.length > 0 && (
           <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
             {suggestions.map(
-              (
-                suggestion,
-                index
-              ) => {
+              (suggestion, index) => {
                 const addressLine1 =
                   suggestion.addressLine1 ||
                   [
@@ -262,11 +218,8 @@ function AddressInput({
                       `${suggestion.formatted}-${index}`
                     }
                     type="button"
-                    onMouseDown={(
-                      event
-                    ) => {
+                    onMouseDown={(event) => {
                       event.preventDefault();
-
                       handleSelect(
                         suggestion
                       );
@@ -351,9 +304,7 @@ export default function CalculateurTransport() {
     setError("");
   }
 
-  async function handleSubmit(
-    event
-  ) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     setLoading(true);
@@ -439,7 +390,7 @@ export default function CalculateurTransport() {
             <AddressInput
               name="depart"
               label="Ville ou adresse de départ"
-              placeholder="Ex. 3 rue Delaporte, Maisons-Alfort"
+              placeholder="Ex. 6 rue Delaporte, Maisons-Alfort"
               value={form.depart}
               onChange={handleChange}
               onSelect={
@@ -466,11 +417,7 @@ export default function CalculateurTransport() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                [
-                  "urgent",
-                  "Urgent",
-                  "+20 € HT",
-                ],
+                ["urgent", "Urgent", "+20 € HT"],
                 [
                   "express",
                   "Express / prioritaire",
@@ -481,11 +428,7 @@ export default function CalculateurTransport() {
                   "Attente 30 min",
                   "+30 € HT",
                 ],
-                [
-                  "samedi",
-                  "Samedi",
-                  "+10 %",
-                ],
+                ["samedi", "Samedi", "+10 %"],
                 [
                   "nuit",
                   "Nuit 22h–6h",
@@ -497,11 +440,7 @@ export default function CalculateurTransport() {
                   "+30 %",
                 ],
               ].map(
-                ([
-                  name,
-                  title,
-                  price,
-                ]) => (
+                ([name, title, price]) => (
                   <label
                     key={name}
                     className="flex items-center gap-3 border rounded-xl p-4 cursor-pointer hover:border-orange-300 transition"
@@ -509,9 +448,7 @@ export default function CalculateurTransport() {
                     <input
                       type="checkbox"
                       name={name}
-                      checked={
-                        form[name]
-                      }
+                      checked={form[name]}
                       onChange={
                         handleChange
                       }
@@ -564,10 +501,7 @@ export default function CalculateurTransport() {
               </p>
 
               <p className="text-5xl font-black mt-3">
-                {
-                  result.tarif
-                    .totalHT
-                }{" "}
+                {result.tarif.totalHT}{" "}
                 <span className="text-xl ml-2">
                   € HT
                 </span>
@@ -586,17 +520,12 @@ export default function CalculateurTransport() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  {
-                    result.depart
-                      .zone
-                  }
+                  {result.depart.zone}
                 </p>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  {result.depart
-                    .codePostal ||
-                    result.depart
-                      .ville}
+                  {result.depart.codePostal ||
+                    result.depart.ville}
                 </p>
               </div>
 
@@ -606,10 +535,7 @@ export default function CalculateurTransport() {
                 </p>
 
                 <p className="font-bold text-xl mt-1">
-                  {
-                    result.trajet
-                      .distanceKm
-                  }{" "}
+                  {result.trajet.distanceKm}{" "}
                   km
                 </p>
 
@@ -632,17 +558,12 @@ export default function CalculateurTransport() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  {
-                    result.arrivee
-                      .zone
-                  }
+                  {result.arrivee.zone}
                 </p>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  {result.arrivee
-                    .codePostal ||
-                    result.arrivee
-                      .ville}
+                  {result.arrivee.codePostal ||
+                    result.arrivee.ville}
                 </p>
               </div>
             </div>
@@ -654,11 +575,7 @@ export default function CalculateurTransport() {
                 </span>
 
                 <strong>
-                  {
-                    result.tarif
-                      .baseHT
-                  }{" "}
-                  € HT
+                  {result.tarif.baseHT} € HT
                 </strong>
               </div>
 
@@ -667,8 +584,7 @@ export default function CalculateurTransport() {
                 0 && (
                 <div className="flex justify-between py-2">
                   <span>
-                    Ajustement
-                    distance
+                    Ajustement distance
                   </span>
 
                   <strong>
@@ -677,7 +593,7 @@ export default function CalculateurTransport() {
                       result.tarif
                         .supplementDistanceHT
                     }{" "}
-                    €
+                    € HT
                   </strong>
                 </div>
               )}
@@ -700,7 +616,7 @@ export default function CalculateurTransport() {
                     <strong>
                       {supplement.amount !==
                       null
-                        ? `+${supplement.amount} €`
+                        ? `+${supplement.amount} € HT`
                         : "Appliqué"}
                     </strong>
                   </div>
@@ -710,8 +626,7 @@ export default function CalculateurTransport() {
 
             <div className="mt-6 bg-orange-50 rounded-2xl p-5">
               <p className="font-bold">
-                À prévoir en
-                supplément
+                À prévoir en supplément
               </p>
 
               <p className="text-gray-600 text-sm mt-2">
