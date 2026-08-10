@@ -9,9 +9,11 @@ import {
 const INITIAL_FORM = {
   depart: "",
   arrivee: "",
-  urgent: false,
-  express: false,
-  attente: false,
+
+  // Type de prestation
+  service: "standard",
+
+  // Contraintes horaires
   samedi: false,
   nuit: false,
   dimanche: false,
@@ -26,26 +28,16 @@ function AddressInput({
   onSelect,
 }) {
   const [suggestions, setSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] =
+    useState(false);
+  const [showSuggestions, setShowSuggestions] =
+    useState(false);
 
   const wrapperRef = useRef(null);
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
 
-  // Empêche une nouvelle recherche après
-  // la sélection d'une suggestion.
-  const selectionRef = useRef(false);
-
   useEffect(() => {
-    // Une adresse vient d'être sélectionnée.
-    // Le changement de value ne doit donc pas
-    // déclencher une nouvelle recherche.
-    if (selectionRef.current) {
-      selectionRef.current = false;
-      return;
-    }
-
     const text = String(value || "").trim();
 
     if (abortRef.current) {
@@ -65,16 +57,13 @@ function AddressInput({
 
       abortRef.current = controller;
 
-      const requestId =
-        ++requestIdRef.current;
+      const requestId = ++requestIdRef.current;
 
       setLoadingSuggestions(true);
 
       try {
         const response = await fetch(
-          `/api/autocomplete?text=${encodeURIComponent(
-            text
-          )}`,
+          `/api/autocomplete?text=${encodeURIComponent(text)}`,
           {
             method: "GET",
             cache: "no-store",
@@ -88,31 +77,20 @@ function AddressInput({
           );
         }
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
-        if (
-          requestId !==
-          requestIdRef.current
-        ) {
+        if (requestId !== requestIdRef.current) {
           return;
         }
 
-        const results =
-          Array.isArray(
-            data.suggestions
-          )
-            ? data.suggestions
-            : [];
+        const results = Array.isArray(data.suggestions)
+          ? data.suggestions
+          : [];
 
         setSuggestions(results);
-        setShowSuggestions(
-          results.length > 0
-        );
+        setShowSuggestions(results.length > 0);
       } catch (error) {
-        if (
-          error?.name === "AbortError"
-        ) {
+        if (error?.name === "AbortError") {
           return;
         }
 
@@ -121,18 +99,12 @@ function AddressInput({
           error
         );
 
-        if (
-          requestId ===
-          requestIdRef.current
-        ) {
+        if (requestId === requestIdRef.current) {
           setSuggestions([]);
           setShowSuggestions(false);
         }
       } finally {
-        if (
-          requestId ===
-          requestIdRef.current
-        ) {
+        if (requestId === requestIdRef.current) {
           setLoadingSuggestions(false);
         }
       }
@@ -147,9 +119,7 @@ function AddressInput({
     function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(
-          event.target
-        )
+        !wrapperRef.current.contains(event.target)
       ) {
         setShowSuggestions(false);
       }
@@ -182,25 +152,7 @@ function AddressInput({
       return;
     }
 
-    // Signale au useEffect que le changement
-    // de value vient d'une sélection utilisateur.
-    selectionRef.current = true;
-
-    // Annule immédiatement toute recherche
-    // encore en cours.
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
-
-    // Invalide les anciennes requêtes.
-    requestIdRef.current += 1;
-
-    onSelect(
-      name,
-      formatted,
-      suggestion
-    );
+    onSelect(name, formatted, suggestion);
 
     setSuggestions([]);
     setShowSuggestions(false);
@@ -223,9 +175,7 @@ function AddressInput({
           value={value}
           onChange={onChange}
           onFocus={() => {
-            if (
-              suggestions.length > 0
-            ) {
+            if (suggestions.length > 0) {
               setShowSuggestions(true);
             }
           }}
@@ -242,76 +192,69 @@ function AddressInput({
         )}
       </div>
 
-      {showSuggestions &&
-        suggestions.length > 0 && (
-          <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-            {suggestions.map(
-              (suggestion, index) => {
-                const addressLine1 =
-                  suggestion.addressLine1 ||
-                  [
-                    suggestion.housenumber,
-                    suggestion.street,
-                  ]
-                    .filter(Boolean)
-                    .join(" ") ||
-                  suggestion.formatted;
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+          {suggestions.map((suggestion, index) => {
+            const addressLine1 =
+              suggestion.addressLine1 ||
+              [
+                suggestion.housenumber,
+                suggestion.street,
+              ]
+                .filter(Boolean)
+                .join(" ") ||
+              suggestion.formatted;
 
-                const addressLine2 =
-                  suggestion.addressLine2 ||
-                  [
-                    suggestion.postcode,
-                    suggestion.city,
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
+            const addressLine2 =
+              suggestion.addressLine2 ||
+              [
+                suggestion.postcode,
+                suggestion.city,
+              ]
+                .filter(Boolean)
+                .join(" ");
 
-                return (
-                  <button
-                    key={
-                      suggestion.placeId ||
-                      `${suggestion.formatted}-${index}`
-                    }
-                    type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
+            return (
+              <button
+                key={
+                  suggestion.placeId ||
+                  `${suggestion.formatted}-${index}`
+                }
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  handleSelect(suggestion);
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 text-orange-500">
+                    📍
+                  </div>
 
-                      handleSelect(
-                        suggestion
-                      );
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 text-orange-500">
-                        📍
-                      </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900">
+                      {addressLine1}
+                    </p>
 
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900">
-                          {addressLine1}
-                        </p>
-
-                        {addressLine2 && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {addressLine2}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              }
-            )}
-          </div>
-        )}
+                    {addressLine2 && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {addressLine2}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function CalculateurTransport() {
-  const [form, setForm] =
-    useState(INITIAL_FORM);
+  const [form, setForm] = useState(INITIAL_FORM);
 
   const [selectedAddresses, setSelectedAddresses] =
     useState({
@@ -319,14 +262,9 @@ export default function CalculateurTransport() {
       arrivee: null,
     });
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [result, setResult] =
-    useState(null);
-
-  const [error, setError] =
-    useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   function handleChange(event) {
     const {
@@ -348,13 +286,21 @@ export default function CalculateurTransport() {
       name === "depart" ||
       name === "arrivee"
     ) {
-      setSelectedAddresses(
-        (previous) => ({
-          ...previous,
-          [name]: null,
-        })
-      );
+      setSelectedAddresses((previous) => ({
+        ...previous,
+        [name]: null,
+      }));
 
+      setResult(null);
+      setError("");
+    }
+
+    if (
+      name === "service" ||
+      name === "samedi" ||
+      name === "dimanche" ||
+      name === "nuit"
+    ) {
       setResult(null);
       setError("");
     }
@@ -370,42 +316,27 @@ export default function CalculateurTransport() {
       [name]: value,
     }));
 
-    setSelectedAddresses(
-      (previous) => ({
-        ...previous,
-        [name]: suggestion
-          ? {
-              latitude:
-                suggestion.latitude ??
-                null,
-
-              longitude:
-                suggestion.longitude ??
-                null,
-
-              postcode:
-                suggestion.postcode ||
-                "",
-
-              city:
-                suggestion.city ||
-                "",
-
-              formatted:
-                suggestion.formatted ||
-                value,
-
-              housenumber:
-                suggestion.housenumber ||
-                "",
-
-              street:
-                suggestion.street ||
-                "",
-            }
-          : null,
-      })
-    );
+    setSelectedAddresses((previous) => ({
+      ...previous,
+      [name]: suggestion
+        ? {
+            latitude:
+              suggestion.latitude ?? null,
+            longitude:
+              suggestion.longitude ?? null,
+            postcode:
+              suggestion.postcode || "",
+            city:
+              suggestion.city || "",
+            formatted:
+              suggestion.formatted || value,
+            housenumber:
+              suggestion.housenumber || "",
+            street:
+              suggestion.street || "",
+          }
+        : null,
+    }));
 
     setResult(null);
     setError("");
@@ -429,19 +360,17 @@ export default function CalculateurTransport() {
           selectedAddresses.arrivee,
       };
 
-      const response =
-        await fetch(
-          "/api/calculateur",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body:
-              JSON.stringify(body),
-          }
-        );
+      const response = await fetch(
+        "/api/calculateur",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
       const data =
         await response.json();
@@ -505,17 +434,17 @@ export default function CalculateurTransport() {
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-xl p-8"
         >
-          <div className="grid md:grid-cols-2 gap-6">
 
+          {/* ADRESSES */}
+
+          <div className="grid md:grid-cols-2 gap-6">
             <AddressInput
               name="depart"
               label="Ville ou adresse de départ"
               placeholder="Ex. 3 rue Delaporte, Maisons-Alfort"
               value={form.depart}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
 
             <AddressInput
@@ -524,88 +453,218 @@ export default function CalculateurTransport() {
               placeholder="Ex. 10 avenue de Paris, Versailles"
               value={form.arrivee}
               onChange={handleChange}
-              onSelect={
-                handleAddressSelect
-              }
+              onSelect={handleAddressSelect}
             />
-
           </div>
+
+          {/* TYPE DE PRESTATION */}
 
           <div className="mt-8">
             <p className="font-bold text-lg mb-4">
-              Options
+              Type de prestation
             </p>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
 
-              {[
-                [
-                  "urgent",
-                  "Urgent",
-                  "+20 € HT",
-                ],
-                [
-                  "express",
-                  "Express / prioritaire",
-                  "+40 € HT",
-                ],
-                [
-                  "attente",
-                  "Attente 30 min",
-                  "+30 € HT",
-                ],
-                [
-                  "samedi",
-                  "Samedi",
-                  "+10 %",
-                ],
-                [
-                  "nuit",
-                  "Nuit 22h–6h",
-                  "+25 %",
-                ],
-                [
-                  "dimanche",
-                  "Dimanche / jour férié",
-                  "+30 %",
-                ],
-              ].map(
-                ([
-                  name,
-                  title,
-                  price,
-                ]) => (
-                  <label
-                    key={name}
-                    className="flex items-center gap-3 border rounded-xl p-4 cursor-pointer hover:border-orange-300 transition"
-                  >
-                    <input
-                      type="checkbox"
-                      name={name}
-                      checked={form[name]}
-                      onChange={
-                        handleChange
-                      }
-                      className="w-5 h-5 accent-orange-500"
-                    />
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.service === "standard"
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="service"
+                  value="standard"
+                  checked={
+                    form.service === "standard"
+                  }
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-orange-500"
+                />
 
-                    <span>
-                      <strong>
-                        {title}
-                      </strong>
+                <span>
+                  <strong>Standard</strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    Tarif normal
+                  </span>
+                </span>
+              </label>
 
-                      <br />
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.service === "urgent"
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="service"
+                  value="urgent"
+                  checked={
+                    form.service === "urgent"
+                  }
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-orange-500"
+                />
 
-                      <span className="text-gray-500 text-sm">
-                        {price}
-                      </span>
-                    </span>
-                  </label>
-                )
-              )}
+                <span>
+                  <strong>Urgent</strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    +20 € HT
+                  </span>
+                </span>
+              </label>
+
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.service === "express"
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="service"
+                  value="express"
+                  checked={
+                    form.service === "express"
+                  }
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-orange-500"
+                />
+
+                <span>
+                  <strong>
+                    Express / prioritaire
+                  </strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    +40 € HT
+                  </span>
+                </span>
+              </label>
 
             </div>
           </div>
+
+          {/* CONTRAINTES HORAIRES */}
+
+          <div className="mt-8">
+            <p className="font-bold text-lg mb-4">
+              Contraintes horaires
+            </p>
+
+            <div className="grid sm:grid-cols-3 gap-4">
+
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.samedi
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="jour"
+                  value="samedi"
+                  checked={form.samedi}
+                  onChange={() => {
+                    setForm((previous) => ({
+                      ...previous,
+                      samedi: true,
+                      dimanche: false,
+                    }));
+
+                    setResult(null);
+                    setError("");
+                  }}
+                  className="w-5 h-5 accent-orange-500"
+                />
+
+                <span>
+                  <strong>Samedi</strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    +10 %
+                  </span>
+                </span>
+              </label>
+
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.dimanche
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="jour"
+                  value="dimanche"
+                  checked={form.dimanche}
+                  onChange={() => {
+                    setForm((previous) => ({
+                      ...previous,
+                      samedi: false,
+                      dimanche: true,
+                    }));
+
+                    setResult(null);
+                    setError("");
+                  }}
+                  className="w-5 h-5 accent-orange-500"
+                />
+
+                <span>
+                  <strong>
+                    Dimanche / jour férié
+                  </strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    +30 %
+                  </span>
+                </span>
+              </label>
+
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.nuit
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name="nuit"
+                  checked={form.nuit}
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-orange-500"
+                />
+
+                <span>
+                  <strong>Nuit 22h–6h</strong>
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    +25 %
+                  </span>
+                </span>
+              </label>
+
+            </div>
+
+            <p className="text-sm text-gray-500 mt-3">
+              Le samedi et le dimanche / jour férié
+              ne peuvent pas être sélectionnés
+              simultanément.
+            </p>
+          </div>
+
+          {/* BOUTON */}
 
           <button
             type="submit"
@@ -618,11 +677,15 @@ export default function CalculateurTransport() {
           </button>
         </form>
 
+        {/* ERREUR */}
+
         {error && (
           <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 text-center">
             {error}
           </div>
         )}
+
+        {/* RESULTAT */}
 
         {result && (
           <div
@@ -630,7 +693,6 @@ export default function CalculateurTransport() {
             className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
           >
             <div className="text-center">
-
               <p className="text-gray-500 font-semibold">
                 Estimation de votre transport
               </p>
@@ -645,7 +707,6 @@ export default function CalculateurTransport() {
               <p className="text-gray-500 mt-2">
                 Transport 20 m³ avec chauffeur
               </p>
-
             </div>
 
             <div className="mt-8 grid md:grid-cols-3 gap-4">
@@ -702,9 +763,7 @@ export default function CalculateurTransport() {
             <div className="mt-8 border-t pt-6">
 
               <div className="flex justify-between py-2">
-                <span>
-                  Tarif de base
-                </span>
+                <span>Tarif de base</span>
 
                 <strong>
                   {result.tarif.baseHT} € HT
@@ -712,8 +771,7 @@ export default function CalculateurTransport() {
               </div>
 
               {result.tarif
-                .supplementDistanceHT >
-                0 && (
+                .supplementDistanceHT > 0 && (
                 <div className="flex justify-between py-2">
                   <span>
                     Ajustement distance
@@ -731,10 +789,7 @@ export default function CalculateurTransport() {
               )}
 
               {result.supplements?.map(
-                (
-                  supplement,
-                  index
-                ) => (
+                (supplement, index) => (
                   <div
                     key={index}
                     className="flex justify-between py-2"
@@ -744,8 +799,7 @@ export default function CalculateurTransport() {
                     </span>
 
                     <strong>
-                      {supplement.amount !==
-                      null
+                      {supplement.amount !== null
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
@@ -756,30 +810,28 @@ export default function CalculateurTransport() {
             </div>
 
             <div className="mt-6 bg-orange-50 rounded-2xl p-5">
-
               <p className="font-bold">
                 À prévoir en supplément
               </p>
 
               <p className="text-gray-600 text-sm mt-2">
                 Péages facturés en supplément.
-                Manutention sur devis.
+                Manutention, attente ou contraintes
+                particulières sur devis.
               </p>
-
             </div>
 
             <div className="mt-6 text-center">
-
               <p className="text-xs text-gray-500 leading-relaxed">
                 Tarif indicatif calculé
                 automatiquement. Le montant
                 définitif peut être ajusté selon
                 les conditions réelles de la
                 mission, notamment l'accès,
-                le stationnement, la manutention
-                ou les contraintes particulières.
+                le stationnement, la manutention,
+                l'attente ou les contraintes
+                particulières.
               </p>
-
             </div>
 
             <a
