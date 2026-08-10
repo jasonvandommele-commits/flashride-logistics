@@ -111,7 +111,6 @@ export default function Footer() {
           </h4>
 
           <ul className="space-y-1.5 text-sm">
-            <li>Paris</li>
             <li>Île-de-France</li>
             <li>France</li>
             <li>Europe</li>
