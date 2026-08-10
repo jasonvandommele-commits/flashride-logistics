@@ -9,11 +9,9 @@ import {
 const INITIAL_FORM = {
   depart: "",
   arrivee: "",
-
-  // Type de prestation
-  service: "standard",
-
-  // Contraintes horaires
+  urgent: false,
+  express: false,
+  attente: false,
   samedi: false,
   nuit: false,
   dimanche: false,
@@ -37,7 +35,18 @@ function AddressInput({
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
 
+  // Empêche une nouvelle recherche immédiatement
+  // après la sélection d'une suggestion.
+  const skipNextSearchRef = useRef(false);
+
   useEffect(() => {
+    // Après une sélection, la valeur du champ change.
+    // On ignore cette modification une seule fois.
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
+
     const text = String(value || "").trim();
 
     if (abortRef.current) {
@@ -63,7 +72,9 @@ function AddressInput({
 
       try {
         const response = await fetch(
-          `/api/autocomplete?text=${encodeURIComponent(text)}`,
+          `/api/autocomplete?text=${encodeURIComponent(
+            text
+          )}`,
           {
             method: "GET",
             cache: "no-store",
@@ -83,7 +94,9 @@ function AddressInput({
           return;
         }
 
-        const results = Array.isArray(data.suggestions)
+        const results = Array.isArray(
+          data.suggestions
+        )
           ? data.suggestions
           : [];
 
@@ -152,11 +165,32 @@ function AddressInput({
       return;
     }
 
-    onSelect(name, formatted, suggestion);
+    /*
+     * Très important :
+     * on indique que la prochaine modification
+     * de "value" vient d'une sélection utilisateur.
+     *
+     * Le useEffect ignorera donc cette modification
+     * et ne relancera PAS /api/autocomplete.
+     */
+    skipNextSearchRef.current = true;
+
+    // Annule immédiatement une éventuelle recherche
+    // encore en cours.
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
 
     setSuggestions([]);
     setShowSuggestions(false);
     setLoadingSuggestions(false);
+
+    onSelect(
+      name,
+      formatted,
+      suggestion
+    );
   }
 
   return (
@@ -192,69 +226,76 @@ function AddressInput({
         )}
       </div>
 
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-          {suggestions.map((suggestion, index) => {
-            const addressLine1 =
-              suggestion.addressLine1 ||
-              [
-                suggestion.housenumber,
-                suggestion.street,
-              ]
-                .filter(Boolean)
-                .join(" ") ||
-              suggestion.formatted;
+      {showSuggestions &&
+        suggestions.length > 0 && (
+          <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+            {suggestions.map(
+              (suggestion, index) => {
+                const addressLine1 =
+                  suggestion.addressLine1 ||
+                  [
+                    suggestion.housenumber,
+                    suggestion.street,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  suggestion.formatted;
 
-            const addressLine2 =
-              suggestion.addressLine2 ||
-              [
-                suggestion.postcode,
-                suggestion.city,
-              ]
-                .filter(Boolean)
-                .join(" ");
+                const addressLine2 =
+                  suggestion.addressLine2 ||
+                  [
+                    suggestion.postcode,
+                    suggestion.city,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
 
-            return (
-              <button
-                key={
-                  suggestion.placeId ||
-                  `${suggestion.formatted}-${index}`
-                }
-                type="button"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  handleSelect(suggestion);
-                }}
-                className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 text-orange-500">
-                    📍
-                  </div>
+                return (
+                  <button
+                    key={
+                      suggestion.placeId ||
+                      `${suggestion.formatted}-${index}`
+                    }
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
 
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900">
-                      {addressLine1}
-                    </p>
+                      handleSelect(
+                        suggestion
+                      );
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-orange-50 transition border-b last:border-b-0 border-gray-100"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 text-orange-500">
+                        📍
+                      </div>
 
-                    {addressLine2 && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {addressLine2}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">
+                          {addressLine1}
+                        </p>
+
+                        {addressLine2 && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            {addressLine2}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        )}
     </div>
   );
 }
 
 export default function CalculateurTransport() {
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] =
+    useState(INITIAL_FORM);
 
   const [selectedAddresses, setSelectedAddresses] =
     useState({
@@ -262,9 +303,14 @@ export default function CalculateurTransport() {
       arrivee: null,
     });
 
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [result, setResult] =
+    useState(null);
+
+  const [error, setError] =
+    useState("");
 
   function handleChange(event) {
     const {
@@ -294,16 +340,6 @@ export default function CalculateurTransport() {
       setResult(null);
       setError("");
     }
-
-    if (
-      name === "service" ||
-      name === "samedi" ||
-      name === "dimanche" ||
-      name === "nuit"
-    ) {
-      setResult(null);
-      setError("");
-    }
   }
 
   function handleAddressSelect(
@@ -321,19 +357,32 @@ export default function CalculateurTransport() {
       [name]: suggestion
         ? {
             latitude:
-              suggestion.latitude ?? null,
+              suggestion.latitude ??
+              null,
+
             longitude:
-              suggestion.longitude ?? null,
+              suggestion.longitude ??
+              null,
+
             postcode:
-              suggestion.postcode || "",
+              suggestion.postcode ||
+              "",
+
             city:
-              suggestion.city || "",
+              suggestion.city ||
+              "",
+
             formatted:
-              suggestion.formatted || value,
+              suggestion.formatted ||
+              value,
+
             housenumber:
-              suggestion.housenumber || "",
+              suggestion.housenumber ||
+              "",
+
             street:
-              suggestion.street || "",
+              suggestion.street ||
+              "",
           }
         : null,
     }));
@@ -360,17 +409,18 @@ export default function CalculateurTransport() {
           selectedAddresses.arrivee,
       };
 
-      const response = await fetch(
-        "/api/calculateur",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response =
+        await fetch(
+          "/api/calculateur",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify(body),
+          }
+        );
 
       const data =
         await response.json();
@@ -434,10 +484,8 @@ export default function CalculateurTransport() {
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-xl p-8"
         >
-
-          {/* ADRESSES */}
-
           <div className="grid md:grid-cols-2 gap-6">
+
             <AddressInput
               name="depart"
               label="Ville ou adresse de départ"
@@ -455,216 +503,78 @@ export default function CalculateurTransport() {
               onChange={handleChange}
               onSelect={handleAddressSelect}
             />
-          </div>
 
-          {/* TYPE DE PRESTATION */}
+          </div>
 
           <div className="mt-8">
             <p className="font-bold text-lg mb-4">
-              Type de prestation
+              Options
             </p>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 gap-4">
 
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.service === "standard"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="service"
-                  value="standard"
-                  checked={
-                    form.service === "standard"
-                  }
-                  onChange={handleChange}
-                  className="w-5 h-5 accent-orange-500"
-                />
+              {[
+                [
+                  "urgent",
+                  "Urgent",
+                  "+20 € HT",
+                ],
+                [
+                  "express",
+                  "Express / prioritaire",
+                  "+40 € HT",
+                ],
+                [
+                  "attente",
+                  "Attente 30 min",
+                  "+30 € HT",
+                ],
+                [
+                  "samedi",
+                  "Samedi",
+                  "+10 %",
+                ],
+                [
+                  "nuit",
+                  "Nuit 22h–6h",
+                  "+25 %",
+                ],
+                [
+                  "dimanche",
+                  "Dimanche / jour férié",
+                  "+30 %",
+                ],
+              ].map(
+                ([name, title, price]) => (
+                  <label
+                    key={name}
+                    className="flex items-center gap-3 border rounded-xl p-4 cursor-pointer hover:border-orange-300 transition"
+                  >
+                    <input
+                      type="checkbox"
+                      name={name}
+                      checked={form[name]}
+                      onChange={handleChange}
+                      className="w-5 h-5 accent-orange-500"
+                    />
 
-                <span>
-                  <strong>Standard</strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    Tarif normal
-                  </span>
-                </span>
-              </label>
+                    <span>
+                      <strong>
+                        {title}
+                      </strong>
 
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.service === "urgent"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="service"
-                  value="urgent"
-                  checked={
-                    form.service === "urgent"
-                  }
-                  onChange={handleChange}
-                  className="w-5 h-5 accent-orange-500"
-                />
+                      <br />
 
-                <span>
-                  <strong>Urgent</strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    +20 € HT
-                  </span>
-                </span>
-              </label>
-
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.service === "express"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="service"
-                  value="express"
-                  checked={
-                    form.service === "express"
-                  }
-                  onChange={handleChange}
-                  className="w-5 h-5 accent-orange-500"
-                />
-
-                <span>
-                  <strong>
-                    Express / prioritaire
-                  </strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    +40 € HT
-                  </span>
-                </span>
-              </label>
+                      <span className="text-gray-500 text-sm">
+                        {price}
+                      </span>
+                    </span>
+                  </label>
+                )
+              )}
 
             </div>
           </div>
-
-          {/* CONTRAINTES HORAIRES */}
-
-          <div className="mt-8">
-            <p className="font-bold text-lg mb-4">
-              Contraintes horaires
-            </p>
-
-            <div className="grid sm:grid-cols-3 gap-4">
-
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.samedi
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="jour"
-                  value="samedi"
-                  checked={form.samedi}
-                  onChange={() => {
-                    setForm((previous) => ({
-                      ...previous,
-                      samedi: true,
-                      dimanche: false,
-                    }));
-
-                    setResult(null);
-                    setError("");
-                  }}
-                  className="w-5 h-5 accent-orange-500"
-                />
-
-                <span>
-                  <strong>Samedi</strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    +10 %
-                  </span>
-                </span>
-              </label>
-
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.dimanche
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="jour"
-                  value="dimanche"
-                  checked={form.dimanche}
-                  onChange={() => {
-                    setForm((previous) => ({
-                      ...previous,
-                      samedi: false,
-                      dimanche: true,
-                    }));
-
-                    setResult(null);
-                    setError("");
-                  }}
-                  className="w-5 h-5 accent-orange-500"
-                />
-
-                <span>
-                  <strong>
-                    Dimanche / jour férié
-                  </strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    +30 %
-                  </span>
-                </span>
-              </label>
-
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.nuit
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  name="nuit"
-                  checked={form.nuit}
-                  onChange={handleChange}
-                  className="w-5 h-5 accent-orange-500"
-                />
-
-                <span>
-                  <strong>Nuit 22h–6h</strong>
-                  <br />
-                  <span className="text-gray-500 text-sm">
-                    +25 %
-                  </span>
-                </span>
-              </label>
-
-            </div>
-
-            <p className="text-sm text-gray-500 mt-3">
-              Le samedi et le dimanche / jour férié
-              ne peuvent pas être sélectionnés
-              simultanément.
-            </p>
-          </div>
-
-          {/* BOUTON */}
 
           <button
             type="submit"
@@ -677,21 +587,18 @@ export default function CalculateurTransport() {
           </button>
         </form>
 
-        {/* ERREUR */}
-
         {error && (
           <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 text-center">
             {error}
           </div>
         )}
 
-        {/* RESULTAT */}
-
         {result && (
           <div
             id="resultat-calculateur"
             className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
           >
+
             <div className="text-center">
               <p className="text-gray-500 font-semibold">
                 Estimation de votre transport
@@ -763,7 +670,9 @@ export default function CalculateurTransport() {
             <div className="mt-8 border-t pt-6">
 
               <div className="flex justify-between py-2">
-                <span>Tarif de base</span>
+                <span>
+                  Tarif de base
+                </span>
 
                 <strong>
                   {result.tarif.baseHT} € HT
@@ -799,7 +708,8 @@ export default function CalculateurTransport() {
                     </span>
 
                     <strong>
-                      {supplement.amount !== null
+                      {supplement.amount !==
+                      null
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
@@ -816,8 +726,7 @@ export default function CalculateurTransport() {
 
               <p className="text-gray-600 text-sm mt-2">
                 Péages facturés en supplément.
-                Manutention, attente ou contraintes
-                particulières sur devis.
+                Manutention sur devis.
               </p>
             </div>
 
@@ -828,9 +737,8 @@ export default function CalculateurTransport() {
                 définitif peut être ajusté selon
                 les conditions réelles de la
                 mission, notamment l'accès,
-                le stationnement, la manutention,
-                l'attente ou les contraintes
-                particulières.
+                le stationnement, la manutention
+                ou les contraintes particulières.
               </p>
             </div>
 
