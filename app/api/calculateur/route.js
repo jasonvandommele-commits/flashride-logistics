@@ -54,162 +54,328 @@ function getZoneLabel(zone) {
 }
 
 /* =========================================================
-   TARIF DE BASE
+   NORMALISATION VÉHICULE
 ========================================================= */
 
-function getBasePrice(
+function normalizeVehicle(vehicle) {
+  const value = String(vehicle || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  if (
+    value === "moto" ||
+    value === "2roues" ||
+    value === "motorcycle"
+  ) {
+    return "moto";
+  }
+
+  if (
+    value === "voiture" ||
+    value === "voiture3m3" ||
+    value === "3m3" ||
+    value === "vl"
+  ) {
+    return "voiture_3m3";
+  }
+
+  if (
+    value === "fourgon" ||
+    value === "fourgon8m3" ||
+    value === "8m3" ||
+    value === "trafic"
+  ) {
+    return "fourgon_8m3";
+  }
+
+  if (
+    value === "20m3" ||
+    value === "20m³" ||
+    value === "fourgon20m3" ||
+    value === "fourgon_20m3"
+  ) {
+    return "fourgon_20m3";
+  }
+
+  // Compatibilité avec l'ancien calculateur
+  return "fourgon_20m3";
+}
+
+/* =========================================================
+   LABEL VÉHICULE
+========================================================= */
+
+function getVehicleLabel(vehicle) {
+  switch (vehicle) {
+    case "moto":
+      return "Moto";
+
+    case "voiture_3m3":
+      return "Voiture – 3 m³";
+
+    case "fourgon_8m3":
+      return "Fourgon – 8 m³";
+
+    case "fourgon_20m3":
+      return "Fourgon – 20 m³";
+
+    default:
+      return "Fourgon – 20 m³";
+  }
+}
+
+/* =========================================================
+   TARIFS DE BASE PAR ZONE
+=========================================================
+
+   Prix minimum HT selon les zones.
+========================================================= */
+
+const BASE_PRICES = {
+  moto: {
+    paris_paris: 20,
+    paris_petite: 25,
+    petite_petite: 25,
+    paris_grande: 32,
+    petite_grande: 30,
+    grande_grande: 35,
+  },
+
+  voiture_3m3: {
+    paris_paris: 29,
+    paris_petite: 35,
+    petite_petite: 35,
+    paris_grande: 45,
+    petite_grande: 42,
+    grande_grande: 49,
+  },
+
+  fourgon_8m3: {
+    paris_paris: 39,
+    paris_petite: 45,
+    petite_petite: 45,
+    paris_grande: 55,
+    petite_grande: 52,
+    grande_grande: 59,
+  },
+
+  /*
+   * GRILLE 20 M³ EXISTANTE
+   * Conservée telle quelle.
+   */
+  fourgon_20m3: {
+    paris_paris: 89,
+    paris_petite: 99,
+    petite_petite: 99,
+    paris_grande: 129,
+    petite_grande: 119,
+    grande_grande: 129,
+  },
+};
+
+/* =========================================================
+   CLÉ TARIFAIRE
+========================================================= */
+
+function getZonePriceKey(
   zoneDepart,
   zoneArrivee
 ) {
   if (
-    !zoneDepart ||
-    !zoneArrivee
-  ) {
-    return null;
-  }
-
-  /* -------------------------------------------------------
-     PARIS → PARIS
-  ------------------------------------------------------- */
-
-  if (
     zoneDepart === "paris" &&
     zoneArrivee === "paris"
   ) {
-    return 89;
+    return "paris_paris";
   }
-
-  /* -------------------------------------------------------
-     PARIS ↔ PETITE COURONNE
-  ------------------------------------------------------- */
 
   if (
     (zoneDepart === "paris" &&
-      zoneArrivee ===
-        "petite_couronne") ||
-    (zoneDepart ===
-      "petite_couronne" &&
+      zoneArrivee === "petite_couronne") ||
+    (zoneDepart === "petite_couronne" &&
       zoneArrivee === "paris")
   ) {
-    return 99;
+    return "paris_petite";
   }
-
-  /* -------------------------------------------------------
-     PETITE COURONNE ↔ PETITE COURONNE
-  ------------------------------------------------------- */
 
   if (
-    zoneDepart ===
-      "petite_couronne" &&
-    zoneArrivee ===
-      "petite_couronne"
+    zoneDepart === "petite_couronne" &&
+    zoneArrivee === "petite_couronne"
   ) {
-    return 99;
+    return "petite_petite";
   }
-
-  /* -------------------------------------------------------
-     PARIS ↔ GRANDE COURONNE
-  ------------------------------------------------------- */
 
   if (
     (zoneDepart === "paris" &&
-      zoneArrivee ===
-        "grande_couronne") ||
-    (zoneDepart ===
-      "grande_couronne" &&
+      zoneArrivee === "grande_couronne") ||
+    (zoneDepart === "grande_couronne" &&
       zoneArrivee === "paris")
   ) {
-    return 129;
+    return "paris_grande";
   }
 
-  /* -------------------------------------------------------
-     PETITE COURONNE ↔ GRANDE COURONNE
-  ------------------------------------------------------- */
-
   if (
-    (zoneDepart ===
-      "petite_couronne" &&
-      zoneArrivee ===
-        "grande_couronne") ||
-    (zoneDepart ===
-      "grande_couronne" &&
-      zoneArrivee ===
-        "petite_couronne")
+    (zoneDepart === "petite_couronne" &&
+      zoneArrivee === "grande_couronne") ||
+    (zoneDepart === "grande_couronne" &&
+      zoneArrivee === "petite_couronne")
   ) {
-    return 119;
+    return "petite_grande";
   }
 
-  /* -------------------------------------------------------
-     GRANDE COURONNE ↔ GRANDE COURONNE
-  ------------------------------------------------------- */
-
   if (
-    zoneDepart ===
-      "grande_couronne" &&
-    zoneArrivee ===
-      "grande_couronne"
+    zoneDepart === "grande_couronne" &&
+    zoneArrivee === "grande_couronne"
   ) {
-    return 129;
+    return "grande_grande";
   }
 
   return null;
 }
 
 /* =========================================================
-   SUPPLÉMENT DISTANCE
-
-   IMPORTANT :
-   Ce supplément est utilisé uniquement pour
-   les trajets entièrement situés en IDF.
-
-   La sortie d'IDF n'est PAS déterminée par
-   la distance mais par la zone géographique.
-
+   TARIF DE BASE
 ========================================================= */
 
-function getDistanceSupplement(
-  distanceKm
+function getBasePrice(
+  vehicle,
+  zoneDepart,
+  zoneArrivee
 ) {
-  if (distanceKm <= 10) {
-    return 0;
+  const key =
+    getZonePriceKey(
+      zoneDepart,
+      zoneArrivee
+    );
+
+  if (!key) {
+    return null;
   }
 
-  if (distanceKm <= 20) {
-    return 10;
-  }
-
-  if (distanceKm <= 30) {
-    return 15;
-  }
-
-  if (distanceKm <= 40) {
-    return 20;
-  }
-
-  if (distanceKm <= 50) {
-    return 25;
-  }
-
-  if (distanceKm <= 75) {
-    return 35;
-  }
-
-  if (distanceKm <= 100) {
-    return 50;
-  }
-
-  /*
-   * Même au-delà de 100 km, si les deux points
-   * sont en IDF, le trajet reste calculable.
-   *
-   * On conserve donc le plafond de +50 €.
-   */
-
-  return 50;
+  return (
+    BASE_PRICES[vehicle]?.[key] ??
+    null
+  );
 }
 
 /* =========================================================
-   NORMALISATION
+   SUPPLÉMENTS KILOMÉTRIQUES
+========================================================= */
+
+const DISTANCE_SUPPLEMENTS = {
+  moto: [
+    { max: 10, amount: 0 },
+    { max: 20, amount: 5 },
+    { max: 30, amount: 10 },
+    { max: 40, amount: 15 },
+    { max: 50, amount: 20 },
+    { max: 75, amount: 25 },
+    { max: 100, amount: 35 },
+  ],
+
+  voiture_3m3: [
+    { max: 10, amount: 0 },
+    { max: 20, amount: 5 },
+    { max: 30, amount: 10 },
+    { max: 40, amount: 15 },
+    { max: 50, amount: 20 },
+    { max: 75, amount: 30 },
+    { max: 100, amount: 40 },
+  ],
+
+  fourgon_8m3: [
+    { max: 10, amount: 0 },
+    { max: 20, amount: 7 },
+    { max: 30, amount: 12 },
+    { max: 40, amount: 18 },
+    { max: 50, amount: 24 },
+    { max: 75, amount: 32 },
+    { max: 100, amount: 42 },
+  ],
+
+  /*
+   * 20 M³ :
+   * grille kilométrique existante.
+   */
+  fourgon_20m3: [
+    { max: 10, amount: 0 },
+    { max: 20, amount: 10 },
+    { max: 30, amount: 15 },
+    { max: 40, amount: 20 },
+    { max: 50, amount: 25 },
+    { max: 75, amount: 35 },
+    { max: 100, amount: 50 },
+  ],
+};
+
+/* =========================================================
+   SUPPLÉMENTS / MAJORATIONS
+========================================================= */
+
+const VEHICLE_SURCHARGES = {
+  moto: {
+    urgent: 10,
+    express: 20,
+    nuit: 0.20,
+    samedi: 0.10,
+    dimanche: 0.25,
+  },
+
+  voiture_3m3: {
+    urgent: 15,
+    express: 30,
+    nuit: 0.20,
+    samedi: 0.10,
+    dimanche: 0.25,
+  },
+
+  fourgon_8m3: {
+    urgent: 20,
+    express: 35,
+    nuit: 0.25,
+    samedi: 0.10,
+    dimanche: 0.30,
+  },
+
+  fourgon_20m3: {
+    urgent: 25,
+    express: 45,
+    nuit: 0.25,
+    samedi: 0.10,
+    dimanche: 0.30,
+  },
+};
+
+/* =========================================================
+   CALCUL SUPPLÉMENT DISTANCE
+========================================================= */
+
+function getDistanceSupplement(
+  vehicle,
+  distanceKm
+) {
+  const grid =
+    DISTANCE_SUPPLEMENTS[
+      vehicle
+    ];
+
+  if (!grid) {
+    return null;
+  }
+
+  const row =
+    grid.find(
+      (item) =>
+        distanceKm <= item.max
+    );
+
+  return row
+    ? row.amount
+    : null;
+}
+
+/* =========================================================
+   NORMALISATION ADRESSE
 ========================================================= */
 
 function normalizeAddress(text) {
@@ -279,10 +445,6 @@ async function geocode(address) {
 
   let features = [];
 
-  /* -------------------------------------------------------
-     RECHERCHE PRINCIPALE
-  ------------------------------------------------------- */
-
   const searchUrl =
     "https://api.geoapify.com/v1/geocode/search" +
     `?text=${encodeURIComponent(
@@ -301,10 +463,6 @@ async function geocode(address) {
   features.push(
     ...(searchData.features || [])
   );
-
-  /* -------------------------------------------------------
-     RECHERCHE PRÉCISE AVEC NUMÉRO
-  ------------------------------------------------------- */
 
   if (requestedNumber) {
     const preciseUrl =
@@ -343,10 +501,6 @@ async function geocode(address) {
     );
   }
 
-  /* -------------------------------------------------------
-     DÉDOUBLONNAGE
-  ------------------------------------------------------- */
-
   const unique = new Map();
 
   for (const feature of features) {
@@ -372,10 +526,6 @@ async function geocode(address) {
       );
     }
   }
-
-  /* -------------------------------------------------------
-     CLASSEMENT
-  ------------------------------------------------------- */
 
   const sorted =
     Array.from(
@@ -411,8 +561,6 @@ async function geocode(address) {
             .trim()
             .toLowerCase();
 
-        /* Numéro exact prioritaire */
-
         if (wanted) {
           const aExact =
             aNumber === wanted;
@@ -442,8 +590,6 @@ async function geocode(address) {
             return 1;
           }
         }
-
-        /* Confiance Geoapify */
 
         const aConfidence =
           Number(
@@ -647,6 +793,7 @@ async function calculateRoute(
 ========================================================= */
 
 function calculatePrice({
+  vehicle,
   basePrice,
   distanceKm,
   urgent,
@@ -656,10 +803,22 @@ function calculatePrice({
   nuit,
   dimanche,
 }) {
+  const vehicleRates =
+    VEHICLE_SURCHARGES[
+      vehicle
+    ];
+
   const distanceSupplement =
     getDistanceSupplement(
+      vehicle,
       distanceKm
     );
+
+  if (
+    distanceSupplement === null
+  ) {
+    return null;
+  }
 
   let price =
     basePrice +
@@ -672,11 +831,14 @@ function calculatePrice({
   ------------------------------------------------------- */
 
   if (urgent) {
-    price += 20;
+    const amount =
+      vehicleRates.urgent;
+
+    price += amount;
 
     supplements.push({
       label: "Urgent",
-      amount: 20,
+      amount,
     });
   }
 
@@ -685,12 +847,15 @@ function calculatePrice({
   ------------------------------------------------------- */
 
   if (express) {
-    price += 40;
+    const amount =
+      vehicleRates.express;
+
+    price += amount;
 
     supplements.push({
       label:
         "Express / véhicule dédié prioritaire",
-      amount: 40,
+      amount,
     });
   }
 
@@ -699,66 +864,76 @@ function calculatePrice({
   ------------------------------------------------------- */
 
   if (attente) {
-    price += 30;
+    const amount = 30;
+
+    price += amount;
 
     supplements.push({
       label:
         "Attente 30 min",
-      amount: 30,
+      amount,
     });
   }
 
   /* -------------------------------------------------------
-     MAJORATIONS
+     SAMEDI
   ------------------------------------------------------- */
 
-  let percentage = 1;
-
   if (samedi) {
-    percentage += 0.10;
+    const amount =
+      price *
+      vehicleRates.samedi;
+
+    price += amount;
+
+    supplements.push({
+      label:
+        "Samedi +10 %",
+      amount:
+        Math.round(amount),
+    });
   }
+
+  /* -------------------------------------------------------
+     NUIT
+  ------------------------------------------------------- */
 
   if (nuit) {
-    percentage += 0.25;
+    const amount =
+      price *
+      vehicleRates.nuit;
+
+    price += amount;
+
+    supplements.push({
+      label:
+        `Nuit 22h–6h +${Math.round(
+          vehicleRates.nuit * 100
+        )} %`,
+      amount:
+        Math.round(amount),
+    });
   }
+
+  /* -------------------------------------------------------
+     DIMANCHE / JOUR FÉRIÉ
+  ------------------------------------------------------- */
 
   if (dimanche) {
-    percentage += 0.30;
-  }
+    const amount =
+      price *
+      vehicleRates.dimanche;
 
-  const percentageSupplement =
-    price *
-    (percentage - 1);
+    price += amount;
 
-  if (
-    percentageSupplement > 0
-  ) {
-    price +=
-      percentageSupplement;
-
-    if (samedi) {
-      supplements.push({
-        label:
-          "Samedi +10 %",
-        amount: null,
-      });
-    }
-
-    if (nuit) {
-      supplements.push({
-        label:
-          "Nuit 22h–6h +25 %",
-        amount: null,
-      });
-    }
-
-    if (dimanche) {
-      supplements.push({
-        label:
-          "Dimanche / jour férié +30 %",
-        amount: null,
-      });
-    }
+    supplements.push({
+      label:
+        `Dimanche / jour férié +${Math.round(
+          vehicleRates.dimanche * 100
+        )} %`,
+      amount:
+        Math.round(amount),
+    });
   }
 
   return {
@@ -802,6 +977,9 @@ export async function POST(
       departGeo,
       arriveeGeo,
 
+      vehicle =
+        "fourgon_20m3",
+
       urgent = false,
       express = false,
       attente = false,
@@ -809,6 +987,11 @@ export async function POST(
       nuit = false,
       dimanche = false,
     } = body;
+
+    const normalizedVehicle =
+      normalizeVehicle(
+        vehicle
+      );
 
     /* -------------------------------------------------------
        VALIDATION
@@ -831,8 +1014,7 @@ export async function POST(
     }
 
     /* -------------------------------------------------------
-       UTILISER LES COORDONNÉES AUTOCOMPLETE
-       SI DISPONIBLES
+       GÉOCODAGE
     ------------------------------------------------------- */
 
     const selectedDepart =
@@ -856,14 +1038,7 @@ export async function POST(
       (await geocode(arrivee));
 
     /* =====================================================
-       RÈGLE PRINCIPALE :
-
-       LE TRAJET DOIT ÊTRE ENTIÈREMENT EN IDF.
-
-       Si départ OU arrivée est hors IDF :
-       → SUR DEVIS
-
-       La distance n'intervient PAS dans cette décision.
+       HORS IDF → SUR DEVIS
     ===================================================== */
 
     if (
@@ -880,7 +1055,12 @@ export async function POST(
           "Ce trajet sort de la zone tarifaire automatique. Demandez un devis personnalisé.",
 
         vehicle:
-          "20 m³ avec chauffeur",
+          getVehicleLabel(
+            normalizedVehicle
+          ),
+
+        vehicleCode:
+          normalizedVehicle,
 
         depart: {
           adresse:
@@ -940,12 +1120,91 @@ export async function POST(
         arriveeResolved
       );
 
+    /* =====================================================
+       PLUS DE 100 KM → SUR DEVIS
+    ===================================================== */
+
+    if (
+      route.distanceKm > 100
+    ) {
+      return NextResponse.json({
+        success: false,
+
+        reason:
+          "distance_hors_grille",
+
+        message:
+          "Pour les trajets de plus de 100 km, le tarif est établi sur devis.",
+
+        vehicle:
+          getVehicleLabel(
+            normalizedVehicle
+          ),
+
+        vehicleCode:
+          normalizedVehicle,
+
+        depart: {
+          adresse:
+            departResolved.formatted,
+
+          ville:
+            departResolved.city,
+
+          codePostal:
+            departResolved.postcode,
+
+          zone:
+            getZoneLabel(
+              departResolved.zone
+            ),
+        },
+
+        arrivee: {
+          adresse:
+            arriveeResolved.formatted,
+
+          ville:
+            arriveeResolved.city,
+
+          codePostal:
+            arriveeResolved.postcode,
+
+          zone:
+            getZoneLabel(
+              arriveeResolved.zone
+            ),
+        },
+
+        trajet: {
+          distanceKm:
+            route.distanceKm,
+
+          dureeMinutes:
+            route.durationMinutes,
+        },
+
+        tarif: null,
+
+        supplements: [],
+
+        fraisSupplementaires: {
+          peages:
+            "À déterminer sur devis",
+
+          manutention:
+            "Sur devis",
+        },
+      });
+    }
+
     /* -------------------------------------------------------
        TARIF DE BASE
     ------------------------------------------------------- */
 
     const basePrice =
       getBasePrice(
+        normalizedVehicle,
         departResolved.zone,
         arriveeResolved.zone
       );
@@ -961,6 +1220,14 @@ export async function POST(
 
         message:
           "Ce trajet nécessite une étude personnalisée.",
+
+        vehicle:
+          getVehicleLabel(
+            normalizedVehicle
+          ),
+
+        vehicleCode:
+          normalizedVehicle,
 
         depart:
           departResolved,
@@ -979,6 +1246,9 @@ export async function POST(
 
     const calculation =
       calculatePrice({
+        vehicle:
+          normalizedVehicle,
+
         basePrice,
 
         distanceKm:
@@ -992,6 +1262,29 @@ export async function POST(
         dimanche,
       });
 
+    if (!calculation) {
+      return NextResponse.json({
+        success: false,
+
+        reason:
+          "distance_hors_grille",
+
+        message:
+          "Cette distance nécessite un devis personnalisé.",
+
+        vehicle:
+          getVehicleLabel(
+            normalizedVehicle
+          ),
+
+        vehicleCode:
+          normalizedVehicle,
+
+        trajet:
+          route,
+      });
+    }
+
     /* -------------------------------------------------------
        RÉPONSE
     ------------------------------------------------------- */
@@ -1000,7 +1293,12 @@ export async function POST(
       success: true,
 
       vehicle:
-        "20 m³ avec chauffeur",
+        getVehicleLabel(
+          normalizedVehicle
+        ),
+
+      vehicleCode:
+        normalizedVehicle,
 
       depart: {
         adresse:
