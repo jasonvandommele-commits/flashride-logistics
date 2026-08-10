@@ -569,7 +569,7 @@ export default function CalculateurTransport() {
                     .totalHT
                 }{" "}
                 <span className="text-xl ml-2">
-                  HT
+                  € HT
                 </span>
               </p>
 
