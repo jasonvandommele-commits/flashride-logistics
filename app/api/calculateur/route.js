@@ -4,7 +4,7 @@ const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
 
 /* =========================================================
-   ZONES TARIFAIRES
+   ZONES TARIFAIRES IDF
 ========================================================= */
 
 function getZoneFromPostcode(postcode) {
@@ -29,97 +29,8 @@ function getZoneFromPostcode(postcode) {
     return "grande_couronne";
   }
 
+  // Hors Île-de-France
   return null;
-}
-
-/* =========================================================
-   TARIF DE BASE
-========================================================= */
-
-function getBasePrice(
-  zoneDepart,
-  zoneArrivee
-) {
-  if (
-    !zoneDepart ||
-    !zoneArrivee
-  ) {
-    return null;
-  }
-
-  // Paris → Paris
-  if (
-    zoneDepart === "paris" &&
-    zoneArrivee === "paris"
-  ) {
-    return 89;
-  }
-
-  // Paris ↔ Petite couronne
-  if (
-    (zoneDepart === "paris" &&
-      zoneArrivee === "petite_couronne") ||
-    (zoneDepart === "petite_couronne" &&
-      zoneArrivee === "paris")
-  ) {
-    return 99;
-  }
-
-  // Petite couronne ↔ Petite couronne
-  if (
-    zoneDepart === "petite_couronne" &&
-    zoneArrivee === "petite_couronne"
-  ) {
-    return 99;
-  }
-
-  // Paris ↔ Grande couronne
-  if (
-    (zoneDepart === "paris" &&
-      zoneArrivee === "grande_couronne") ||
-    (zoneDepart === "grande_couronne" &&
-      zoneArrivee === "paris")
-  ) {
-    return 129;
-  }
-
-  // Petite couronne ↔ Grande couronne
-  if (
-    (zoneDepart === "petite_couronne" &&
-      zoneArrivee === "grande_couronne") ||
-    (zoneDepart === "grande_couronne" &&
-      zoneArrivee === "petite_couronne")
-  ) {
-    return 119;
-  }
-
-  // Grande couronne ↔ Grande couronne
-  if (
-    zoneDepart === "grande_couronne" &&
-    zoneArrivee === "grande_couronne"
-  ) {
-    return 129;
-  }
-
-  return null;
-}
-
-/* =========================================================
-   SUPPLÉMENT DISTANCE
-========================================================= */
-
-function getDistanceSupplement(
-  distanceKm
-) {
-  if (distanceKm <= 10) return 0;
-  if (distanceKm <= 20) return 10;
-  if (distanceKm <= 30) return 15;
-  if (distanceKm <= 40) return 20;
-  if (distanceKm <= 50) return 25;
-  if (distanceKm <= 75) return 35;
-  if (distanceKm <= 100) return 50;
-
-  return 50;
 }
 
 /* =========================================================
@@ -138,12 +49,167 @@ function getZoneLabel(zone) {
       return "Grande couronne";
 
     default:
-      return "Hors zone";
+      return "Hors Île-de-France";
   }
 }
 
 /* =========================================================
-   NORMALISATION ADRESSE
+   TARIF DE BASE
+========================================================= */
+
+function getBasePrice(
+  zoneDepart,
+  zoneArrivee
+) {
+  if (
+    !zoneDepart ||
+    !zoneArrivee
+  ) {
+    return null;
+  }
+
+  /* -------------------------------------------------------
+     PARIS → PARIS
+  ------------------------------------------------------- */
+
+  if (
+    zoneDepart === "paris" &&
+    zoneArrivee === "paris"
+  ) {
+    return 89;
+  }
+
+  /* -------------------------------------------------------
+     PARIS ↔ PETITE COURONNE
+  ------------------------------------------------------- */
+
+  if (
+    (zoneDepart === "paris" &&
+      zoneArrivee ===
+        "petite_couronne") ||
+    (zoneDepart ===
+      "petite_couronne" &&
+      zoneArrivee === "paris")
+  ) {
+    return 99;
+  }
+
+  /* -------------------------------------------------------
+     PETITE COURONNE ↔ PETITE COURONNE
+  ------------------------------------------------------- */
+
+  if (
+    zoneDepart ===
+      "petite_couronne" &&
+    zoneArrivee ===
+      "petite_couronne"
+  ) {
+    return 99;
+  }
+
+  /* -------------------------------------------------------
+     PARIS ↔ GRANDE COURONNE
+  ------------------------------------------------------- */
+
+  if (
+    (zoneDepart === "paris" &&
+      zoneArrivee ===
+        "grande_couronne") ||
+    (zoneDepart ===
+      "grande_couronne" &&
+      zoneArrivee === "paris")
+  ) {
+    return 129;
+  }
+
+  /* -------------------------------------------------------
+     PETITE COURONNE ↔ GRANDE COURONNE
+  ------------------------------------------------------- */
+
+  if (
+    (zoneDepart ===
+      "petite_couronne" &&
+      zoneArrivee ===
+        "grande_couronne") ||
+    (zoneDepart ===
+      "grande_couronne" &&
+      zoneArrivee ===
+        "petite_couronne")
+  ) {
+    return 119;
+  }
+
+  /* -------------------------------------------------------
+     GRANDE COURONNE ↔ GRANDE COURONNE
+  ------------------------------------------------------- */
+
+  if (
+    zoneDepart ===
+      "grande_couronne" &&
+    zoneArrivee ===
+      "grande_couronne"
+  ) {
+    return 129;
+  }
+
+  return null;
+}
+
+/* =========================================================
+   SUPPLÉMENT DISTANCE
+
+   IMPORTANT :
+   Ce supplément est utilisé uniquement pour
+   les trajets entièrement situés en IDF.
+
+   La sortie d'IDF n'est PAS déterminée par
+   la distance mais par la zone géographique.
+
+========================================================= */
+
+function getDistanceSupplement(
+  distanceKm
+) {
+  if (distanceKm <= 10) {
+    return 0;
+  }
+
+  if (distanceKm <= 20) {
+    return 10;
+  }
+
+  if (distanceKm <= 30) {
+    return 15;
+  }
+
+  if (distanceKm <= 40) {
+    return 20;
+  }
+
+  if (distanceKm <= 50) {
+    return 25;
+  }
+
+  if (distanceKm <= 75) {
+    return 35;
+  }
+
+  if (distanceKm <= 100) {
+    return 50;
+  }
+
+  /*
+   * Même au-delà de 100 km, si les deux points
+   * sont en IDF, le trajet reste calculable.
+   *
+   * On conserve donc le plafond de +50 €.
+   */
+
+  return 50;
+}
+
+/* =========================================================
+   NORMALISATION
 ========================================================= */
 
 function normalizeAddress(text) {
@@ -213,9 +279,9 @@ async function geocode(address) {
 
   let features = [];
 
-  /*
-   * Recherche principale
-   */
+  /* -------------------------------------------------------
+     RECHERCHE PRINCIPALE
+  ------------------------------------------------------- */
 
   const searchUrl =
     "https://api.geoapify.com/v1/geocode/search" +
@@ -236,10 +302,9 @@ async function geocode(address) {
     ...(searchData.features || [])
   );
 
-  /*
-   * Recherche plus précise lorsqu'un numéro
-   * est présent.
-   */
+  /* -------------------------------------------------------
+     RECHERCHE PRÉCISE AVEC NUMÉRO
+  ------------------------------------------------------- */
 
   if (requestedNumber) {
     const preciseUrl =
@@ -278,9 +343,9 @@ async function geocode(address) {
     );
   }
 
-  /* =======================================================
-     DOUBLONS
-  ======================================================= */
+  /* -------------------------------------------------------
+     DÉDOUBLONNAGE
+  ------------------------------------------------------- */
 
   const unique = new Map();
 
@@ -308,9 +373,9 @@ async function geocode(address) {
     }
   }
 
-  /* =======================================================
-     TRI
-  ======================================================= */
+  /* -------------------------------------------------------
+     CLASSEMENT
+  ------------------------------------------------------- */
 
   const sorted =
     Array.from(
@@ -346,9 +411,7 @@ async function geocode(address) {
             .trim()
             .toLowerCase();
 
-        /*
-         * Priorité au numéro exact
-         */
+        /* Numéro exact prioritaire */
 
         if (wanted) {
           const aExact =
@@ -365,11 +428,6 @@ async function geocode(address) {
               : 1;
           }
 
-          /*
-           * Ensuite les résultats
-           * possédant un numéro
-           */
-
           if (
             aNumber &&
             !bNumber
@@ -385,9 +443,7 @@ async function geocode(address) {
           }
         }
 
-        /*
-         * Confiance Geoapify
-         */
+        /* Confiance Geoapify */
 
         const aConfidence =
           Number(
@@ -457,7 +513,7 @@ async function geocode(address) {
 }
 
 /* =========================================================
-   UTILISER LES COORDONNÉES DE L'AUTOCOMPLETE
+   COORDONNÉES AUTOCOMPLETE
 ========================================================= */
 
 function getSelectedGeo(
@@ -467,18 +523,26 @@ function getSelectedGeo(
   if (
     selected &&
     Number.isFinite(
-      Number(selected.latitude)
+      Number(
+        selected.latitude
+      )
     ) &&
     Number.isFinite(
-      Number(selected.longitude)
+      Number(
+        selected.longitude
+      )
     )
   ) {
     return {
       latitude:
-        Number(selected.latitude),
+        Number(
+          selected.latitude
+        ),
 
       longitude:
-        Number(selected.longitude),
+        Number(
+          selected.longitude
+        ),
 
       formatted:
         selected.formatted ||
@@ -585,17 +649,13 @@ async function calculateRoute(
 function calculatePrice({
   basePrice,
   distanceKm,
-  priorite,
+  urgent,
+  express,
+  attente,
   samedi,
   nuit,
   dimanche,
 }) {
-  /*
-   * =======================================================
-   * 1. TARIF DE BASE + DISTANCE
-   * =======================================================
-   */
-
   const distanceSupplement =
     getDistanceSupplement(
       distanceKm
@@ -607,29 +667,11 @@ function calculatePrice({
 
   const supplements = [];
 
-  /*
-   * =======================================================
-   * 2. PRIORITÉ
-   *
-   * Une seule priorité est possible :
-   *
-   * standard = 0 €
-   * urgent   = +20 €
-   * express  = +40 €
-   * =======================================================
-   */
+  /* -------------------------------------------------------
+     URGENT
+  ------------------------------------------------------- */
 
-  const normalizedPriority =
-    String(
-      priorite || "standard"
-    )
-      .trim()
-      .toLowerCase();
-
-  if (
-    normalizedPriority ===
-    "urgent"
-  ) {
+  if (urgent) {
     price += 20;
 
     supplements.push({
@@ -638,10 +680,11 @@ function calculatePrice({
     });
   }
 
-  if (
-    normalizedPriority ===
-    "express"
-  ) {
+  /* -------------------------------------------------------
+     EXPRESS / PRIORITAIRE
+  ------------------------------------------------------- */
+
+  if (express) {
     price += 40;
 
     supplements.push({
@@ -651,15 +694,25 @@ function calculatePrice({
     });
   }
 
-  /*
-   * =======================================================
-   * 3. SUPPLÉMENTS TEMPORELS
-   *
-   * Ces suppléments sont cumulables.
-   * =======================================================
-   */
+  /* -------------------------------------------------------
+     ATTENTE
+  ------------------------------------------------------- */
 
-  let percentage = 0;
+  if (attente) {
+    price += 30;
+
+    supplements.push({
+      label:
+        "Attente 30 min",
+      amount: 30,
+    });
+  }
+
+  /* -------------------------------------------------------
+     MAJORATIONS
+  ------------------------------------------------------- */
+
+  let percentage = 1;
 
   if (samedi) {
     percentage += 0.10;
@@ -673,40 +726,23 @@ function calculatePrice({
     percentage += 0.30;
   }
 
-  /*
-   * Le pourcentage est appliqué au prix
-   * après le tarif de base, la distance
-   * et la priorité.
-   */
+  const percentageSupplement =
+    price *
+    (percentage - 1);
 
-  if (percentage > 0) {
-    const percentageSupplement =
-      price * percentage;
-
+  if (
+    percentageSupplement > 0
+  ) {
     price +=
       percentageSupplement;
-
-    /*
-     * Samedi
-     */
 
     if (samedi) {
       supplements.push({
         label:
           "Samedi +10 %",
-        amount: Number(
-          (
-            price -
-            price /
-              (1 + percentage)
-          ).toFixed(2)
-        ),
+        amount: null,
       });
     }
-
-    /*
-     * Nuit
-     */
 
     if (nuit) {
       supplements.push({
@@ -715,10 +751,6 @@ function calculatePrice({
         amount: null,
       });
     }
-
-    /*
-     * Dimanche
-     */
 
     if (dimanche) {
       supplements.push({
@@ -747,17 +779,10 @@ export async function POST(
   request
 ) {
   try {
-    /*
-     * =====================================================
-     * VÉRIFICATION GEOAPIFY
-     * =====================================================
-     */
-
     if (!GEOAPIFY_API_KEY) {
       return NextResponse.json(
         {
           success: false,
-
           error:
             "GEOAPIFY_API_KEY non configurée.",
         },
@@ -766,12 +791,6 @@ export async function POST(
         }
       );
     }
-
-    /*
-     * =====================================================
-     * RÉCUPÉRATION DU BODY
-     * =====================================================
-     */
 
     const body =
       await request.json();
@@ -783,18 +802,17 @@ export async function POST(
       departGeo,
       arriveeGeo,
 
-      priorite = "standard",
-
+      urgent = false,
+      express = false,
+      attente = false,
       samedi = false,
       nuit = false,
       dimanche = false,
     } = body;
 
-    /*
-     * =====================================================
-     * VALIDATION
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       VALIDATION
+    ------------------------------------------------------- */
 
     if (
       !depart ||
@@ -803,7 +821,6 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-
           error:
             "Les adresses de départ et d'arrivée sont obligatoires.",
         },
@@ -813,40 +830,10 @@ export async function POST(
       );
     }
 
-    /*
-     * =====================================================
-     * VALIDATION PRIORITÉ
-     *
-     * Même si quelqu'un modifie la requête
-     * manuellement, seules ces trois valeurs
-     * sont acceptées.
-     * =====================================================
-     */
-
-    const allowedPriorities = [
-      "standard",
-      "urgent",
-      "express",
-    ];
-
-    const safePriority =
-      allowedPriorities.includes(
-        String(priorite)
-      )
-        ? String(priorite)
-        : "standard";
-
-    /*
-     * =====================================================
-     * 1. UTILISER LES COORDONNÉES SÉLECTIONNÉES
-     *
-     * Si le client a sélectionné une adresse
-     * dans l'autocomplétion, on utilise directement
-     * ses coordonnées.
-     *
-     * Sinon, on effectue un géocodage.
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       UTILISER LES COORDONNÉES AUTOCOMPLETE
+       SI DISPONIBLES
+    ------------------------------------------------------- */
 
     const selectedDepart =
       getSelectedGeo(
@@ -868,11 +855,16 @@ export async function POST(
       selectedArrivee ||
       (await geocode(arrivee));
 
-    /*
-     * =====================================================
-     * 2. VÉRIFICATION DES ZONES
-     * =====================================================
-     */
+    /* =====================================================
+       RÈGLE PRINCIPALE :
+
+       LE TRAJET DOIT ÊTRE ENTIÈREMENT EN IDF.
+
+       Si départ OU arrivée est hors IDF :
+       → SUR DEVIS
+
+       La distance n'intervient PAS dans cette décision.
+    ===================================================== */
 
     if (
       !departResolved.zone ||
@@ -885,21 +877,62 @@ export async function POST(
           "hors_zone",
 
         message:
-          "Cette adresse est en dehors de la zone tarifaire automatique. Demandez un devis personnalisé.",
+          "Ce trajet sort de la zone tarifaire automatique. Demandez un devis personnalisé.",
 
-        depart:
-          departResolved,
+        vehicle:
+          "20 m³ avec chauffeur",
 
-        arrivee:
-          arriveeResolved,
+        depart: {
+          adresse:
+            departResolved.formatted,
+
+          ville:
+            departResolved.city,
+
+          codePostal:
+            departResolved.postcode,
+
+          zone:
+            getZoneLabel(
+              departResolved.zone
+            ),
+        },
+
+        arrivee: {
+          adresse:
+            arriveeResolved.formatted,
+
+          ville:
+            arriveeResolved.city,
+
+          codePostal:
+            arriveeResolved.postcode,
+
+          zone:
+            getZoneLabel(
+              arriveeResolved.zone
+            ),
+        },
+
+        trajet: null,
+
+        tarif: null,
+
+        supplements: [],
+
+        fraisSupplementaires: {
+          peages:
+            "À déterminer sur devis",
+
+          manutention:
+            "Sur devis",
+        },
       });
     }
 
-    /*
-     * =====================================================
-     * 3. CALCUL DE L'ITINÉRAIRE
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       ITINÉRAIRE
+    ------------------------------------------------------- */
 
     const route =
       await calculateRoute(
@@ -907,11 +940,9 @@ export async function POST(
         arriveeResolved
       );
 
-    /*
-     * =====================================================
-     * 4. TARIF DE BASE
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       TARIF DE BASE
+    ------------------------------------------------------- */
 
     const basePrice =
       getBasePrice(
@@ -930,14 +961,21 @@ export async function POST(
 
         message:
           "Ce trajet nécessite une étude personnalisée.",
+
+        depart:
+          departResolved,
+
+        arrivee:
+          arriveeResolved,
+
+        trajet:
+          route,
       });
     }
 
-    /*
-     * =====================================================
-     * 5. CALCUL FINAL
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       CALCUL
+    ------------------------------------------------------- */
 
     const calculation =
       calculatePrice({
@@ -946,33 +984,23 @@ export async function POST(
         distanceKm:
           route.distanceKm,
 
-        priorite:
-          safePriority,
-
-        samedi:
-          Boolean(samedi),
-
-        nuit:
-          Boolean(nuit),
-
-        dimanche:
-          Boolean(dimanche),
+        urgent,
+        express,
+        attente,
+        samedi,
+        nuit,
+        dimanche,
       });
 
-    /*
-     * =====================================================
-     * 6. RÉPONSE
-     * =====================================================
-     */
+    /* -------------------------------------------------------
+       RÉPONSE
+    ------------------------------------------------------- */
 
     return NextResponse.json({
       success: true,
 
       vehicle:
         "20 m³ avec chauffeur",
-
-      priorite:
-        safePriority,
 
       depart: {
         adresse:
