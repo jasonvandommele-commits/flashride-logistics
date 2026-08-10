@@ -946,7 +946,7 @@ export default function CalculateurTransport() {
                   </p>
 
                   <a
-                    href="#devis"
+                    href="/devis"
                     className="mt-5 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-3.5 hover:bg-orange-600 transition"
                   >
                     Demander un devis
@@ -1145,7 +1145,7 @@ export default function CalculateurTransport() {
                 ================================================= */}
 
           <a
-          href="#devis"
+          href="/devis"
           className="mt-5 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-3.5 hover:bg-orange-600 transition"
         >
           Confirmer ma demande de devis
