@@ -554,7 +554,7 @@ export default function CalculateurTransport() {
           </p>
 
           <h2 className="text-2xl md:text-4xl font-black mt-3">
-            Estimez votre transport en quelques secondes
+            Transparent pour mieux transporter 
           </h2>
 
           <p className="mt-4 text-gray-600 text-base md:text-lg">
