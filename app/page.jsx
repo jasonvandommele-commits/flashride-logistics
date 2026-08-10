@@ -104,7 +104,7 @@ export default function FlashrideLogisticsWebsite() {
               </a>
 
               <a
-                href="#devis"
+                href="/devis"
                 className="border border-white/40 w-52 h-11 rounded-xl font-semibold text-sm hover:bg-white hover:text-black transition flex items-center justify-center"
               >
 
@@ -502,147 +502,6 @@ export default function FlashrideLogisticsWebsite() {
 
       </section>
 
-      {/* Devis */}
-
-      <section id="devis" className="py-16 md:py-20 px-6 bg-gray-100">
-
-        <div className="max-w-5xl mx-auto">
-
-          <div className="text-center mb-10">
-
-            <p className="text-orange-500 font-bold uppercase tracking-widest text-sm">
-              Demande de transport
-            </p>
-
-            <h2 className="text-3xl md:text-4xl font-black mt-3 leading-tight">
-              Obtenez votre solution de transport personnalisée
-            </h2>
-
-            <p className="mt-4 text-gray-600 text-base md:text-lg">
-              Décrivez votre projet. Flashride Logistics vous accompagne avec
-              une solution adaptée à votre activité, vos délais et votre volume.
-            </p>
-
-          </div>
-
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-3xl shadow-xl p-6 grid md:grid-cols-2 gap-5"
-          >
-
-            <select
-              name="prestation"
-              className="border rounded-xl p-3.5 md:col-span-2"
-            >
-              <option>Type de prestation</option>
-              <option>Tournée régulière</option>
-              <option>Transport express</option>
-              <option>Transport dédié</option>
-              <option>Transport de marchandises</option>
-              <option>Logistique événementielle</option>
-              <option>Sous-traitance transport</option>
-            </select>
-
-            <select
-              name="client"
-              className="border rounded-xl p-3.5"
-            >
-              <option>Vous êtes</option>
-              <option>Entreprise</option>
-              <option>Particulier</option>
-            </select>
-
-            <select
-              name="vehicule"
-              className="border rounded-xl p-3.5"
-            >
-              <option>Type de véhicule souhaité</option>
-              <option>2 roues</option>
-              <option>Véhicule léger jusqu'à 6m³</option>
-              <option>Fourgon 12/14m³</option>
-              <option>Grand volume 20m³ avec hayon</option>
-              <option>Besoin à définir</option>
-            </select>
-
-            <input
-              name="nom"
-              className="border rounded-xl p-3.5"
-              placeholder="Nom / Entreprise"
-            />
-
-            <input
-              name="telephone"
-              className="border rounded-xl p-3.5"
-              placeholder="Téléphone"
-            />
-
-            <input
-              name="email"
-              className="border rounded-xl p-3.5"
-              placeholder="Email"
-            />
-
-            <div>
-              <label className="block font-semibold mb-2">
-                Date souhaitée du transport
-              </label>
-
-              <input
-                name="date"
-                type="date"
-                className="border rounded-xl p-3.5 w-full"
-              />
-            </div>
-
-            <input
-              name="volume"
-              className="border rounded-xl p-3.5"
-              placeholder="Volume (colis, palettes, dimensions)"
-            />
-
-            <input
-              name="depart"
-              className="border rounded-xl p-3.5"
-              placeholder="Ville de départ"
-            />
-
-            <input
-              name="arrivee"
-              className="border rounded-xl p-3.5"
-              placeholder="Ville d'arrivée"
-            />
-
-            <input
-              name="marchandise"
-              className="border rounded-xl p-3.5 md:col-span-2"
-              placeholder="Type de marchandise"
-            />
-
-            <textarea
-              name="message"
-              className="border rounded-xl p-3.5 md:col-span-2"
-              placeholder="Décrivez votre besoin (horaires, contraintes, informations complémentaires...)"
-              rows="5"
-            />
-
-            <button
-              type="submit"
-              className="bg-orange-500 text-white font-bold text-base rounded-xl p-3.5 md:col-span-2 hover:bg-orange-600 transition"
-            >
-              Recevoir ma proposition
-            </button>
-
-          </form>
-
-          {sent && (
-            <div className="mt-5 bg-green-100 text-green-700 p-4 rounded-xl text-center font-semibold">
-              ✅ Votre demande a bien été envoyée. Notre équipe vous recontactera sous 24h.
-            </div>
-          )}
-
-        </div>
-
-      </section>
 
       {/* Contact */}
 
@@ -712,7 +571,7 @@ export default function FlashrideLogisticsWebsite() {
           <div className="mt-8">
 
             <a
-              href="#devis"
+              href="/devis"
               className="inline-block bg-orange-500 text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-orange-600 transition"
             >
               Demander une étude personnalisée
