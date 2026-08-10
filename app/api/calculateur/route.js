@@ -716,12 +716,18 @@ function calculatePrice({
   const options =
     OPTION_SUPPLEMENTS[vehicle];
 
+  /* =====================================================
+     PRIORITÉ
+  ===================================================== */
+
   if (priorite === "urgent") {
     price += options.urgent;
 
     supplements.push({
-      label: "Urgence — Départ prioritaire",
-      amount: options.urgent,
+      label:
+        "Urgence — Départ prioritaire",
+      amount:
+        options.urgent,
     });
   }
 
@@ -731,63 +737,81 @@ function calculatePrice({
     supplements.push({
       label:
         "Course dédiée — Véhicule exclusivement dédié à votre mission",
-      amount: options.express,
+      amount:
+        options.express,
     });
   }
+
+  /* =====================================================
+     MAJORATIONS
+     ORDRE : NUIT → SAMEDI → DIMANCHE / JOUR FÉRIÉ
+  ===================================================== */
 
   const percentages =
     VEHICLE_PERCENTAGES[vehicle];
 
-  let percentage = 1;
-
-  if (samedi) {
-    percentage += percentages.samedi;
-  }
+  /* -----------------------------------------------------
+     NUIT
+  ----------------------------------------------------- */
 
   if (nuit) {
-    percentage += percentages.nuit;
+    const amount =
+      Math.round(
+        price *
+          percentages.nuit
+      );
+
+    price += amount;
+
+    supplements.push({
+      label:
+        `Nuit 22h–6h +${Math.round(
+          percentages.nuit * 100
+        )} %`,
+      amount,
+    });
   }
+
+  /* -----------------------------------------------------
+     SAMEDI
+  ----------------------------------------------------- */
+
+  if (samedi) {
+    const amount =
+      Math.round(
+        price *
+          percentages.samedi
+      );
+
+    price += amount;
+
+    supplements.push({
+      label:
+        "Samedi +10 %",
+      amount,
+    });
+  }
+
+  /* -----------------------------------------------------
+     DIMANCHE / JOUR FÉRIÉ
+  ----------------------------------------------------- */
 
   if (dimanche) {
-    percentage += percentages.dimanche;
-  }
+    const amount =
+      Math.round(
+        price *
+          percentages.dimanche
+      );
 
-  const percentageSupplement =
-    price * (percentage - 1);
+    price += amount;
 
-  if (percentageSupplement > 0) {
-    price += percentageSupplement;
-
-    if (samedi) {
-      supplements.push({
-        label: "Samedi +10 %",
-        amount: Math.round(
-          (price -
-            percentageSupplement) *
-            percentages.samedi
-        ),
-      });
-    }
-
-    if (nuit) {
-      supplements.push({
-        label:
-          `Nuit 22h–6h +${Math.round(
-            percentages.nuit * 100
-          )} %`,
-        amount: null,
-      });
-    }
-
-    if (dimanche) {
-      supplements.push({
-        label:
-          `Dimanche / jour férié +${Math.round(
-            percentages.dimanche * 100
-          )} %`,
-        amount: null,
-      });
-    }
+    supplements.push({
+      label:
+        `Dimanche / jour férié +${Math.round(
+          percentages.dimanche * 100
+        )} %`,
+      amount,
+    });
   }
 
   return {
@@ -837,7 +861,10 @@ export async function POST(
       dimanche = false,
     } = body;
 
-    if (!depart || !arrivee) {
+    if (
+      !depart ||
+      !arrivee
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -891,7 +918,8 @@ export async function POST(
     ) {
       return NextResponse.json({
         success: false,
-        reason: "hors_zone",
+        reason:
+          "hors_zone",
 
         message:
           "Ce trajet sort de la zone tarifaire automatique. Demandez un devis personnalisé.",
@@ -937,11 +965,19 @@ export async function POST(
       });
     }
 
+    /* =====================================================
+       CALCUL ITINÉRAIRE
+    ===================================================== */
+
     const route =
       await calculateRoute(
         departResolved,
         arriveeResolved
       );
+
+    /* =====================================================
+       TARIF DE BASE
+    ===================================================== */
 
     const basePrice =
       getBasePrice(
@@ -950,7 +986,9 @@ export async function POST(
         arriveeResolved.zone
       );
 
-    if (basePrice === null) {
+    if (
+      basePrice === null
+    ) {
       return NextResponse.json({
         success: false,
 
@@ -962,17 +1000,32 @@ export async function POST(
       });
     }
 
+    /* =====================================================
+       CALCUL PRIX FINAL
+    ===================================================== */
+
     const calculation =
       calculatePrice({
-        vehicle: vehicule,
+        vehicle:
+          vehicule,
+
         basePrice,
+
         distanceKm:
           route.distanceKm,
+
         priorite,
+
         samedi,
+
         nuit,
+
         dimanche,
       });
+
+    /* =====================================================
+       RÉPONSE
+    ===================================================== */
 
     return NextResponse.json({
       success: true,
