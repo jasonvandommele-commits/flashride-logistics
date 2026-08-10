@@ -136,7 +136,7 @@ export default function Footer() {
           </p>
 
           <a
-            href="#devis"
+            href="/devis"
             className="inline-block mt-4 bg-orange-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-600 transition"
           >
             Demander un devis
