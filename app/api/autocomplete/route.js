@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
 
+function normalizeText(value = "") {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[,\-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractHouseNumber(text = "") {
+  const match = text.trim().match(/^(\d+[A-Za-z]?)\b/);
+  return match ? match[1].toLowerCase() : null;
+}
+
 export async function GET(request) {
   try {
     if (!GEOAPIFY_API_KEY) {
@@ -24,10 +39,13 @@ export async function GET(request) {
       });
     }
 
+    const userNumber = extractHouseNumber(text);
+    const normalizedQuery = normalizeText(text);
+
     const url =
       "https://api.geoapify.com/v1/geocode/autocomplete" +
       `?text=${encodeURIComponent(text)}` +
-      "&limit=8" +
+      "&limit=15" +
       "&filter=countrycode:fr" +
       "&lang=fr" +
       `&apiKey=${GEOAPIFY_API_KEY}`;
@@ -61,16 +79,18 @@ export async function GET(request) {
         const coordinates =
           feature.geometry?.coordinates || [];
 
-        const houseNumber =
-          properties.housenumber || "";
+        const housenumber =
+          properties.housenumber ||
+          properties.house_number ||
+          "";
 
         const street =
           properties.street ||
-          properties.address_line1 ||
           "";
 
         const postcode =
-          properties.postcode || "";
+          properties.postcode ||
+          "";
 
         const city =
           properties.city ||
@@ -79,34 +99,80 @@ export async function GET(request) {
           properties.municipality ||
           "";
 
-        const formatted =
-          properties.formatted ||
-          [
-            houseNumber,
-            street,
-            postcode,
-            city,
-          ]
-            .filter(Boolean)
-            .join(", ");
-
-        const addressLine1 =
-          houseNumber && street
-            ? `${houseNumber} ${street}`
-            : street || formatted;
-
-        const addressLine2 =
-          [postcode, city]
-            .filter(Boolean)
-            .join(" ");
-
         const resultType =
-          properties.result_type || "";
+          properties.result_type ||
+          "";
+
+        /*
+         * On reconstruit nous-mêmes l'adresse.
+         * Cela évite de dépendre uniquement de
+         * properties.formatted qui peut parfois
+         * renvoyer uniquement la rue.
+         */
+        const addressLine1 = [
+          housenumber,
+          street,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const addressLine2 = [
+          postcode,
+          city,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const formatted =
+          [addressLine1, addressLine2]
+            .filter(Boolean)
+            .join(", ") ||
+          properties.formatted ||
+          "";
+
+        const normalizedStreet = normalizeText(street);
+        const normalizedFormatted =
+          normalizeText(formatted);
 
         const hasHouseNumber =
-          Boolean(houseNumber) ||
-          /^\s*\d+[A-Za-z]?\s+/.test(
-            formatted
+          Boolean(housenumber) ||
+          new RegExp(
+            `^${userNumber || "\\d+"}\\b`
+          ).test(normalizedFormatted);
+
+        /*
+         * Correspondance exacte du numéro saisi.
+         *
+         * Exemple :
+         * utilisateur : 6 rue Delaporte
+         *
+         * résultat avec 6 -> très fortement favorisé
+         * résultat avec 5 -> défavorisé
+         */
+        const exactHouseNumber =
+          userNumber &&
+          housenumber &&
+          housenumber.toLowerCase() ===
+            userNumber;
+
+        /*
+         * Vérification que la rue recherchée
+         * apparaît bien dans le résultat.
+         */
+        const queryWords = normalizedQuery
+          .split(" ")
+          .filter(
+            (word) =>
+              word.length >= 3 &&
+              !/^\d+[a-z]?$/.test(word)
+          );
+
+        const streetMatchesQuery =
+          queryWords.length === 0 ||
+          queryWords.some(
+            (word) =>
+              normalizedStreet.includes(word) ||
+              normalizedFormatted.includes(word)
           );
 
         return {
@@ -115,10 +181,13 @@ export async function GET(request) {
           addressLine2,
           postcode,
           city,
-          housenumber: houseNumber,
+          housenumber,
           street,
           resultType,
           hasHouseNumber,
+          exactHouseNumber:
+            Boolean(exactHouseNumber),
+          streetMatchesQuery,
           latitude:
             coordinates.length >= 2
               ? coordinates[1]
@@ -128,57 +197,105 @@ export async function GET(request) {
               ? coordinates[0]
               : null,
           placeId:
-            properties.place_id || null,
+            properties.place_id ||
+            null,
         };
       })
-      .filter((item) => item.formatted);
+      .filter(
+        (item) =>
+          item.formatted &&
+          item.streetMatchesQuery
+      );
 
-    const userTypedNumber =
-      /^\d+[A-Za-z]?\s/.test(text);
+    /*
+     * Classement intelligent.
+     *
+     * Plus le score est élevé,
+     * plus le résultat est pertinent.
+     */
+    const rankedSuggestions = suggestions
+      .map((item) => {
+        let score = 0;
 
-    suggestions.sort((a, b) => {
-      // Si l'utilisateur a commencé par un numéro,
-      // priorité absolue aux résultats avec numéro.
-      if (
-        userTypedNumber &&
-        a.hasHouseNumber !== b.hasHouseNumber
-      ) {
-        return a.hasHouseNumber ? -1 : 1;
+        // Numéro exact demandé
+        if (
+          userNumber &&
+          item.exactHouseNumber
+        ) {
+          score += 1000;
+        }
+
+        // L'utilisateur a saisi un numéro :
+        // les résultats avec numéro passent devant
+        if (
+          userNumber &&
+          item.hasHouseNumber
+        ) {
+          score += 500;
+        }
+
+        // Une adresse sans numéro est moins intéressante
+        if (
+          userNumber &&
+          !item.hasHouseNumber
+        ) {
+          score -= 500;
+        }
+
+        // Types intéressants
+        if (
+          item.resultType === "building" ||
+          item.resultType === "house"
+        ) {
+          score += 100;
+        }
+
+        if (item.resultType === "amenity") {
+          score += 50;
+        }
+
+        if (item.resultType === "street") {
+          score -= 100;
+        }
+
+        // Présence d'un code postal
+        if (item.postcode) {
+          score += 20;
+        }
+
+        // Présence d'une ville
+        if (item.city) {
+          score += 20;
+        }
+
+        return {
+          ...item,
+          score,
+        };
+      })
+      .sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+
+        return a.formatted.localeCompare(
+          b.formatted
+        );
+      });
+
+    return NextResponse.json(
+      {
+        success: true,
+        suggestions:
+          rankedSuggestions.slice(0, 6),
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=30, stale-while-revalidate=60",
+        },
       }
-
-      // Dans tous les cas, privilégier les adresses
-      // contenant un numéro.
-      if (
-        a.hasHouseNumber !== b.hasHouseNumber
-      ) {
-        return a.hasHouseNumber ? -1 : 1;
-      }
-
-      // Ensuite privilégier les bâtiments/adresses.
-      const preferredTypes = [
-        "building",
-        "house",
-        "amenity",
-        "street",
-      ];
-
-      const aPreferred =
-        preferredTypes.includes(a.resultType);
-
-      const bPreferred =
-        preferredTypes.includes(b.resultType);
-
-      if (aPreferred !== bPreferred) {
-        return aPreferred ? -1 : 1;
-      }
-
-      return 0;
-    });
-
-    return NextResponse.json({
-      success: true,
-      suggestions: suggestions.slice(0, 6),
-    });
+    );
   } catch (error) {
     console.error(
       "Autocomplete Geoapify:",
