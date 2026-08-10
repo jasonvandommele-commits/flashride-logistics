@@ -1,7 +1,65 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
+
+/* =========================================================
+   RATE LIMIT
+========================================================= */
+
+const AUTOCOMPLETE_LIMIT = 20; // requêtes
+const AUTOCOMPLETE_WINDOW_MS = 60 * 1000; // par minute
+
+/* =========================================================
+   CACHE MÉMOIRE (TTL court)
+   Évite de re-consommer des crédits Geoapify pour des requêtes
+   identiques ou quasi-identiques rapprochées dans le temps.
+========================================================= */
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const cache = new Map();
+
+/* =========================================================
+   SEUIL DE CONFIANCE
+   Exclut les correspondances trop incertaines (Geoapify devine
+   plus qu'il ne trouve), source d'incohérences comme un code
+   postal de banlieue affiché avec le libellé "Paris".
+========================================================= */
+
+const MIN_CONFIDENCE = 0.5;
+
+function getCacheKey(text) {
+  return text.trim().toLowerCase();
+}
+
+function getFromCache(key) {
+  const entry = cache.get(key);
+
+  if (!entry) {
+    return null;
+  }
+
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key);
+    return null;
+  }
+
+  return entry.value;
+}
+
+function setCache(key, value) {
+  cache.set(key, {
+    value,
+    timestamp: Date.now(),
+  });
+
+  // Évite une croissance illimitée du cache en mémoire.
+  if (cache.size > 500) {
+    const oldestKey = cache.keys().next().value;
+    cache.delete(oldestKey);
+  }
+}
 
 /* =========================================================
    NORMALISATION
@@ -57,6 +115,15 @@ function normalizeHouseNumber(value) {
 ========================================================= */
 
 function buildFormattedAddress(properties) {
+  // On fait confiance en priorité au champ "formatted" que Geoapify
+  // renvoie : c'est sa propre reconstruction validée de l'adresse.
+  // Recoller housenumber/street/postcode/city nous-mêmes peut produire
+  // des incohérences (ex: code postal 92170 associé au libellé "Paris")
+  // quand Geoapify a mal résolu un des champs individuels.
+  if (properties.formatted) {
+    return properties.formatted;
+  }
+
   const houseNumber =
     properties.housenumber ||
     properties.house_number ||
@@ -94,17 +161,14 @@ function buildFormattedAddress(properties) {
     }`;
   }
 
-  return (
-    properties.formatted ||
-    [
-      street,
-      [postcode, city]
-        .filter(Boolean)
-        .join(" "),
-    ]
+  return [
+    street,
+    [postcode, city]
       .filter(Boolean)
-      .join(", ")
-  );
+      .join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 /* =========================================================
@@ -298,14 +362,47 @@ async function fetchGeoapify(url) {
 export async function GET(request) {
   try {
     if (!GEOAPIFY_API_KEY) {
+      console.error("GEOAPIFY_API_KEY non configurée.");
+
       return NextResponse.json(
         {
           success: false,
           error:
-            "GEOAPIFY_API_KEY non configurée.",
+            "Service temporairement indisponible.",
           suggestions: [],
         },
         { status: 500 }
+      );
+    }
+
+    /* =====================================================
+       RATE LIMIT
+    ===================================================== */
+
+    const ip = getClientIp(request);
+
+    const rateLimit = checkRateLimit(
+      `autocomplete:${ip}`,
+      AUTOCOMPLETE_LIMIT,
+      AUTOCOMPLETE_WINDOW_MS
+    );
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Trop de requêtes. Merci de réessayer dans quelques instants.",
+          suggestions: [],
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(
+              Math.ceil(rateLimit.resetInMs / 1000)
+            ),
+          },
+        }
       );
     }
 
@@ -329,6 +426,29 @@ export async function GET(request) {
       normalizeAddressQuery(
         rawText
       );
+
+    /* =====================================================
+       CACHE
+    ===================================================== */
+
+    const cacheKey = getCacheKey(text);
+    const cached = getFromCache(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(
+        {
+          success: true,
+          suggestions: cached,
+        },
+        {
+          headers: {
+            "Cache-Control":
+              "public, s-maxage=30, stale-while-revalidate=60",
+            "X-Cache": "HIT",
+          },
+        }
+      );
+    }
 
     const requestedNumber =
       extractHouseNumber(text);
@@ -366,37 +486,56 @@ export async function GET(request) {
 
     /* =====================================================
        RECHERCHE PRÉCISE SI NUMÉRO
+       Seulement si l'autocomplete n'a pas déjà renvoyé un
+       résultat avec le bon numéro en première position —
+       évite de doubler systématiquement le coût en crédits.
     ===================================================== */
 
     let preciseFeatures = [];
 
     if (requestedNumber) {
-      const preciseUrl =
-        "https://api.geoapify.com/v1/geocode/search" +
-        `?text=${encodeURIComponent(text)}` +
-        `&housenumber=${encodeURIComponent(
-          requestedNumber
-        )}` +
-        "&limit=10" +
-        "&filter=countrycode:fr" +
-        "&lang=fr" +
-        `&apiKey=${GEOAPIFY_API_KEY}`;
+      const wanted = normalizeHouseNumber(requestedNumber);
 
-      try {
-        const data =
-          await fetchGeoapify(
-            preciseUrl
+      const alreadyHasExactMatch = autocompleteFeatures.some(
+        (feature) => {
+          const props = feature.properties || {};
+
+          const returnedNumber = normalizeHouseNumber(
+            props.housenumber || props.house_number || ""
           );
 
-        preciseFeatures =
-          Array.isArray(data.features)
-            ? data.features
-            : [];
-      } catch (error) {
-        console.warn(
-          "Recherche précise Geoapify :",
-          error?.message
-        );
+          return returnedNumber === wanted;
+        }
+      );
+
+      if (!alreadyHasExactMatch) {
+        const preciseUrl =
+          "https://api.geoapify.com/v1/geocode/search" +
+          `?text=${encodeURIComponent(text)}` +
+          `&housenumber=${encodeURIComponent(
+            requestedNumber
+          )}` +
+          "&limit=10" +
+          "&filter=countrycode:fr" +
+          "&lang=fr" +
+          `&apiKey=${GEOAPIFY_API_KEY}`;
+
+        try {
+          const data =
+            await fetchGeoapify(
+              preciseUrl
+            );
+
+          preciseFeatures =
+            Array.isArray(data.features)
+              ? data.features
+              : [];
+        } catch (error) {
+          console.warn(
+            "Recherche précise Geoapify :",
+            error?.message
+          );
+        }
       }
     }
 
@@ -544,7 +683,24 @@ export async function GET(request) {
             item.formatted &&
             item.latitude !== null &&
             item.longitude !== null
-        );
+        )
+        .filter((item) => {
+          // Un numéro exact demandé et trouvé est fiable même avec
+          // une confidence Geoapify modeste : on ne le filtre pas.
+          if (requestedNumber) {
+            const wanted = normalizeHouseNumber(requestedNumber);
+            const returned = normalizeHouseNumber(item.housenumber);
+
+            if (returned === wanted) {
+              return true;
+            }
+          }
+
+          return (
+            item.confidence === null ||
+            item.confidence >= MIN_CONFIDENCE
+          );
+        });
 
     /* =====================================================
        TRI
@@ -619,6 +775,8 @@ export async function GET(request) {
           }) => suggestion
         );
 
+    setCache(cacheKey, finalSuggestions);
+
     return NextResponse.json(
       {
         success: true,
@@ -629,6 +787,7 @@ export async function GET(request) {
         headers: {
           "Cache-Control":
             "public, s-maxage=30, stale-while-revalidate=60",
+          "X-Cache": "MISS",
         },
       }
     );
@@ -642,7 +801,6 @@ export async function GET(request) {
       {
         success: false,
         error:
-          error?.message ||
           "Erreur pendant la recherche d'adresse.",
         suggestions: [],
       },
