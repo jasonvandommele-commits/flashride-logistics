@@ -14,16 +14,21 @@ export async function GET() {
       );
     }
 
-    // 1. Géocodage de Paris
-    const parisResponse = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
-        "Paris, France"
-      )}&filter=countrycode:fr&limit=1&apiKey=${GEOAPIFY_API_KEY}`
-    );
+    // =========================
+    // 1. GÉOCODAGE DE PARIS
+    // =========================
 
+    const parisUrl =
+      `https://api.geoapify.com/v1/geocode/search` +
+      `?text=${encodeURIComponent("Paris, France")}` +
+      `&filter=countrycode:fr` +
+      `&limit=1` +
+      `&apiKey=${GEOAPIFY_API_KEY}`;
+
+    const parisResponse = await fetch(parisUrl);
     const parisData = await parisResponse.json();
 
-    if (!parisResponse.ok || !parisData.results?.length) {
+    if (!parisResponse.ok || !parisData.features?.length) {
       return NextResponse.json(
         {
           success: false,
@@ -35,18 +40,24 @@ export async function GET() {
       );
     }
 
-    const paris = parisData.results[0];
+    const paris = parisData.features[0];
+    const parisCoordinates = paris.geometry.coordinates;
 
-    // 2. Géocodage de Versailles
-    const versaillesResponse = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
-        "Versailles, France"
-      )}&filter=countrycode:fr&limit=1&apiKey=${GEOAPIFY_API_KEY}`
-    );
+    // =========================
+    // 2. GÉOCODAGE DE VERSAILLES
+    // =========================
 
+    const versaillesUrl =
+      `https://api.geoapify.com/v1/geocode/search` +
+      `?text=${encodeURIComponent("Versailles, France")}` +
+      `&filter=countrycode:fr` +
+      `&limit=1` +
+      `&apiKey=${GEOAPIFY_API_KEY}`;
+
+    const versaillesResponse = await fetch(versaillesUrl);
     const versaillesData = await versaillesResponse.json();
 
-    if (!versaillesResponse.ok || !versaillesData.results?.length) {
+    if (!versaillesResponse.ok || !versaillesData.features?.length) {
       return NextResponse.json(
         {
           success: false,
@@ -58,12 +69,19 @@ export async function GET() {
       );
     }
 
-    const versailles = versaillesData.results[0];
+    const versailles = versaillesData.features[0];
+    const versaillesCoordinates = versailles.geometry.coordinates;
 
-    // 3. Calcul de l'itinéraire routier
+    // =========================
+    // 3. CALCUL DU TRAJET
+    // =========================
+
     const routingUrl =
       `https://api.geoapify.com/v1/routing` +
-      `?waypoints=${paris.lat},${paris.lon}|${versailles.lat},${versailles.lon}` +
+      `?waypoints=` +
+      `${parisCoordinates[1]},${parisCoordinates[0]}` +
+      `|` +
+      `${versaillesCoordinates[1]},${versaillesCoordinates[0]}` +
       `&mode=drive` +
       `&apiKey=${GEOAPIFY_API_KEY}`;
 
@@ -85,11 +103,16 @@ export async function GET() {
     const route = routingData.features[0];
     const properties = route.properties;
 
-    // Distance en kilomètres
-    const distanceKm = properties.distance / 1000;
+    // =========================
+    // 4. DISTANCE / DURÉE
+    // =========================
 
-    // Durée en minutes
+    const distanceKm = properties.distance / 1000;
     const durationMinutes = Math.round(properties.time / 60);
+
+    // =========================
+    // 5. RÉSULTAT
+    // =========================
 
     return NextResponse.json({
       success: true,
@@ -101,15 +124,16 @@ export async function GET() {
 
       geocodage: {
         depart: {
-          ville: paris.city,
-          latitude: paris.lat,
-          longitude: paris.lon,
+          ville: paris.properties.city || paris.properties.name,
+          latitude: parisCoordinates[1],
+          longitude: parisCoordinates[0],
         },
 
         arrivee: {
-          ville: versailles.city,
-          latitude: versailles.lat,
-          longitude: versailles.lon,
+          ville:
+            versailles.properties.city || versailles.properties.name,
+          latitude: versaillesCoordinates[1],
+          longitude: versaillesCoordinates[0],
         },
       },
 
