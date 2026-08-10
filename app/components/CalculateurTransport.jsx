@@ -1144,13 +1144,19 @@ export default function CalculateurTransport() {
                     DEVIS
                 ================================================= */}
 
-                <a
-                  href="#devis"
-                  className="mt-5 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-3.5 hover:bg-orange-600 transition"
-                >
-                  Confirmer ma demande de devis
-                </a>
-
+          <a
+          href="#devis"
+          className="mt-5 block w-full text-center bg-orange-500 text-white font-bold rounded-xl p-3.5 hover:bg-orange-600 transition"
+        >
+          Confirmer ma demande de devis
+        </a>
+        
+        <a
+          href="tel:0752988155"
+          className="mt-3 block w-full text-center border-2 border-orange-500 text-orange-500 font-bold rounded-xl p-3.5 hover:bg-orange-50 transition"
+        >
+          📞 Nous appeler
+        </a>
               </>
             )}
 
