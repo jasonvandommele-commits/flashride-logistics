@@ -1,581 +1,662 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from “next/server”;
 
 const GEOAPIFY_API_KEY =
-  process.env.GEOAPIFY_API_KEY;
+process.env.GEOAPIFY_API_KEY;
 
-/* =========================================================
-   NORMALISATION
-========================================================= */
+const SERVER_CACHE = new Map();
+
+const CACHE_DURATION =
+60 * 1000;
+
+const MAX_CACHE_SIZE = 100;
+
+function cleanText(text) {
+return String(text || “”)
+.trim()
+.replace(/\s+/g, “ “);
+}
 
 function normalizeAddressQuery(text) {
-  let value = String(text || "")
-    .trim()
-    .replace(/\s+/g, " ");
+let value = cleanText(text);
 
-  /*
-   * Corrige automatiquement :
-   *
-   * 6rue       → 6 rue
-   * 12avenue   → 12 avenue
-   * 5boulevard → 5 boulevard
-   * 10bd       → 10 bd
-   * 4chemin    → 4 chemin
-   *
-   * Fonctionne pour n'importe quel numéro.
-   */
+value = value.replace(
+/^(\d+[A-Za-z]?)\s*(rue|avenue|av|boulevard|bd|chemin|route|place|impasse|allee|allée|cours|quai|square|passage)\b/i,
+“$1 $2”
+);
 
-  value = value.replace(
-    /^(\d+[A-Za-z]?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+[A-Za-z]?)?)\s*(rue|avenue|av|boulevard|bd|chemin|route|place|impasse|allée|allee|cours|quai|square|passage|voie|lotissement|résidence|residence)\b/i,
-    "$1 $2"
-  );
-
-  return value;
+return value;
 }
 
-/* =========================================================
-   VILLE
-========================================================= */
+function getCachedResult(key) {
+const cached =
+SERVER_CACHE.get(key);
+
+if (!cached) {
+return null;
+}
+
+if (
+Date.now() -
+cached.timestamp >
+CACHE_DURATION
+) {
+SERVER_CACHE.delete(key);
+return null;
+}
+
+return cached.data;
+}
+
+function setCachedResult(
+key,
+data
+) {
+SERVER_CACHE.set(key, {
+data,
+timestamp: Date.now(),
+});
+
+if (
+SERVER_CACHE.size >
+MAX_CACHE_SIZE
+) {
+const oldestKey =
+SERVER_CACHE.keys().next()
+.value;
+
+if (oldestKey) {
+  SERVER_CACHE.delete(
+    oldestKey
+  );
+}
+
+}
+}
+
+function extractHouseNumber(
+text
+) {
+const match =
+text.match(
+/^\s*(\d+(?:[A-Za-z])?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+(?:[A-Za-z])?)?)/i
+);
+
+return match
+? match[1].trim()
+: null;
+}
 
 function getCity(properties) {
-  return (
-    properties.city ||
-    properties.town ||
-    properties.village ||
-    properties.municipality ||
-    ""
-  );
+return (
+properties.city ||
+properties.town ||
+properties.village ||
+properties.municipality ||
+“”
+);
 }
 
-/* =========================================================
-   NUMÉRO DEMANDÉ
-========================================================= */
+function buildFormattedAddress(
+properties
+) {
+const houseNumber =
+properties.housenumber ||
+properties.house_number ||
+“”;
 
-function extractHouseNumber(text) {
-  const match = String(text || "").match(
-    /^\s*(\d+(?:[A-Za-z])?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+(?:[A-Za-z])?)?)/i
-  );
+const street =
+properties.street ||
+properties.address_line1 ||
+“”;
 
-  return match
-    ? match[1].trim()
-    : "";
+const postcode =
+properties.postcode ||
+“”;
+
+const city =
+getCity(properties);
+
+if (
+houseNumber &&
+street
+) {
+return [
+${houseNumber} ${street},
+[postcode, city]
+.filter(Boolean)
+.join(” “),
+]
+.filter(Boolean)
+.join(”, “);
 }
 
-/* =========================================================
-   ADRESSE FORMATTÉE
-========================================================= */
-
-function buildFormattedAddress(properties) {
-  const houseNumber =
-    properties.housenumber ||
-    properties.house_number ||
-    "";
-
-  const street =
-    properties.street ||
-    properties.address_line1 ||
-    "";
-
-  const postcode =
-    properties.postcode || "";
-
-  const city =
-    getCity(properties);
-
-  if (houseNumber && street) {
-    return [
-      `${houseNumber} ${street}`,
-      [postcode, city]
-        .filter(Boolean)
-        .join(" "),
-    ]
-      .filter(Boolean)
-      .join(", ");
-  }
-
-  return (
-    properties.formatted ||
-    [
-      street,
-      [postcode, city]
-        .filter(Boolean)
-        .join(" "),
-    ]
-      .filter(Boolean)
-      .join(", ")
-  );
+return (
+properties.formatted ||
+[
+street,
+[postcode, city]
+.filter(Boolean)
+.join(” “),
+]
+.filter(Boolean)
+.join(”, “)
+);
 }
 
-/* =========================================================
-   NUMÉRO DANS LE RÉSULTAT
-========================================================= */
+function hasHouseNumber(
+properties,
+formatted
+) {
+const houseNumber =
+cleanText(
+properties.housenumber ||
+properties.house_number ||
+“”
+);
 
-function getReturnedHouseNumber(properties) {
-  return String(
-    properties.housenumber ||
-      properties.house_number ||
-      ""
-  ).trim();
+if (houseNumber) {
+return true;
 }
 
-/* =========================================================
-   SCORE
-========================================================= */
+return /^\s*\d+(?:[A-Za-z])?\b/.test(
+formatted
+);
+}
 
 function scoreSuggestion(
-  feature,
-  originalText,
-  normalizedText
+feature,
+originalText
 ) {
-  const properties =
-    feature.properties || {};
+const properties =
+feature.properties || {};
 
-  const formatted = String(
-    properties.formatted ||
-      properties.address_line1 ||
-      ""
-  )
-    .trim()
-    .toLowerCase();
+const formatted =
+cleanText(
+properties.formatted ||
+properties.address_line1 ||
+“”
+);
 
-  const street = String(
-    properties.street || ""
-  )
-    .trim()
-    .toLowerCase();
+const normalizedOriginal =
+cleanText(
+originalText
+).toLowerCase();
 
-  const returnedNumber =
-    getReturnedHouseNumber(
-      properties
-    ).toLowerCase();
+const normalizedFormatted =
+formatted.toLowerCase();
 
-  const requestedNumber =
-    extractHouseNumber(
-      normalizedText
-    ).toLowerCase();
+const requestedNumber =
+extractHouseNumber(
+originalText
+);
 
-  const resultType = String(
-    properties.result_type || ""
-  ).toLowerCase();
+const returnedNumber =
+cleanText(
+properties.housenumber ||
+properties.house_number ||
+“”
+);
 
-  let score = 0;
+const resultType =
+String(
+properties.result_type ||
+“”
+).toLowerCase();
 
-  /* -------------------------------------------------------
-     NUMÉRO : PRIORITÉ MAXIMALE
-  ------------------------------------------------------- */
+const category =
+String(
+properties.category ||
+“”
+).toLowerCase();
 
-  if (requestedNumber) {
-    if (
-      returnedNumber ===
-      requestedNumber
-    ) {
-      score += 5000;
-    } else if (returnedNumber) {
-      score += 200;
-    } else {
-      score -= 1000;
-    }
+let score = 0;
 
-    const escaped =
-      requestedNumber.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-      );
+// —————————————————––
+// NUMÉRO
+// —————————————————––
 
-    if (
-      new RegExp(
-        `^\\s*${escaped}\\b`,
-        "i"
-      ).test(formatted)
-    ) {
-      score += 2000;
-    }
-  }
-
-  /* -------------------------------------------------------
-     TYPE DE RÉSULTAT
-  ------------------------------------------------------- */
-
-  if (
-    resultType === "building" ||
-    resultType === "house"
-  ) {
-    score += 500;
-  }
-
-  if (resultType === "amenity") {
-    score += 300;
-  }
-
-  if (resultType === "street") {
-    score -= 1000;
-  }
-
-  if (resultType === "city") {
-    score -= 2000;
-  }
-
-  /* -------------------------------------------------------
-     ADRESSE COMPLÈTE
-  ------------------------------------------------------- */
-
-  if (
-    properties.postcode &&
-    getCity(properties)
-  ) {
-    score += 100;
-  }
-
-  /* -------------------------------------------------------
-     CORRESPONDANCE TEXTE
-  ------------------------------------------------------- */
-
-  const normalizedOriginal =
-    String(normalizedText)
-      .toLowerCase();
-
-  if (
-    formatted.includes(
-      normalizedOriginal
-    )
-  ) {
-    score += 500;
-  }
-
-  const words =
-    normalizedOriginal
-      .split(/[\s,]+/)
-      .filter(
-        (word) =>
-          word.length >= 2
-      );
-
-  for (const word of words) {
-    if (
-      formatted.includes(word)
-    ) {
-      score += 10;
-    }
-
-    if (
-      street.includes(word)
-    ) {
-      score += 15;
-    }
-  }
-
-  return score;
+if (requestedNumber) {
+if (returnedNumber) {
+score += 100;
 }
 
-/* =========================================================
-   GEOAPIFY
-========================================================= */
-
-async function fetchGeoapify(url) {
-  const response =
-    await fetch(url, {
-      method: "GET",
-      cache: "no-store",
-    });
-
-  const data =
-    await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      data?.message ||
-        `Geoapify ${response.status}`
-    );
-  }
-
-  return data;
+if (
+  returnedNumber.toLowerCase() ===
+  requestedNumber.toLowerCase()
+) {
+  score += 500;
+}
+const escapedNumber =
+  requestedNumber.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+if (
+  new RegExp(
+    `^\\s*${escapedNumber}\\b`,
+    "i"
+  ).test(formatted)
+) {
+  score += 500;
 }
 
-/* =========================================================
-   GET
-========================================================= */
+} else if (
+returnedNumber
+) {
+score += 50;
+}
 
-export async function GET(request) {
-  try {
-    if (!GEOAPIFY_API_KEY) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "GEOAPIFY_API_KEY non configurée.",
-        },
-        { status: 500 }
-      );
-    }
+// —————————————————––
+// TYPE DE RÉSULTAT
+// —————————————————––
 
-    const {
-      searchParams,
-    } = new URL(request.url);
+if (
+resultType === “building” ||
+resultType === “house”
+) {
+score += 150;
+}
 
-    const rawText =
-      searchParams.get("text") || "";
+if (
+category.includes(
+“building”
+) ||
+category.includes(
+“residential”
+)
+) {
+score += 40;
+}
 
-    if (
-      rawText.trim().length < 2
-    ) {
-      return NextResponse.json({
-        success: true,
-        suggestions: [],
-      });
-    }
+if (
+resultType === “street”
+) {
+score -= 100;
+}
 
-    /*
-     * Exemple :
-     * 6rue Delaporte
-     * devient
-     * 6 rue Delaporte
-     */
+if (
+resultType === “city”
+) {
+score -= 150;
+}
 
-    const text =
-      normalizeAddressQuery(
-        rawText
-      );
+// —————————————————––
+// ADRESSE COMPLÈTE
+// —————————————————––
 
-    const requestedNumber =
-      extractHouseNumber(text);
+if (
+properties.postcode &&
+getCity(properties)
+) {
+score += 40;
+}
 
-    let features = [];
+if (
+properties.address_line1 &&
+properties.address_line2
+) {
+score += 20;
+}
 
-    /* =====================================================
-       RECHERCHE AUTOCOMPLETE
-    ===================================================== */
+// —————————————————––
+// CORRESPONDANCE EXACTE
+// —————————————————––
 
-    const autocompleteUrl =
-      "https://api.geoapify.com/v1/geocode/autocomplete" +
-      `?text=${encodeURIComponent(
-        text
-      )}` +
-      "&limit=10" +
-      "&filter=countrycode:fr" +
-      "&lang=fr" +
-      `&apiKey=${GEOAPIFY_API_KEY}`;
+if (
+normalizedFormatted.includes(
+normalizedOriginal
+)
+) {
+score += 200;
+}
 
-    try {
-      const data =
-        await fetchGeoapify(
-          autocompleteUrl
-        );
+// —————————————————––
+// CORRESPONDANCE DES MOTS
+// —————————————————––
 
-      features.push(
-        ...(data.features || [])
-      );
-    } catch (error) {
-      console.warn(
-        "Autocomplete Geoapify :",
-        error.message
-      );
-    }
+const words =
+normalizedOriginal
+.split(/[\s,]+/)
+.filter(
+(word) =>
+word.length >= 2
+);
 
-    /* =====================================================
-       RECHERCHE ADRESSE PRÉCISE
-       SI UN NUMÉRO EST SAISI
-    ===================================================== */
+for (
+const word of words
+) {
+if (
+normalizedFormatted.includes(
+word
+)
+) {
+score += 10;
+}
+}
 
-    if (requestedNumber) {
-      const searchUrl =
-        "https://api.geoapify.com/v1/geocode/search" +
-        `?text=${encodeURIComponent(
-          text
-        )}` +
-        `&housenumber=${encodeURIComponent(
-          requestedNumber
-        )}` +
-        "&limit=10" +
-        "&filter=countrycode:fr" +
-        "&lang=fr" +
-        `&apiKey=${GEOAPIFY_API_KEY}`;
+return score;
+}
 
-      try {
-        const data =
-          await fetchGeoapify(
-            searchUrl
-          );
+async function fetchGeoapify(
+url
+) {
+const response =
+await fetch(url, {
+method: “GET”,
+cache: “no-store”,
+});
 
-        features.push(
-          ...(data.features || [])
-        );
-      } catch (error) {
-        console.warn(
-          "Recherche adresse précise :",
-          error.message
-        );
-      }
-    }
+if (!response.ok) {
+const errorText =
+await response.text();
 
-    /* =====================================================
-       SUPPRESSION DES DOUBLONS
-    ===================================================== */
+throw new Error(
+  `Geoapify ${response.status}: ${errorText}`
+);
 
-    const unique =
-      new Map();
+}
 
-    for (const feature of features) {
-      const properties =
-        feature.properties || {};
+return response.json();
+}
 
-      const coordinates =
-        feature.geometry
-          ?.coordinates || [];
+export async function GET(
+request
+) {
+try {
+if (!GEOAPIFY_API_KEY) {
+return NextResponse.json(
+{
+success: false,
+error:
+“GEOAPIFY_API_KEY non configurée.”,
+},
+{
+status: 500,
+}
+);
+}
 
-      const key =
-        properties.place_id ||
-        [
-          properties.formatted,
-          coordinates[0],
-          coordinates[1],
-        ].join("|");
-
-      if (!unique.has(key)) {
-        unique.set(
-          key,
-          feature
-        );
-      }
-    }
-
-    /* =====================================================
-       TRI
-    ===================================================== */
-
-    const sorted =
-      Array.from(
-        unique.values()
-      )
-        .map((feature) => ({
-          feature,
-          score:
-            scoreSuggestion(
-              feature,
-              rawText,
-              text
-            ),
-        }))
-        .sort(
-          (a, b) =>
-            b.score - a.score
-        );
-
-    /* =====================================================
-       FORMAT POUR REACT
-    ===================================================== */
-
-    const suggestions =
-      sorted
-        .slice(0, 6)
-        .map(({ feature }) => {
-          const properties =
-            feature.properties || {};
-
-          const coordinates =
-            feature.geometry
-              ?.coordinates || [];
-
-          const housenumber =
-            getReturnedHouseNumber(
-              properties
-            );
-
-          const street =
-            properties.street ||
-            "";
-
-          const postcode =
-            properties.postcode ||
-            "";
-
-          const city =
-            getCity(properties);
-
-          const formatted =
-            buildFormattedAddress(
-              properties
-            );
-
-          const addressLine1 =
-            housenumber && street
-              ? `${housenumber} ${street}`
-              : properties.address_line1 ||
-                street ||
-                properties.formatted ||
-                "";
-
-          const addressLine2 =
-            [
-              postcode,
-              city,
-            ]
-              .filter(Boolean)
-              .join(" ");
-
-          return {
-            formatted,
-            addressLine1,
-            addressLine2,
-            postcode,
-            city,
-            housenumber,
-            street,
-
-            latitude:
-              coordinates.length >= 2
-                ? coordinates[1]
-                : null,
-
-            longitude:
-              coordinates.length >= 2
-                ? coordinates[0]
-                : null,
-
-            placeId:
-              properties.place_id ||
-              null,
-
-            resultType:
-              properties.result_type ||
-              "",
-
-            confidence:
-              properties.rank
-                ?.confidence ??
-              null,
-          };
-        })
-        .filter(
-          (item) =>
-            item.formatted
-        );
-
-    return NextResponse.json(
-      {
-        success: true,
-        suggestions,
+const {
+  searchParams,
+} = new URL(
+  request.url
+);
+const rawText =
+  searchParams.get(
+    "text"
+  ) || "";
+if (
+  cleanText(
+    rawText
+  ).length < 3
+) {
+  return NextResponse.json({
+    success: true,
+    suggestions: [],
+  });
+}
+const text =
+  normalizeAddressQuery(
+    rawText
+  );
+const cacheKey =
+  text.toLowerCase();
+const cached =
+  getCachedResult(
+    cacheKey
+  );
+if (cached) {
+  return NextResponse.json(
+    cached,
+    {
+      headers: {
+        "Cache-Control":
+          "public, s-maxage=60, stale-while-revalidate=120",
       },
-      {
-        headers: {
-          "Cache-Control":
-            "public, s-maxage=30, stale-while-revalidate=60",
-        },
-      }
+    }
+  );
+}
+const requestedNumber =
+  extractHouseNumber(
+    text
+  );
+let features = [];
+// -----------------------------------------------------
+// RECHERCHE AUTOCOMPLETE
+// -----------------------------------------------------
+const autocompleteUrl =
+  `https://api.geoapify.com/v1/geocode/autocomplete` +
+  `?text=${encodeURIComponent(
+    text
+  )}` +
+  `&limit=8` +
+  `&filter=countrycode:fr` +
+  `&lang=fr` +
+  `&apiKey=${GEOAPIFY_API_KEY}`;
+try {
+  const data =
+    await fetchGeoapify(
+      autocompleteUrl
+    );
+  features.push(
+    ...(data.features || [])
+  );
+} catch (error) {
+  console.warn(
+    "Geoapify autocomplete:",
+    error.message
+  );
+}
+// -----------------------------------------------------
+// RECHERCHE PRÉCISE UNIQUEMENT SI NUMÉRO
+// -----------------------------------------------------
+if (
+  requestedNumber
+) {
+  const searchUrl =
+    `https://api.geoapify.com/v1/geocode/search` +
+    `?text=${encodeURIComponent(
+      text
+    )}` +
+    `&housenumber=${encodeURIComponent(
+      requestedNumber
+    )}` +
+    `&limit=8` +
+    `&filter=countrycode:fr` +
+    `&lang=fr` +
+    `&apiKey=${GEOAPIFY_API_KEY}`;
+  try {
+    const data =
+      await fetchGeoapify(
+        searchUrl
+      );
+    features.push(
+      ...(data.features || [])
     );
   } catch (error) {
-    console.error(
-      "Autocomplete Geoapify :",
-      error
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error?.message ||
-          "Erreur pendant l'autocomplétion.",
-        suggestions: [],
-      },
-      { status: 500 }
+    console.warn(
+      "Geoapify recherche précise:",
+      error.message
     );
   }
+}
+// -----------------------------------------------------
+// DÉDOUBLONNAGE
+// -----------------------------------------------------
+const unique =
+  new Map();
+for (
+  const feature of features
+) {
+  const properties =
+    feature.properties ||
+    {};
+  const coordinates =
+    feature.geometry
+      ?.coordinates || [];
+  const key =
+    properties.place_id ||
+    [
+      properties.formatted,
+      coordinates[0],
+      coordinates[1],
+    ].join("|");
+  if (
+    !unique.has(key)
+  ) {
+    unique.set(
+      key,
+      feature
+    );
+  }
+}
+// -----------------------------------------------------
+// TRI
+// -----------------------------------------------------
+const sorted =
+  Array.from(
+    unique.values()
+  )
+    .map(
+      (feature) => ({
+        feature,
+        score:
+          scoreSuggestion(
+            feature,
+            text
+          ),
+      })
+    )
+    .sort(
+      (a, b) =>
+        b.score -
+        a.score
+    );
+// -----------------------------------------------------
+// FORMAT FINAL
+// -----------------------------------------------------
+const suggestions =
+  sorted
+    .slice(0, 6)
+    .map(
+      ({
+        feature,
+      }) => {
+        const properties =
+          feature.properties ||
+          {};
+        const coordinates =
+          feature.geometry
+            ?.coordinates ||
+          [];
+        const housenumber =
+          properties.housenumber ||
+          properties.house_number ||
+          "";
+        const street =
+          properties.street ||
+          "";
+        const postcode =
+          properties.postcode ||
+          "";
+        const city =
+          getCity(
+            properties
+          );
+        const formatted =
+          buildFormattedAddress(
+            properties
+          );
+        const addressLine1 =
+          housenumber &&
+          street
+            ? `${housenumber} ${street}`
+            : properties.address_line1 ||
+              street ||
+              formatted;
+        const addressLine2 =
+          [
+            postcode,
+            city,
+          ]
+            .filter(Boolean)
+            .join(" ");
+        return {
+          formatted,
+          addressLine1,
+          addressLine2,
+          postcode,
+          city,
+          housenumber,
+          street,
+          resultType:
+            properties.result_type ||
+            "",
+          hasHouseNumber:
+            hasHouseNumber(
+              properties,
+              formatted
+            ),
+          latitude:
+            coordinates.length >=
+            2
+              ? coordinates[1]
+              : null,
+          longitude:
+            coordinates.length >=
+            2
+              ? coordinates[0]
+              : null,
+          placeId:
+            properties.place_id ||
+            null,
+          confidence:
+            properties.rank
+              ?.confidence ??
+            null,
+        };
+      }
+    )
+    .filter(
+      (item) =>
+        item.formatted
+    );
+const responseData = {
+  success: true,
+  suggestions,
+};
+setCachedResult(
+  cacheKey,
+  responseData
+);
+return NextResponse.json(
+  responseData,
+  {
+    headers: {
+      "Cache-Control":
+        "public, s-maxage=60, stale-while-revalidate=120",
+    },
+  }
+);
+
+} catch (error) {
+console.error(
+“Autocomplete Geoapify:”,
+error
+);
+
+return NextResponse.json(
+  {
+    success: false,
+    error:
+      error?.message ||
+      "Erreur pendant l'autocomplétion.",
+    suggestions: [],
+  },
+  {
+    status: 500,
+  }
+);
+
+}
 }
