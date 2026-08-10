@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
 
+/* =========================================================
+   ZONES TARIFAIRES
+========================================================= */
+
 function getZoneFromPostcode(postcode) {
   if (!postcode) return null;
 
@@ -31,14 +35,19 @@ function getBasePrice(zoneDepart, zoneArrivee) {
   }
 
   // Paris → Paris
-  if (zoneDepart === "paris" && zoneArrivee === "paris") {
+  if (
+    zoneDepart === "paris" &&
+    zoneArrivee === "paris"
+  ) {
     return 89;
   }
 
   // Paris ↔ Petite couronne
   if (
-    (zoneDepart === "paris" && zoneArrivee === "petite_couronne") ||
-    (zoneDepart === "petite_couronne" && zoneArrivee === "paris")
+    (zoneDepart === "paris" &&
+      zoneArrivee === "petite_couronne") ||
+    (zoneDepart === "petite_couronne" &&
+      zoneArrivee === "paris")
   ) {
     return 99;
   }
@@ -53,8 +62,10 @@ function getBasePrice(zoneDepart, zoneArrivee) {
 
   // Paris ↔ Grande couronne
   if (
-    (zoneDepart === "paris" && zoneArrivee === "grande_couronne") ||
-    (zoneDepart === "grande_couronne" && zoneArrivee === "paris")
+    (zoneDepart === "paris" &&
+      zoneArrivee === "grande_couronne") ||
+    (zoneDepart === "grande_couronne" &&
+      zoneArrivee === "paris")
   ) {
     return 129;
   }
@@ -80,6 +91,10 @@ function getBasePrice(zoneDepart, zoneArrivee) {
   return null;
 }
 
+/* =========================================================
+   SUPPLÉMENT DISTANCE
+========================================================= */
+
 function getDistanceSupplement(distanceKm) {
   if (distanceKm <= 10) return 0;
   if (distanceKm <= 20) return 10;
@@ -90,9 +105,13 @@ function getDistanceSupplement(distanceKm) {
   if (distanceKm <= 100) return 50;
 
   // Au-delà de 100 km :
-  // on conserve +50 € et on indique que le trajet doit être vérifié.
+  // on conserve +50 € et le trajet reste indicatif.
   return 50;
 }
+
+/* =========================================================
+   LIBELLÉS
+========================================================= */
 
 function getZoneLabel(zone) {
   switch (zone) {
@@ -110,11 +129,103 @@ function getZoneLabel(zone) {
   }
 }
 
-async function geocode(address) {
+/* =========================================================
+   NETTOYAGE DE L'ADRESSE
+========================================================= */
+
+function cleanAddress(address) {
+  if (!address) return "";
+
+  let value = String(address).trim();
+
+  // Supprime les espaces multiples
+  value = value.replace(/\s+/g, " ");
+
+  // Corrige quelques problèmes classiques :
+  // "3rue" → "3 rue"
+  value = value.replace(
+    /^(\d+)(rue|avenue|av|boulevard|bd|chemin|impasse|place|allée|allee|route)\b/i,
+    "$1 $2"
+  );
+
+  // Ajoute un espace avant un code postal collé
+  value = value.replace(
+    /([a-zA-ZÀ-ÿ])(\d{5})\b/,
+    "$1 $2"
+  );
+
+  // Normalisation de quelques noms de communes fréquents
+  value = value
+    .replace(/\bmaison alfort\b/gi, "Maisons-Alfort")
+    .replace(/\bmaisons alfort\b/gi, "Maisons-Alfort")
+    .replace(/\bsaint denis\b/gi, "Saint-Denis")
+    .replace(/\bsaint ouen\b/gi, "Saint-Ouen")
+    .replace(/\bvilleneuve la garenne\b/gi, "Villeneuve-la-Garenne");
+
+  return value.trim();
+}
+
+/* =========================================================
+   VARIANTES D'ADRESSE
+========================================================= */
+
+function generateAddressVariants(address) {
+  const cleaned = cleanAddress(address);
+
+  const variants = [];
+
+  function add(value) {
+    if (!value) return;
+
+    const normalized = value.trim();
+
+    if (
+      normalized &&
+      !variants.some(
+        (existing) =>
+          existing.toLowerCase() === normalized.toLowerCase()
+      )
+    ) {
+      variants.push(normalized);
+    }
+  }
+
+  add(cleaned);
+
+  // Version avec France
+  if (!/\bfrance\b/i.test(cleaned)) {
+    add(`${cleaned}, France`);
+  }
+
+  // Si un code postal est présent, on ajoute une version
+  // explicitement française.
+  const postcodeMatch = cleaned.match(/\b\d{5}\b/);
+
+  if (postcodeMatch) {
+    const postcode = postcodeMatch[0];
+
+    add(`${cleaned}, ${postcode}, France`);
+  }
+
+  // Version sans ponctuation excessive
+  add(
+    cleaned
+      .replace(/,+/g, ",")
+      .replace(/\s*,\s*/g, ", ")
+  );
+
+  return variants;
+}
+
+/* =========================================================
+   GÉOCODAGE GEOAPIFY
+========================================================= */
+
+async function geocodeSingle(address) {
   const url =
     `https://api.geoapify.com/v1/geocode/search` +
     `?text=${encodeURIComponent(address)}` +
-    `&limit=1` +
+    `&limit=5` +
     `&filter=countrycode:fr` +
     `&apiKey=${GEOAPIFY_API_KEY}`;
 
@@ -123,28 +234,123 @@ async function geocode(address) {
     cache: "no-store",
   });
 
-  if (!response.ok) {
-    throw new Error(`Erreur Geoapify geocoding : ${response.status}`);
-  }
-
   const data = await response.json();
 
-  if (!data.features || data.features.length === 0) {
-    throw new Error(`Adresse introuvable : ${address}`);
+  if (!response.ok) {
+    throw new Error(
+      `Erreur Geoapify geocoding : ${response.status}`
+    );
   }
 
-  const properties = data.features[0].properties;
-  const coordinates = data.features[0].geometry.coordinates;
+  if (
+    !data.features ||
+    data.features.length === 0
+  ) {
+    return null;
+  }
 
-  return {
-    latitude: coordinates[1],
-    longitude: coordinates[0],
-    formatted: properties.formatted || address,
-    postcode: properties.postcode || null,
-    city: properties.city || properties.town || properties.village || null,
-    zone: getZoneFromPostcode(properties.postcode),
-  };
+  /*
+   * On cherche en priorité un résultat qui possède
+   * un code postal, car il nous sert à déterminer
+   * la zone tarifaire.
+   */
+
+  const withPostcode = data.features.find(
+    (feature) =>
+      feature?.properties?.postcode
+  );
+
+  return withPostcode || data.features[0];
 }
+
+async function geocode(address) {
+  if (!address || !String(address).trim()) {
+    throw new Error("Adresse vide.");
+  }
+
+  const variants = generateAddressVariants(address);
+
+  let lastError = null;
+
+  for (const variant of variants) {
+    try {
+      const feature = await geocodeSingle(variant);
+
+      if (!feature) {
+        continue;
+      }
+
+      const properties = feature.properties || {};
+      const geometry = feature.geometry || {};
+
+      const coordinates = geometry.coordinates;
+
+      if (
+        !Array.isArray(coordinates) ||
+        coordinates.length < 2
+      ) {
+        continue;
+      }
+
+      const longitude = Number(coordinates[0]);
+      const latitude = Number(coordinates[1]);
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+      ) {
+        continue;
+      }
+
+      const postcode =
+        properties.postcode || null;
+
+      const city =
+        properties.city ||
+        properties.town ||
+        properties.village ||
+        properties.municipality ||
+        null;
+
+      const zone = getZoneFromPostcode(postcode);
+
+      /*
+       * Si Geoapify nous donne une adresse avec code postal,
+       * on privilégie ce résultat.
+       */
+
+      return {
+        latitude,
+        longitude,
+        formatted:
+          properties.formatted ||
+          variant,
+        postcode,
+        city,
+        zone,
+        resultType:
+          properties.result_type || null,
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) {
+    console.error(
+      "Erreur géocodage :",
+      lastError
+    );
+  }
+
+  throw new Error(
+    `Adresse introuvable : ${address}`
+  );
+}
+
+/* =========================================================
+   CALCUL DE L'ITINÉRAIRE
+========================================================= */
 
 async function calculateRoute(depart, arrivee) {
   const url =
@@ -159,16 +365,31 @@ async function calculateRoute(depart, arrivee) {
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur Geoapify routing : ${response.status}`);
+    const errorText = await response.text();
+
+    console.error(
+      "Erreur Geoapify routing:",
+      errorText
+    );
+
+    throw new Error(
+      `Erreur Geoapify routing : ${response.status}`
+    );
   }
 
   const data = await response.json();
 
-  if (!data.features || data.features.length === 0) {
-    throw new Error("Impossible de calculer l'itinéraire.");
+  if (
+    !data.features ||
+    data.features.length === 0
+  ) {
+    throw new Error(
+      "Impossible de calculer l'itinéraire."
+    );
   }
 
-  const properties = data.features[0].properties;
+  const properties =
+    data.features[0].properties || {};
 
   const distanceMeters =
     properties.distance ||
@@ -180,17 +401,33 @@ async function calculateRoute(depart, arrivee) {
     properties.time_seconds ||
     properties.duration;
 
-  if (!distanceMeters) {
-    throw new Error("Distance non disponible.");
+  if (
+    distanceMeters === undefined ||
+    distanceMeters === null
+  ) {
+    throw new Error(
+      "Distance non disponible."
+    );
   }
 
   return {
-    distanceKm: Number((distanceMeters / 1000).toFixed(1)),
-    durationMinutes: timeSeconds
-      ? Math.round(timeSeconds / 60)
-      : null,
+    distanceKm: Number(
+      (Number(distanceMeters) / 1000).toFixed(1)
+    ),
+
+    durationMinutes:
+      timeSeconds !== undefined &&
+      timeSeconds !== null
+        ? Math.round(
+            Number(timeSeconds) / 60
+          )
+        : null,
   };
 }
+
+/* =========================================================
+   CALCUL DU PRIX
+========================================================= */
 
 function calculatePrice({
   basePrice,
@@ -202,35 +439,51 @@ function calculatePrice({
   nuit,
   dimanche,
 }) {
-  const distanceSupplement = getDistanceSupplement(distanceKm);
+  const distanceSupplement =
+    getDistanceSupplement(distanceKm);
 
-  let price = basePrice + distanceSupplement;
+  let price =
+    basePrice + distanceSupplement;
 
   const supplements = [];
 
+  // Urgent
   if (urgent) {
     price += 20;
+
     supplements.push({
       label: "Urgent",
       amount: 20,
     });
   }
 
+  // Express
   if (express) {
     price += 40;
+
     supplements.push({
-      label: "Express / véhicule dédié prioritaire",
+      label:
+        "Express / véhicule dédié prioritaire",
       amount: 40,
     });
   }
 
+  // Attente
   if (attente) {
     price += 30;
+
     supplements.push({
       label: "Attente 30 min",
       amount: 30,
     });
   }
+
+  /*
+   * Majoration horaire
+   *
+   * Les pourcentages sont appliqués au prix
+   * avant majoration.
+   */
 
   let percentage = 1;
 
@@ -246,7 +499,8 @@ function calculatePrice({
     percentage += 0.30;
   }
 
-  const percentageSupplement = price * (percentage - 1);
+  const percentageSupplement =
+    price * (percentage - 1);
 
   if (percentageSupplement > 0) {
     price += percentageSupplement;
@@ -267,7 +521,8 @@ function calculatePrice({
 
     if (dimanche) {
       supplements.push({
-        label: "Dimanche / jour férié +30 %",
+        label:
+          "Dimanche / jour férié +30 %",
         amount: null,
       });
     }
@@ -275,18 +530,32 @@ function calculatePrice({
 
   return {
     totalHT: Math.round(price),
+
     distanceSupplement,
+
     supplements,
   };
 }
 
+/* =========================================================
+   GET — TEST DE L'API
+========================================================= */
+
 export async function GET() {
   return NextResponse.json({
     success: true,
-    message: "Calculateur Flashride opérationnel",
-    geoapifyConfigured: Boolean(GEOAPIFY_API_KEY),
+
+    message:
+      "Calculateur Flashride opérationnel",
+
+    geoapifyConfigured:
+      Boolean(GEOAPIFY_API_KEY),
   });
 }
+
+/* =========================================================
+   POST — CALCULATEUR
+========================================================= */
 
 export async function POST(request) {
   try {
@@ -294,120 +563,209 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: "GEOAPIFY_API_KEY non configurée.",
+
+          error:
+            "GEOAPIFY_API_KEY non configurée.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
-    const body = await request.json();
+    const body =
+      await request.json();
 
     const {
       depart,
       arrivee,
+
       urgent = false,
       express = false,
       attente = false,
+
       samedi = false,
       nuit = false,
       dimanche = false,
     } = body;
 
-    if (!depart || !arrivee) {
+    /* -----------------------------------------------------
+       VALIDATION
+    ----------------------------------------------------- */
+
+    if (
+      !depart ||
+      !String(depart).trim() ||
+      !arrivee ||
+      !String(arrivee).trim()
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Les adresses de départ et d'arrivée sont obligatoires.",
+
+          error:
+            "Les adresses de départ et d'arrivée sont obligatoires.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // 1. Géocodage
-    const departGeo = await geocode(depart);
-    const arriveeGeo = await geocode(arrivee);
+    /* -----------------------------------------------------
+       1. GÉOCODAGE
+    ----------------------------------------------------- */
 
-    // 2. Vérification des zones
-    if (!departGeo.zone || !arriveeGeo.zone) {
+    const departGeo =
+      await geocode(depart);
+
+    const arriveeGeo =
+      await geocode(arrivee);
+
+    /* -----------------------------------------------------
+       2. VÉRIFICATION DES ZONES
+    ----------------------------------------------------- */
+
+    if (
+      !departGeo.zone ||
+      !arriveeGeo.zone
+    ) {
       return NextResponse.json({
         success: false,
+
         reason: "hors_zone",
+
         message:
           "Cette adresse est en dehors de la zone tarifaire automatique. Demandez un devis personnalisé.",
+
         depart: departGeo,
+
         arrivee: arriveeGeo,
       });
     }
 
-    // 3. Calcul de l'itinéraire
-    const route = await calculateRoute(
-      departGeo,
-      arriveeGeo
-    );
+    /* -----------------------------------------------------
+       3. CALCUL DE L'ITINÉRAIRE
+    ----------------------------------------------------- */
 
-    // 4. Tarif de base
-    const basePrice = getBasePrice(
-      departGeo.zone,
-      arriveeGeo.zone
-    );
+    const route =
+      await calculateRoute(
+        departGeo,
+        arriveeGeo
+      );
+
+    /* -----------------------------------------------------
+       4. TARIF DE BASE
+    ----------------------------------------------------- */
+
+    const basePrice =
+      getBasePrice(
+        departGeo.zone,
+        arriveeGeo.zone
+      );
 
     if (basePrice === null) {
       return NextResponse.json({
         success: false,
-        reason: "tarif_non_disponible",
+
+        reason:
+          "tarif_non_disponible",
+
         message:
           "Ce trajet nécessite une étude personnalisée.",
       });
     }
 
-    // 5. Calcul final
-    const calculation = calculatePrice({
-      basePrice,
-      distanceKm: route.distanceKm,
-      urgent,
-      express,
-      attente,
-      samedi,
-      nuit,
-      dimanche,
-    });
+    /* -----------------------------------------------------
+       5. CALCUL FINAL
+    ----------------------------------------------------- */
+
+    const calculation =
+      calculatePrice({
+        basePrice,
+
+        distanceKm:
+          route.distanceKm,
+
+        urgent,
+        express,
+        attente,
+
+        samedi,
+        nuit,
+        dimanche,
+      });
+
+    /* -----------------------------------------------------
+       6. RÉPONSE
+    ----------------------------------------------------- */
 
     return NextResponse.json({
       success: true,
 
-      vehicle: "20 m³ avec chauffeur",
+      vehicle:
+        "20 m³ avec chauffeur",
 
       depart: {
-        adresse: departGeo.formatted,
-        ville: departGeo.city,
-        codePostal: departGeo.postcode,
-        zone: getZoneLabel(departGeo.zone),
+        adresse:
+          departGeo.formatted,
+
+        ville:
+          departGeo.city,
+
+        codePostal:
+          departGeo.postcode,
+
+        zone:
+          getZoneLabel(
+            departGeo.zone
+          ),
       },
 
       arrivee: {
-        adresse: arriveeGeo.formatted,
-        ville: arriveeGeo.city,
-        codePostal: arriveeGeo.postcode,
-        zone: getZoneLabel(arriveeGeo.zone),
+        adresse:
+          arriveeGeo.formatted,
+
+        ville:
+          arriveeGeo.city,
+
+        codePostal:
+          arriveeGeo.postcode,
+
+        zone:
+          getZoneLabel(
+            arriveeGeo.zone
+          ),
       },
 
       trajet: {
-        distanceKm: route.distanceKm,
-        dureeMinutes: route.durationMinutes,
+        distanceKm:
+          route.distanceKm,
+
+        dureeMinutes:
+          route.durationMinutes,
+
+        mode: "drive",
       },
 
       tarif: {
-        baseHT: basePrice,
+        baseHT:
+          basePrice,
+
         supplementDistanceHT:
           calculation.distanceSupplement,
-        totalHT: calculation.totalHT,
+
+        totalHT:
+          calculation.totalHT,
       },
 
-      supplements: calculation.supplements,
+      supplements:
+        calculation.supplements,
 
       fraisSupplementaires: {
         peages:
           "Facturés en supplément",
+
         manutention:
           "Sur devis",
       },
@@ -416,16 +774,22 @@ export async function POST(request) {
         "Tarif indicatif. Le montant définitif peut être ajusté selon les conditions réelles de la mission.",
     });
   } catch (error) {
-    console.error("Calculateur Flashride:", error);
+    console.error(
+      "Calculateur Flashride:",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
+
         error:
-          error.message ||
+          error?.message ||
           "Une erreur est survenue pendant le calcul.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
