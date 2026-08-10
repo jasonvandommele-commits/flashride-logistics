@@ -4,7 +4,7 @@ import { useState } from "react";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import Reviews from "./components/Reviews";
-
+import CalculateurTransport from "./components/CalculateurTransport";
 
 export default function FlashrideLogisticsWebsite() {
 
@@ -442,6 +442,10 @@ export default function FlashrideLogisticsWebsite() {
       
       
       </section>
+      
+        {/*Calculateur*/}
+      
+      <CalculateurTransport />
       
          {/* Pourquoi nous */}
       
