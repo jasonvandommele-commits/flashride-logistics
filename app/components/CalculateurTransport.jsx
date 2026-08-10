@@ -10,7 +10,7 @@ const INITIAL_FORM = {
   depart: "",
   arrivee: "",
 
-  vehicle: "20m3",
+  vehicle: "camion20",
 
   priorite: "standard",
 
@@ -19,45 +19,30 @@ const INITIAL_FORM = {
   dimanche: false,
 };
 
-/* =========================================================
-   VÉHICULES
-========================================================= */
-
 const VEHICLES = [
   {
-    id: "moto",
+    key: "moto",
+    label: "Moto",
+    volume: "2 roues",
     icon: "🏍️",
-    name: "Moto",
-    volume: null,
-    description:
-      "Petits plis, documents et colis",
   },
-
   {
-    id: "voiture",
-    icon: "🚗",
-    name: "Voiture",
+    key: "voiture",
+    label: "Voiture",
     volume: "3 m³",
-    description:
-      "Colis et petits transports",
+    icon: "🚗",
   },
-
   {
-    id: "fourgon",
-    icon: "🚐",
-    name: "Fourgon",
+    key: "fourgon",
+    label: "Fourgon",
     volume: "8 m³",
-    description:
-      "Marchandises et volumes intermédiaires",
+    icon: "🚐",
   },
-
   {
-    id: "20m3",
-    icon: "🚚",
-    name: "20 m³",
+    key: "camion20",
+    label: "20 m³",
     volume: "20 m³",
-    description:
-      "Volumes importants et déménagements",
+    icon: "🚚",
   },
 ];
 
@@ -76,19 +61,20 @@ function AddressInput({
   const [suggestions, setSuggestions] =
     useState([]);
 
-  const [
-    loadingSuggestions,
-    setLoadingSuggestions,
-  ] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] =
+    useState(false);
 
-  const [
-    showSuggestions,
-    setShowSuggestions,
-  ] = useState(false);
+  const [showSuggestions, setShowSuggestions] =
+    useState(false);
 
-  const wrapperRef = useRef(null);
-  const abortRef = useRef(null);
-  const requestIdRef = useRef(0);
+  const wrapperRef =
+    useRef(null);
+
+  const abortRef =
+    useRef(null);
+
+  const requestIdRef =
+    useRef(0);
 
   const justSelectedRef =
     useRef(false);
@@ -98,12 +84,15 @@ function AddressInput({
   ======================================================= */
 
   useEffect(() => {
-    const text = String(
-      value || ""
-    ).trim();
+    const text =
+      String(value || "").trim();
 
-    if (justSelectedRef.current) {
-      justSelectedRef.current = false;
+    if (
+      justSelectedRef.current
+    ) {
+      justSelectedRef.current =
+        false;
+
       return;
     }
 
@@ -116,11 +105,12 @@ function AddressInput({
       setSuggestions([]);
       setShowSuggestions(false);
       setLoadingSuggestions(false);
+
       return;
     }
 
-    const timer = setTimeout(
-      async () => {
+    const timer =
+      setTimeout(async () => {
         const controller =
           new AbortController();
 
@@ -192,23 +182,17 @@ function AddressInput({
             requestIdRef.current
           ) {
             setSuggestions([]);
-            setShowSuggestions(
-              false
-            );
+            setShowSuggestions(false);
           }
         } finally {
           if (
             requestId ===
             requestIdRef.current
           ) {
-            setLoadingSuggestions(
-              false
-            );
+            setLoadingSuggestions(false);
           }
         }
-      },
-      220
-    );
+      }, 220);
 
     return () => {
       clearTimeout(timer);
@@ -275,7 +259,8 @@ function AddressInput({
 
     requestIdRef.current += 1;
 
-    justSelectedRef.current = true;
+    justSelectedRef.current =
+      true;
 
     setShowSuggestions(false);
     setSuggestions([]);
@@ -292,7 +277,9 @@ function AddressInput({
      CHANGEMENT MANUEL
   ======================================================= */
 
-  function handleInputChange(event) {
+  function handleInputChange(
+    event
+  ) {
     justSelectedRef.current =
       false;
 
@@ -394,12 +381,16 @@ function AddressInput({
 
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900">
-                          {addressLine1}
+                          {
+                            addressLine1
+                          }
                         </p>
 
                         {addressLine2 && (
                           <p className="text-sm text-gray-500 mt-1">
-                            {addressLine2}
+                            {
+                              addressLine2
+                            }
                           </p>
                         )}
                       </div>
@@ -460,10 +451,6 @@ export default function CalculateurTransport() {
             : value,
       };
 
-      /*
-       * Samedi et dimanche exclusifs
-       */
-
       if (
         name === "samedi" &&
         checked
@@ -492,11 +479,6 @@ export default function CalculateurTransport() {
         })
       );
 
-      setResult(null);
-      setError("");
-    }
-
-    if (name === "vehicle") {
       setResult(null);
       setError("");
     }
@@ -602,14 +584,16 @@ export default function CalculateurTransport() {
         await response.json();
 
       /*
-       * Hors IDF :
-       * on affiche le résultat "sur devis"
-       * au lieu de le traiter comme une erreur.
+       * Hors zone ou hors grille :
+       * ce n'est pas une erreur technique.
+       * On affiche directement le message.
        */
 
       if (
         data.reason ===
-        "hors_zone"
+          "hors_zone" ||
+        data.reason ===
+          "distance_hors_grille"
       ) {
         setResult(data);
 
@@ -668,12 +652,16 @@ export default function CalculateurTransport() {
     }
   }
 
+  /* =======================================================
+     VÉHICULE SÉLECTIONNÉ
+  ======================================================= */
+
   const selectedVehicle =
     VEHICLES.find(
       (vehicle) =>
-        vehicle.id ===
+        vehicle.key ===
         form.vehicle
-    );
+    ) || VEHICLES[3];
 
   /* =======================================================
      RENDER
@@ -698,10 +686,9 @@ export default function CalculateurTransport() {
           </h2>
 
           <p className="mt-5 text-gray-600 text-lg">
-            Choisissez votre véhicule,
-            indiquez votre trajet et
-            obtenez une estimation
-            instantanée.
+            Sélectionnez votre véhicule,
+            indiquez votre trajet et obtenez
+            une estimation instantanée.
           </p>
 
         </div>
@@ -722,34 +709,33 @@ export default function CalculateurTransport() {
           <div>
 
             <p className="font-bold text-lg mb-4">
-              Choisissez votre véhicule
+              Type de véhicule
             </p>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
               {VEHICLES.map(
                 (vehicle) => (
                   <label
                     key={
-                      vehicle.id
+                      vehicle.key
                     }
-                    className={`border rounded-2xl p-5 cursor-pointer transition ${
+                    className={`border rounded-2xl p-4 cursor-pointer transition ${
                       form.vehicle ===
-                      vehicle.id
+                      vehicle.key
                         ? "border-orange-500 bg-orange-50 shadow-sm"
                         : "border-gray-200 hover:border-orange-300"
                     }`}
                   >
-
                     <input
                       type="radio"
                       name="vehicle"
                       value={
-                        vehicle.id
+                        vehicle.key
                       }
                       checked={
                         form.vehicle ===
-                        vehicle.id
+                        vehicle.key
                       }
                       onChange={
                         handleChange
@@ -757,38 +743,28 @@ export default function CalculateurTransport() {
                       className="sr-only"
                     />
 
-                    <div className="text-3xl mb-3">
+                    <div className="text-3xl mb-2">
                       {
                         vehicle.icon
                       }
                     </div>
 
-                    <p className="font-bold text-lg">
+                    <p className="font-bold">
                       {
-                        vehicle.name
+                        vehicle.label
                       }
                     </p>
 
-                    {vehicle.volume && (
-                      <p className="text-orange-500 font-bold mt-1">
-                        {
-                          vehicle.volume
-                        }
-                      </p>
-                    )}
-
-                    <p className="text-gray-500 text-sm mt-2 leading-relaxed">
+                    <p className="text-sm text-gray-500 mt-1">
                       {
-                        vehicle.description
+                        vehicle.volume
                       }
                     </p>
-
                   </label>
                 )
               )}
 
             </div>
-
           </div>
 
           {/* =================================================
@@ -841,7 +817,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="radio"
                   name="priorite"
@@ -863,7 +838,6 @@ export default function CalculateurTransport() {
                 <p className="text-gray-500 text-sm mt-1">
                   Tarif normal
                 </p>
-
               </label>
 
               <label
@@ -874,7 +848,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="radio"
                   name="priorite"
@@ -894,9 +867,19 @@ export default function CalculateurTransport() {
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  + selon véhicule
+                  +{" "}
+                  {selectedVehicle.key ===
+                  "moto"
+                    ? 10
+                    : selectedVehicle.key ===
+                      "voiture"
+                    ? 15
+                    : selectedVehicle.key ===
+                      "fourgon"
+                    ? 20
+                    : 25}{" "}
+                  € HT
                 </p>
-
               </label>
 
               <label
@@ -907,7 +890,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="radio"
                   name="priorite"
@@ -927,13 +909,22 @@ export default function CalculateurTransport() {
                 </strong>
 
                 <p className="text-gray-500 text-sm mt-1">
-                  + selon véhicule
+                  +{" "}
+                  {selectedVehicle.key ===
+                  "moto"
+                    ? 20
+                    : selectedVehicle.key ===
+                      "voiture"
+                    ? 30
+                    : selectedVehicle.key ===
+                      "fourgon"
+                    ? 35
+                    : 45}{" "}
+                  € HT
                 </p>
-
               </label>
 
             </div>
-
           </div>
 
           {/* =================================================
@@ -943,7 +934,7 @@ export default function CalculateurTransport() {
           <div className="mt-8">
 
             <p className="font-bold text-lg mb-4">
-              Conditions de transport
+              Majorations
             </p>
 
             <div className="grid sm:grid-cols-3 gap-4">
@@ -957,7 +948,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="checkbox"
                   name="samedi"
@@ -971,7 +961,6 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
-
                   <strong>
                     Samedi
                   </strong>
@@ -981,9 +970,7 @@ export default function CalculateurTransport() {
                   <span className="text-gray-500 text-sm">
                     +10 %
                   </span>
-
                 </span>
-
               </label>
 
               {/* NUIT */}
@@ -995,7 +982,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="checkbox"
                   name="nuit"
@@ -1009,7 +995,6 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
-
                   <strong>
                     Nuit 22h–6h
                   </strong>
@@ -1017,11 +1002,9 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    + selon véhicule
+                    +20 à +25 %
                   </span>
-
                 </span>
-
               </label>
 
               {/* DIMANCHE */}
@@ -1033,7 +1016,6 @@ export default function CalculateurTransport() {
                     : "border-gray-200 hover:border-orange-300"
                 }`}
               >
-
                 <input
                   type="checkbox"
                   name="dimanche"
@@ -1047,7 +1029,6 @@ export default function CalculateurTransport() {
                 />
 
                 <span>
-
                   <strong>
                     Dimanche / jour férié
                   </strong>
@@ -1055,48 +1036,12 @@ export default function CalculateurTransport() {
                   <br />
 
                   <span className="text-gray-500 text-sm">
-                    + selon véhicule
+                    +25 à +30 %
                   </span>
-
                 </span>
-
               </label>
 
             </div>
-
-          </div>
-
-          {/* =================================================
-              RÉSUMÉ VÉHICULE
-          ================================================= */}
-
-          <div className="mt-8 bg-gray-50 rounded-2xl p-5 flex items-center gap-4">
-
-            <div className="text-3xl">
-              {
-                selectedVehicle?.icon
-              }
-            </div>
-
-            <div>
-
-              <p className="font-bold">
-                Véhicule sélectionné :{" "}
-                {
-                  selectedVehicle?.name
-                }
-                {selectedVehicle?.volume
-                  ? ` — ${selectedVehicle.volume}`
-                  : ""}
-              </p>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Tarif calculé selon la
-                grille correspondante.
-              </p>
-
-            </div>
-
           </div>
 
           {/* =================================================
@@ -1136,66 +1081,41 @@ export default function CalculateurTransport() {
           >
 
             {/* =================================================
-                HORS IDF
+                HORS ZONE / DEVIS
             ================================================= */}
 
-            {result.reason ===
-              "hors_zone" ? (
-              <>
+            {!result.success ? (
+              <div className="text-center">
 
-                <div className="text-center">
-
-                  <div className="text-5xl mb-4">
-                    📍
-                  </div>
-
-                  <p className="text-gray-500 font-semibold">
-                    Demande de devis
-                  </p>
-
-                  <h3 className="text-3xl md:text-4xl font-black mt-3">
-                    Trajet hors Île-de-France
-                  </h3>
-
-                  <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-                    Ce trajet est réalisé
-                    sur devis personnalisé.
-                    Contactez-nous afin
-                    d'obtenir votre tarif.
-                  </p>
-
+                <div className="text-4xl mb-4">
+                  📋
                 </div>
 
-                <div className="mt-8 bg-gray-100 rounded-2xl p-5 text-center">
+                <p className="text-gray-500 font-semibold">
+                  Estimation personnalisée
+                </p>
 
-                  <p className="font-bold text-lg">
-                    {
-                      result.vehicle
-                        ?.label
-                    }
+                <h3 className="text-3xl font-black mt-3">
+                  Sur devis
+                </h3>
 
-                    {result.vehicle
-                      ?.volume && (
-                      <>
-                        {" "}
-                        —{" "}
-                        {
-                          result.vehicle
-                            .volume
-                        }
-                      </>
-                    )}
+                <p className="text-gray-600 mt-4">
+                  {result.message}
+                </p>
+
+                <div className="mt-6 bg-gray-100 rounded-2xl p-5">
+
+                  <p className="font-bold">
+                    Véhicule sélectionné
                   </p>
 
-                  <p className="text-gray-500 mt-1">
+                  <p className="text-gray-600 mt-1">
                     {
-                      result.depart
-                        ?.zone
+                      result.vehicle
                     }{" "}
-                    →{" "}
+                    —{" "}
                     {
-                      result.arrivee
-                        ?.zone
+                      result.volume
                     }
                   </p>
 
@@ -1208,10 +1128,9 @@ export default function CalculateurTransport() {
                   Demander mon devis
                 </a>
 
-              </>
+              </div>
             ) : (
               <>
-
                 {/* =================================================
                     PRIX
                 ================================================= */}
@@ -1223,32 +1142,20 @@ export default function CalculateurTransport() {
                   </p>
 
                   <p className="text-5xl font-black mt-3">
-                    <span className="text-2xl mr-2">
+                    <span className="text-2xl align-middle mr-2">
                       À partir de
                     </span>
 
-                    {result.tarif.totalHT}
-
+                    {result.tarif.totalHT}{" "}
                     <span className="text-xl ml-2">
                       € HT
                     </span>
                   </p>
 
-                  <p className="text-gray-500 mt-3">
-                    {result.vehicle?.label}
-
-                    {result.vehicle?.volume && (
-                      <>
-                        {" "}
-                        —{" "}
-                        {
-                          result.vehicle
-                            .volume
-                        }
-                      </>
-                    )}
-
-                    {" avec chauffeur"}
+                  <p className="text-gray-500 mt-2">
+                    {result.vehicle}{" "}
+                    —{" "}
+                    {result.volume}
                   </p>
 
                 </div>
@@ -1273,12 +1180,8 @@ export default function CalculateurTransport() {
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      {
-                        result.depart
-                          .codePostal ||
-                        result.depart
-                          .ville
-                      }
+                      {result.depart.codePostal ||
+                        result.depart.ville}
                     </p>
 
                   </div>
@@ -1313,12 +1216,8 @@ export default function CalculateurTransport() {
                     </p>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      {
-                        result.arrivee
-                          .codePostal ||
-                        result.arrivee
-                          .ville
-                      }
+                      {result.arrivee.codePostal ||
+                        result.arrivee.ville}
                     </p>
 
                   </div>
@@ -1385,12 +1284,10 @@ export default function CalculateurTransport() {
                         </span>
 
                         <strong>
-                          {
-                            supplement.amount !==
-                            null
-                              ? `+${supplement.amount} €`
-                              : "Appliqué"
-                          }
+                          {supplement.amount !==
+                          null
+                            ? `+${supplement.amount} € HT`
+                            : "Appliqué"}
                         </strong>
 
                       </div>
@@ -1400,7 +1297,7 @@ export default function CalculateurTransport() {
                 </div>
 
                 {/* =================================================
-                    INFORMATIONS
+                    SUPPLÉMENTS
                 ================================================= */}
 
                 <div className="mt-6 bg-orange-50 rounded-2xl p-5">
@@ -1410,8 +1307,7 @@ export default function CalculateurTransport() {
                   </p>
 
                   <p className="text-gray-600 text-sm mt-2">
-                    Péages facturés en
-                    supplément.
+                    Péages facturés en supplément.
                     Manutention sur devis.
                   </p>
 
@@ -1425,14 +1321,12 @@ export default function CalculateurTransport() {
 
                   <p className="text-xs text-gray-500 leading-relaxed">
                     Tarif indicatif calculé
-                    automatiquement.
-                    Le montant définitif
-                    peut être ajusté selon
-                    les conditions réelles
-                    de la mission, notamment
-                    l'accès, le stationnement,
-                    la manutention ou les
-                    contraintes particulières.
+                    automatiquement. Le montant
+                    définitif peut être ajusté selon
+                    les conditions réelles de la
+                    mission, notamment l'accès,
+                    le stationnement, la manutention
+                    ou les contraintes particulières.
                   </p>
 
                 </div>
