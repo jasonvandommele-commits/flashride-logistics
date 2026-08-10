@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 
-const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
+const GEOAPIFY_API_KEY =
+  process.env.GEOAPIFY_API_KEY;
 
-function normalizeText(value = "") {
+/*
+ * Normalise un texte pour faciliter les comparaisons.
+ */
+function normalize(value = "") {
   return String(value)
     .toLowerCase()
     .normalize("NFD")
@@ -12,36 +16,36 @@ function normalizeText(value = "") {
     .trim();
 }
 
-function extractStreetNumber(text) {
-  /*
-   * Détecte :
-   * 6 rue Delaporte
-   * 6rue Delaporte
-   * 6 bis rue Delaporte
-   * 6A rue Delaporte
-   */
+/*
+ * Détecte un numéro de rue au début de la saisie.
+ *
+ * Exemples :
+ * 6 rue ...
+ * 12 avenue ...
+ * 25 boulevard ...
+ * 8A rue ...
+ * 10 bis rue ...
+ */
+function extractNumber(text) {
   const match = text.match(
     /^\s*(\d+[A-Za-z]?)(?:\s*(?:bis|ter|quater))?\s+/i
   );
 
-  return match ? match[1].trim() : "";
+  return match ? match[1] : "";
 }
 
-function getCity(properties) {
-  return (
-    properties.city ||
-    properties.town ||
-    properties.village ||
-    properties.municipality ||
-    properties.locality ||
-    ""
-  );
-}
+/*
+ * Construit proprement une adresse à partir
+ * des données Geoapify.
+ */
+function formatFeature(feature) {
+  const properties =
+    feature?.properties || {};
 
-function buildAddress(feature) {
-  const properties = feature.properties || {};
+  const coordinates =
+    feature?.geometry?.coordinates || [];
 
-  const houseNumber = String(
+  const housenumber = String(
     properties.housenumber || ""
   ).trim();
 
@@ -54,17 +58,34 @@ function buildAddress(feature) {
   ).trim();
 
   const city = String(
-    getCity(properties)
+    properties.city ||
+      properties.town ||
+      properties.village ||
+      properties.municipality ||
+      properties.locality ||
+      ""
   ).trim();
 
-  const addressLine1 =
-    houseNumber && street
-      ? `${houseNumber} ${street}`
-      : String(
-          properties.address_line1 ||
-            street ||
-            ""
-        ).trim();
+  /*
+   * IMPORTANT :
+   * On reconstruit l'adresse nous-mêmes afin
+   * de ne pas perdre le numéro de rue.
+   */
+  let addressLine1 = "";
+
+  if (housenumber && street) {
+    addressLine1 =
+      `${housenumber} ${street}`;
+  } else if (street) {
+    addressLine1 = street;
+  } else if (
+    properties.address_line1
+  ) {
+    addressLine1 =
+      String(
+        properties.address_line1
+      ).trim();
+  }
 
   const addressLine2 = [
     postcode,
@@ -75,8 +96,12 @@ function buildAddress(feature) {
 
   let formatted = "";
 
-  if (addressLine1 && addressLine2) {
-    formatted = `${addressLine1}, ${addressLine2}`;
+  if (
+    addressLine1 &&
+    addressLine2
+  ) {
+    formatted =
+      `${addressLine1}, ${addressLine2}`;
   } else if (addressLine1) {
     formatted = addressLine1;
   } else {
@@ -85,19 +110,20 @@ function buildAddress(feature) {
     ).trim();
   }
 
-  const coordinates =
-    feature.geometry?.coordinates || [];
-
   return {
     formatted,
+
     addressLine1,
+
     addressLine2,
 
-    postcode,
-    city,
+    housenumber,
 
-    housenumber: houseNumber,
     street,
+
+    postcode,
+
+    city,
 
     resultType:
       properties.result_type || "",
@@ -131,74 +157,75 @@ function buildAddress(feature) {
   };
 }
 
-function hasNumber(address) {
+/*
+ * Vérifie si le résultat possède un numéro.
+ */
+function hasNumber(result) {
   return Boolean(
-    address.housenumber
+    result.housenumber
   );
 }
 
-function numberMatches(
-  address,
+/*
+ * Vérifie si le numéro retourné correspond
+ * exactement à celui tapé.
+ */
+function hasExactNumber(
+  result,
   requestedNumber
 ) {
   if (
     !requestedNumber ||
-    !address.housenumber
+    !result.housenumber
   ) {
     return false;
   }
 
   return (
-    normalizeText(
-      address.housenumber
+    normalize(
+      result.housenumber
     ) ===
-    normalizeText(requestedNumber)
+    normalize(
+      requestedNumber
+    )
   );
 }
 
-function streetMatches(
-  address,
-  requestedStreet
-) {
-  if (
-    !address.street ||
-    !requestedStreet
-  ) {
-    return false;
-  }
-
-  const a = normalizeText(
-    address.street
-  );
-
-  const b = normalizeText(
-    requestedStreet
-  );
-
-  return (
-    a === b ||
-    a.includes(b) ||
-    b.includes(a)
-  );
-}
-
-async function geoapifyRequest(
+/*
+ * Appel Geoapify.
+ */
+async function searchGeoapify(
   endpoint,
-  params
+  text,
+  limit
 ) {
-  const searchParams =
-    new URLSearchParams({
-      ...params,
-      apiKey: GEOAPIFY_API_KEY,
-    });
+  const params =
+    new URLSearchParams();
 
-  const url =
-    `https://api.geoapify.com/v1/geocode/${endpoint}?${searchParams.toString()}`;
+  params.set("text", text);
+  params.set("limit", String(limit));
+  params.set(
+    "filter",
+    "countrycode:fr"
+  );
+  params.set("lang", "fr");
+  params.set(
+    "format",
+    "geojson"
+  );
+  params.set(
+    "apiKey",
+    GEOAPIFY_API_KEY
+  );
 
-  const response = await fetch(url, {
-    method: "GET",
-    cache: "no-store",
-  });
+  const response =
+    await fetch(
+      `https://api.geoapify.com/v1/geocode/${endpoint}?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
 
   const data =
     await response.json();
@@ -210,11 +237,20 @@ async function geoapifyRequest(
     );
   }
 
-  return data;
+  return Array.isArray(
+    data.features
+  )
+    ? data.features
+    : [];
 }
 
-export async function GET(request) {
+export async function GET(
+  request
+) {
   try {
+    /*
+     * Vérification de la clé.
+     */
     if (!GEOAPIFY_API_KEY) {
       return NextResponse.json(
         {
@@ -229,10 +265,16 @@ export async function GET(request) {
     const { searchParams } =
       new URL(request.url);
 
-    const text = (
-      searchParams.get("text") || ""
-    ).trim();
+    const text =
+      (
+        searchParams.get(
+          "text"
+        ) || ""
+      ).trim();
 
+    /*
+     * Pas assez de caractères.
+     */
     if (text.length < 3) {
       return NextResponse.json({
         success: true,
@@ -241,207 +283,99 @@ export async function GET(request) {
     }
 
     /*
-     * =====================================================
-     * 1. RECHERCHE AUTOCOMPLETE RAPIDE
-     * =====================================================
+     * Détection du numéro.
      */
+    const requestedNumber =
+      extractNumber(text);
 
-    const autocompletePromise =
-      geoapifyRequest(
+    /*
+     * =====================================================
+     * RECHERCHE PRINCIPALE
+     * =====================================================
+     *
+     * On utilise autocomplete pour conserver
+     * la rapidité pendant la frappe.
+     */
+    const autocompleteFeatures =
+      await searchGeoapify(
         "autocomplete",
-        {
-          text,
-          limit: "8",
-          filter: "countrycode:fr",
-          lang: "fr",
-          format: "geojson",
-        }
+        text,
+        8
       );
 
-    /*
-     * =====================================================
-     * 2. DÉTECTION D'UN NUMÉRO
-     * =====================================================
-     */
-
-    const requestedNumber =
-      extractStreetNumber(text);
-
-    /*
-     * Si l'utilisateur a tapé un numéro,
-     * on essaie de séparer :
-     *
-     * 6 rue Delaporte Maisons-Alfort
-     *
-     * en :
-     *
-     * numéro = 6
-     * reste = rue Delaporte Maisons-Alfort
-     */
-    let preciseSearchPromise =
-      Promise.resolve(null);
-
-    if (requestedNumber) {
-      const remainingText =
-        text
-          .replace(
-            /^\s*\d+[A-Za-z]?(?:\s*(?:bis|ter|quater))?\s*/i,
-            ""
-          )
-          .trim();
-
-      /*
-       * Recherche directe avec le texte complet.
-       *
-       * On utilise /search en complément de
-       * /autocomplete car cette recherche est beaucoup
-       * plus adaptée à une adresse précise.
-       */
-      preciseSearchPromise =
-        geoapifyRequest(
-          "search",
-          {
-            text,
-            limit: "10",
-            filter: "countrycode:fr",
-            lang: "fr",
-            format: "geojson",
-          }
-        ).catch(() => null);
-
-      /*
-       * Si la première recherche ne donne rien,
-       * on fera une recherche complémentaire
-       * avec le texte sans le numéro.
-       */
-      if (remainingText) {
-        preciseSearchPromise =
-          Promise.all([
-            preciseSearchPromise,
-            geoapifyRequest(
-              "search",
-              {
-                text: remainingText,
-                limit: "10",
-                filter: "countrycode:fr",
-                lang: "fr",
-                format: "geojson",
-              }
-            ).catch(() => null),
-          ]);
-      }
-    }
-
-    const [
-      autocompleteData,
-      preciseData,
-    ] = await Promise.all([
-      autocompletePromise,
-      preciseSearchPromise,
-    ]);
-
-    /*
-     * =====================================================
-     * AUTOCOMPLETE
-     * =====================================================
-     */
-
-    const autocompleteFeatures =
-      Array.isArray(
-        autocompleteData?.features
-      )
-        ? autocompleteData.features
-        : [];
-
-    let autocompleteResults =
+    let results =
       autocompleteFeatures
-        .map(buildAddress)
+        .map(formatFeature)
         .filter(
-          (item) => item.formatted
+          (result) =>
+            result.formatted
         );
 
     /*
      * =====================================================
-     * RECHERCHE PRÉCISE
+     * SI UN NUMÉRO EST SAISI
      * =====================================================
+     *
+     * On effectue une seconde recherche uniquement
+     * dans ce cas.
+     *
+     * Cela évite de ralentir les recherches de ville
+     * ou de rue.
      */
-
-    let preciseFeatures = [];
-
-    if (Array.isArray(preciseData)) {
-      for (const result of preciseData) {
-        if (
-          Array.isArray(
-            result?.features
-          )
-        ) {
-          preciseFeatures.push(
-            ...result.features
-          );
-        }
-      }
-    } else if (
-      Array.isArray(
-        preciseData?.features
-      )
-    ) {
-      preciseFeatures =
-        preciseData.features;
-    }
-
-    const preciseResults =
-      preciseFeatures
-        .map(buildAddress)
-        .filter(
-          (item) => item.formatted
-        );
-
-    /*
-     * =====================================================
-     * SI NUMÉRO SAISI :
-     * ON PRIVILÉGIE LES VRAIES ADRESSES
-     * =====================================================
-     */
-
     if (requestedNumber) {
+      const preciseFeatures =
+        await searchGeoapify(
+          "search",
+          text,
+          8
+        );
+
+      const preciseResults =
+        preciseFeatures
+          .map(formatFeature)
+          .filter(
+            (result) =>
+              result.formatted
+          );
+
       /*
-       * Résultats de recherche précise avec
-       * exactement le numéro demandé.
+       * Résultats avec exactement le numéro demandé.
        */
-      const exactPrecise =
+      const exactResults =
         preciseResults.filter(
-          (item) =>
-            numberMatches(
-              item,
+          (result) =>
+            hasExactNumber(
+              result,
               requestedNumber
             )
         );
 
       /*
-       * Si on trouve le numéro exact,
-       * on utilise uniquement ces résultats
-       * en priorité.
+       * Si Geoapify trouve le numéro exact,
+       * on les place en priorité.
        */
-      if (exactPrecise.length > 0) {
-        autocompleteResults =
-          exactPrecise;
+      if (
+        exactResults.length > 0
+      ) {
+        results = [
+          ...exactResults,
+          ...results,
+        ];
       } else {
         /*
-         * Sinon on cherche un résultat contenant
-         * n'importe quel numéro.
+         * Sinon, on place les résultats possédant
+         * quand même un numéro avant les rues seules.
          */
-        const numberedPrecise =
+        const numberedResults =
           preciseResults.filter(
-            (item) =>
-              hasNumber(item)
+            (result) =>
+              hasNumber(result)
           );
 
-        if (
-          numberedPrecise.length > 0
-        ) {
-          autocompleteResults =
-            numberedPrecise;
-        }
+        results = [
+          ...numberedResults,
+          ...results,
+        ];
       }
     }
 
@@ -450,176 +384,178 @@ export async function GET(request) {
      * DÉDOUBLONNAGE
      * =====================================================
      */
+    const unique =
+      new Map();
 
-    const unique = new Map();
-
-    for (const item of autocompleteResults) {
+    for (const result of results) {
       const key = [
-        item.housenumber,
-        item.street,
-        item.postcode,
-        item.city,
+        result.housenumber,
+        result.street,
+        result.postcode,
+        result.city,
       ]
-        .map(normalizeText)
+        .map(normalize)
         .join("|");
 
       if (!unique.has(key)) {
-        unique.set(key, item);
+        unique.set(
+          key,
+          result
+        );
       }
     }
 
-    let suggestions =
-      Array.from(unique.values());
+    results =
+      Array.from(
+        unique.values()
+      );
 
     /*
      * =====================================================
      * CLASSEMENT
      * =====================================================
      */
+    results.sort(
+      (a, b) => {
+        /*
+         * 1. Numéro exact demandé.
+         */
+        if (requestedNumber) {
+          const aExact =
+            hasExactNumber(
+              a,
+              requestedNumber
+            );
 
-    suggestions.sort((a, b) => {
-      /*
-       * Numéro exact demandé.
-       */
-      if (requestedNumber) {
-        const aExact =
-          numberMatches(
-            a,
-            requestedNumber
-          );
+          const bExact =
+            hasExactNumber(
+              b,
+              requestedNumber
+            );
 
-        const bExact =
-          numberMatches(
-            b,
-            requestedNumber
-          );
+          if (
+            aExact !== bExact
+          ) {
+            return aExact
+              ? -1
+              : 1;
+          }
 
-        if (aExact !== bExact) {
-          return aExact ? -1 : 1;
+          /*
+           * 2. Adresse avec numéro
+           * avant rue sans numéro.
+           */
+          const aNumber =
+            hasNumber(a);
+
+          const bNumber =
+            hasNumber(b);
+
+          if (
+            aNumber !== bNumber
+          ) {
+            return aNumber
+              ? -1
+              : 1;
+          }
         }
 
         /*
-         * Tout résultat avec numéro avant
-         * une rue sans numéro.
+         * 3. Types de résultats.
          */
-        const aHasNumber =
-          hasNumber(a);
+        const priority = {
+          building: 6,
+          house: 6,
+          address: 5,
+          amenity: 4,
+          street: 1,
+        };
 
-        const bHasNumber =
-          hasNumber(b);
+        const aPriority =
+          priority[
+            String(
+              a.resultType
+            ).toLowerCase()
+          ] || 0;
+
+        const bPriority =
+          priority[
+            String(
+              b.resultType
+            ).toLowerCase()
+          ] || 0;
 
         if (
-          aHasNumber !==
-          bHasNumber
+          aPriority !==
+          bPriority
         ) {
-          return aHasNumber ? -1 : 1;
-        }
-      }
-
-      /*
-       * Type de résultat.
-       */
-      const typePriority = {
-        building: 6,
-        house: 6,
-        amenity: 5,
-        address: 5,
-        street: 1,
-      };
-
-      const aType =
-        typePriority[
-          String(
-            a.resultType
-          ).toLowerCase()
-        ] || 0;
-
-      const bType =
-        typePriority[
-          String(
-            b.resultType
-          ).toLowerCase()
-        ] || 0;
-
-      if (aType !== bType) {
-        return bType - aType;
-      }
-
-      /*
-       * Match type.
-       */
-      const matchPriority = {
-        full_match: 6,
-        match_by_building: 5,
-        match_by_street: 3,
-        match_by_postcode: 2,
-        match_by_city_or_district: 1,
-      };
-
-      const aMatch =
-        matchPriority[
-          String(
-            a.matchType
-          ).toLowerCase()
-        ] || 0;
-
-      const bMatch =
-        matchPriority[
-          String(
-            b.matchType
-          ).toLowerCase()
-        ] || 0;
-
-      if (aMatch !== bMatch) {
-        return bMatch - aMatch;
-      }
-
-      /*
-       * Confiance.
-       */
-      if (
-        a.confidence !==
-        b.confidence
-      ) {
-        return (
-          b.confidence -
-          a.confidence
-        );
-      }
-
-      return 0;
-    });
-
-    /*
-     * =====================================================
-     * FALLBACK
-     * =====================================================
-     *
-     * Si une recherche précise n'a rien donné,
-     * on conserve les suggestions autocomplete.
-     */
-
-    if (
-      suggestions.length === 0
-    ) {
-      suggestions =
-        autocompleteFeatures
-          .map(buildAddress)
-          .filter(
-            (item) =>
-              item.formatted
+          return (
+            bPriority -
+            aPriority
           );
-    }
+        }
+
+        /*
+         * 4. Qualité de correspondance.
+         */
+        const matchPriority = {
+          full_match: 6,
+          match_by_building: 5,
+          match_by_street: 3,
+          match_by_postcode: 2,
+          match_by_city_or_district: 1,
+        };
+
+        const aMatch =
+          matchPriority[
+            String(
+              a.matchType
+            ).toLowerCase()
+          ] || 0;
+
+        const bMatch =
+          matchPriority[
+            String(
+              b.matchType
+            ).toLowerCase()
+          ] || 0;
+
+        if (
+          aMatch !== bMatch
+        ) {
+          return (
+            bMatch -
+            aMatch
+          );
+        }
+
+        /*
+         * 5. Confiance Geoapify.
+         */
+        if (
+          a.confidence !==
+          b.confidence
+        ) {
+          return (
+            b.confidence -
+            a.confidence
+          );
+        }
+
+        return 0;
+      }
+    );
 
     /*
-     * Maximum 6 suggestions.
+     * =====================================================
+     * RÉPONSE
+     * =====================================================
      */
-    suggestions =
-      suggestions.slice(0, 6);
-
     return NextResponse.json({
       success: true,
-      suggestions,
+
+      suggestions:
+        results.slice(0, 6),
     });
   } catch (error) {
     console.error(
@@ -630,6 +566,7 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: false,
+
         error:
           error.message ||
           "Erreur pendant l'autocomplétion.",
