@@ -53,53 +53,41 @@ function getBasePrice(
 
   if (
     (zoneDepart === "paris" &&
-      zoneArrivee ===
-        "petite_couronne") ||
-    (zoneDepart ===
-      "petite_couronne" &&
+      zoneArrivee === "petite_couronne") ||
+    (zoneDepart === "petite_couronne" &&
       zoneArrivee === "paris")
   ) {
     return 99;
   }
 
   if (
-    zoneDepart ===
-      "petite_couronne" &&
-    zoneArrivee ===
-      "petite_couronne"
+    zoneDepart === "petite_couronne" &&
+    zoneArrivee === "petite_couronne"
   ) {
     return 99;
   }
 
   if (
     (zoneDepart === "paris" &&
-      zoneArrivee ===
-        "grande_couronne") ||
-    (zoneDepart ===
-      "grande_couronne" &&
+      zoneArrivee === "grande_couronne") ||
+    (zoneDepart === "grande_couronne" &&
       zoneArrivee === "paris")
   ) {
     return 129;
   }
 
   if (
-    (zoneDepart ===
-      "petite_couronne" &&
-      zoneArrivee ===
-        "grande_couronne") ||
-    (zoneDepart ===
-      "grande_couronne" &&
-      zoneArrivee ===
-        "petite_couronne")
+    (zoneDepart === "petite_couronne" &&
+      zoneArrivee === "grande_couronne") ||
+    (zoneDepart === "grande_couronne" &&
+      zoneArrivee === "petite_couronne")
   ) {
     return 119;
   }
 
   if (
-    zoneDepart ===
-      "grande_couronne" &&
-    zoneArrivee ===
-      "grande_couronne"
+    zoneDepart === "grande_couronne" &&
+    zoneArrivee === "grande_couronne"
   ) {
     return 129;
   }
@@ -111,9 +99,7 @@ function getBasePrice(
    SUPPLÉMENT DISTANCE
 ========================================================= */
 
-function getDistanceSupplement(
-  distanceKm
-) {
+function getDistanceSupplement(distanceKm) {
   if (distanceKm <= 10) return 0;
   if (distanceKm <= 20) return 10;
   if (distanceKm <= 30) return 15;
@@ -210,9 +196,7 @@ async function geocode(address) {
     normalizeAddress(address);
 
   const requestedNumber =
-    extractHouseNumber(
-      normalized
-    );
+    extractHouseNumber(normalized);
 
   let features = [];
 
@@ -227,9 +211,7 @@ async function geocode(address) {
     `&apiKey=${GEOAPIFY_API_KEY}`;
 
   const searchData =
-    await fetchGeoapify(
-      searchUrl
-    );
+    await fetchGeoapify(searchUrl);
 
   features.push(
     ...(searchData.features || [])
@@ -251,9 +233,7 @@ async function geocode(address) {
 
     try {
       const preciseData =
-        await fetchGeoapify(
-          preciseUrl
-        );
+        await fetchGeoapify(preciseUrl);
 
       features.push(
         ...(preciseData.features || [])
@@ -272,10 +252,6 @@ async function geocode(address) {
     );
   }
 
-  /* =======================================================
-     DOUBLONS
-  ======================================================= */
-
   const unique = new Map();
 
   for (const feature of features) {
@@ -283,8 +259,7 @@ async function geocode(address) {
       feature.properties || {};
 
     const coordinates =
-      feature.geometry
-        ?.coordinates || [];
+      feature.geometry?.coordinates || [];
 
     const key =
       properties.place_id ||
@@ -302,92 +277,84 @@ async function geocode(address) {
     }
   }
 
-  /* =======================================================
-     TRI
-  ======================================================= */
-
   const sorted =
     Array.from(
       unique.values()
-    ).sort(
-      (a, b) => {
-        const aProperties =
-          a.properties || {};
+    ).sort((a, b) => {
+      const aProperties =
+        a.properties || {};
 
-        const bProperties =
-          b.properties || {};
+      const bProperties =
+        b.properties || {};
 
-        const aNumber =
-          String(
-            aProperties.housenumber ||
-              aProperties.house_number ||
-              ""
-          )
-            .trim()
-            .toLowerCase();
+      const aNumber =
+        String(
+          aProperties.housenumber ||
+            aProperties.house_number ||
+            ""
+        )
+          .trim()
+          .toLowerCase();
 
-        const bNumber =
-          String(
-            bProperties.housenumber ||
-              bProperties.house_number ||
-              ""
-          )
-            .trim()
-            .toLowerCase();
+      const bNumber =
+        String(
+          bProperties.housenumber ||
+            bProperties.house_number ||
+            ""
+        )
+          .trim()
+          .toLowerCase();
 
-        const wanted =
-          requestedNumber
-            .trim()
-            .toLowerCase();
+      const wanted =
+        requestedNumber
+          .trim()
+          .toLowerCase();
 
-        if (wanted) {
-          const aExact =
-            aNumber === wanted;
+      if (wanted) {
+        const aExact =
+          aNumber === wanted;
 
-          const bExact =
-            bNumber === wanted;
+        const bExact =
+          bNumber === wanted;
 
-          if (
-            aExact !== bExact
-          ) {
-            return aExact
-              ? -1
-              : 1;
-          }
-
-          if (
-            aNumber &&
-            !bNumber
-          ) {
-            return -1;
-          }
-
-          if (
-            !aNumber &&
-            bNumber
-          ) {
-            return 1;
-          }
+        if (aExact !== bExact) {
+          return aExact
+            ? -1
+            : 1;
         }
 
-        const aConfidence =
-          Number(
-            aProperties.rank
-              ?.confidence || 0
-          );
+        if (
+          aNumber &&
+          !bNumber
+        ) {
+          return -1;
+        }
 
-        const bConfidence =
-          Number(
-            bProperties.rank
-              ?.confidence || 0
-          );
-
-        return (
-          bConfidence -
-          aConfidence
-        );
+        if (
+          !aNumber &&
+          bNumber
+        ) {
+          return 1;
+        }
       }
-    );
+
+      const aConfidence =
+        Number(
+          aProperties.rank
+            ?.confidence || 0
+        );
+
+      const bConfidence =
+        Number(
+          bProperties.rank
+            ?.confidence || 0
+        );
+
+      return (
+        bConfidence -
+        aConfidence
+      );
+    });
 
   const feature =
     sorted[0];
@@ -396,8 +363,7 @@ async function geocode(address) {
     feature.properties || {};
 
   const coordinates =
-    feature.geometry
-      ?.coordinates;
+    feature.geometry?.coordinates;
 
   if (
     !coordinates ||
@@ -438,7 +404,7 @@ async function geocode(address) {
 }
 
 /* =========================================================
-   UTILISER LES COORDONNÉES DE L'AUTOCOMPLETE
+   COORDONNÉES AUTOCOMPLETE
 ========================================================= */
 
 function getSelectedGeo(
@@ -515,8 +481,7 @@ async function calculateRoute(
   }
 
   const properties =
-    data.features[0]
-      .properties || {};
+    data.features[0].properties || {};
 
   const distanceMeters =
     properties.distance ??
@@ -529,8 +494,7 @@ async function calculateRoute(
     properties.duration;
 
   if (
-    distanceMeters ===
-      undefined ||
+    distanceMeters === undefined ||
     distanceMeters === null
   ) {
     throw new Error(
@@ -548,12 +512,10 @@ async function calculateRoute(
       ),
 
     durationMinutes:
-      timeSeconds !==
-        undefined &&
+      timeSeconds !== undefined &&
       timeSeconds !== null
         ? Math.round(
-            Number(timeSeconds) /
-              60
+            Number(timeSeconds) / 60
           )
         : null,
   };
@@ -566,9 +528,7 @@ async function calculateRoute(
 function calculatePrice({
   basePrice,
   distanceKm,
-  urgent,
-  express,
-  attente,
+  service,
   samedi,
   nuit,
   dimanche,
@@ -584,7 +544,11 @@ function calculatePrice({
 
   const supplements = [];
 
-  if (urgent) {
+  /* =======================================================
+     TYPE DE PRESTATION
+  ======================================================= */
+
+  if (service === "urgent") {
     price += 20;
 
     supplements.push({
@@ -593,7 +557,7 @@ function calculatePrice({
     });
   }
 
-  if (express) {
+  if (service === "express") {
     price += 40;
 
     supplements.push({
@@ -603,15 +567,9 @@ function calculatePrice({
     });
   }
 
-  if (attente) {
-    price += 30;
-
-    supplements.push({
-      label:
-        "Attente 30 min",
-      amount: 30,
-    });
-  }
+  /* =======================================================
+     MAJORATIONS HORAIRES
+  ======================================================= */
 
   let percentage = 1;
 
@@ -628,8 +586,7 @@ function calculatePrice({
   }
 
   const percentageSupplement =
-    price *
-    (percentage - 1);
+    price * (percentage - 1);
 
   if (
     percentageSupplement > 0
@@ -639,8 +596,7 @@ function calculatePrice({
 
     if (samedi) {
       supplements.push({
-        label:
-          "Samedi +10 %",
+        label: "Samedi +10 %",
         amount: null,
       });
     }
@@ -701,13 +657,16 @@ export async function POST(
       departGeo,
       arriveeGeo,
 
-      urgent = false,
-      express = false,
-      attente = false,
+      service = "standard",
+
       samedi = false,
       nuit = false,
       dimanche = false,
     } = body;
+
+    /* =====================================================
+       VALIDATION ADRESSES
+    ===================================================== */
 
     if (
       !depart ||
@@ -724,8 +683,68 @@ export async function POST(
     }
 
     /* =====================================================
+       VALIDATION SERVICE
+    ===================================================== */
+
+    const allowedServices = [
+      "standard",
+      "urgent",
+      "express",
+    ];
+
+    if (
+      !allowedServices.includes(
+        service
+      )
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Type de prestation invalide.",
+        },
+        { status: 400 }
+      );
+    }
+
+    /* =====================================================
+       VALIDATION SAMEDI / DIMANCHE
+    ===================================================== */
+
+    if (
+      samedi &&
+      dimanche
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Une course ne peut pas être à la fois prévue le samedi et le dimanche / jour férié.",
+        },
+        { status: 400 }
+      );
+    }
+
+    /* =====================================================
+       ANCIENNE OPTION ATTENTE
+       REFUSÉE EXPLICITEMENT
+    ===================================================== */
+
+    if (
+      body.attente === true
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "L'attente n'est pas une option tarifaire du calculateur. Elle peut faire l'objet d'un ajustement selon les conditions réelles de la mission.",
+        },
+        { status: 400 }
+      );
+    }
+
+    /* =====================================================
        1. UTILISER LES COORDONNÉES SÉLECTIONNÉES
-       Sinon géocoder normalement.
     ===================================================== */
 
     const selectedDepart =
@@ -765,7 +784,8 @@ export async function POST(
         message:
           "Cette adresse est en dehors de la zone tarifaire automatique. Demandez un devis personnalisé.",
 
-        depart: departResolved,
+        depart:
+          departResolved,
 
         arrivee:
           arriveeResolved,
@@ -817,9 +837,8 @@ export async function POST(
         distanceKm:
           route.distanceKm,
 
-        urgent,
-        express,
-        attente,
+        service,
+
         samedi,
         nuit,
         dimanche,
@@ -895,6 +914,9 @@ export async function POST(
 
         manutention:
           "Sur devis",
+
+        attente:
+          "Selon les conditions réelles de la mission",
       },
 
       message:
