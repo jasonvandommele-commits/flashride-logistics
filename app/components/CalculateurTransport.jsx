@@ -565,12 +565,6 @@ export default function CalculateurTransport() {
         );
       }
 
-      /*
-       * Hors IDF :
-       * on affiche le message directement
-       * sans considérer cela comme une erreur.
-       */
-
       if (
         data.reason ===
         "hors_zone"
@@ -868,37 +862,9 @@ export default function CalculateurTransport() {
 
             <div className="grid sm:grid-cols-3 gap-4">
 
-              <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
-                  form.samedi
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  name="samedi"
-                  checked={
-                    form.samedi
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  className="w-5 h-5 accent-orange-500"
-                />
-
-                <span>
-                  <strong>
-                    Samedi
-                  </strong>
-
-                  <br />
-
-                  <span className="text-gray-500 text-sm">
-                    +10 %
-                  </span>
-                </span>
-              </label>
+              {/* =================================================
+                  NUIT
+              ================================================= */}
 
               <label
                 className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
@@ -931,6 +897,46 @@ export default function CalculateurTransport() {
                   </span>
                 </span>
               </label>
+
+              {/* =================================================
+                  SAMEDI
+              ================================================= */}
+
+              <label
+                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                  form.samedi
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name="samedi"
+                  checked={
+                    form.samedi
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  className="w-5 h-5 accent-orange-500"
+                />
+
+                <span>
+                  <strong>
+                    Samedi
+                  </strong>
+
+                  <br />
+
+                  <span className="text-gray-500 text-sm">
+                    +10 %
+                  </span>
+                </span>
+              </label>
+
+              {/* =================================================
+                  DIMANCHE / JOUR FÉRIÉ
+              ================================================= */}
 
               <label
                 className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
