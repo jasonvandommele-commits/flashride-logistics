@@ -10,14 +10,18 @@ const INITIAL_FORM = {
   depart: "",
   arrivee: "",
 
-  // Priorité du transport
+  // Priorité
   priorite: "standard",
 
-  // Conditions de prise en charge
+  // Période
   samedi: false,
   nuit: false,
   dimanche: false,
 };
+
+/* =========================================================
+   ADDRESS INPUT
+========================================================= */
 
 function AddressInput({
   name,
@@ -37,14 +41,39 @@ function AddressInput({
   const abortRef = useRef(null);
   const requestIdRef = useRef(0);
 
+  /*
+   * Empêche le useEffect de relancer une recherche
+   * immédiatement après avoir sélectionné une adresse.
+   */
+  const justSelectedRef = useRef(false);
+
+  /* =======================================================
+     AUTOCOMPLÉTION
+  ======================================================= */
+
   useEffect(() => {
     const text = String(value || "").trim();
 
+    /*
+     * Si une adresse vient d'être sélectionnée,
+     * on ne relance PAS immédiatement une recherche.
+     */
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
+
+    /*
+     * Annuler la requête précédente
+     */
     if (abortRef.current) {
       abortRef.current.abort();
       abortRef.current = null;
     }
 
+    /*
+     * Moins de 3 caractères
+     */
     if (text.length < 3) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -52,26 +81,34 @@ function AddressInput({
       return;
     }
 
+    /*
+     * Petit délai pour éviter une requête
+     * à chaque caractère.
+     */
     const timer = setTimeout(async () => {
-      const controller = new AbortController();
+      const controller =
+        new AbortController();
 
       abortRef.current = controller;
 
-      const requestId = ++requestIdRef.current;
+      const requestId =
+        ++requestIdRef.current;
 
       setLoadingSuggestions(true);
 
       try {
-        const response = await fetch(
-          `/api/autocomplete?text=${encodeURIComponent(
-            text
-          )}`,
-          {
-            method: "GET",
-            cache: "no-store",
-            signal: controller.signal,
-          }
-        );
+        const response =
+          await fetch(
+            `/api/autocomplete?text=${encodeURIComponent(
+              text
+            )}`,
+            {
+              method: "GET",
+              cache: "no-store",
+              signal:
+                controller.signal,
+            }
+          );
 
         if (!response.ok) {
           throw new Error(
@@ -79,22 +116,37 @@ function AddressInput({
           );
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
-        if (requestId !== requestIdRef.current) {
+        /*
+         * Une requête plus récente existe.
+         * On ignore cette réponse.
+         */
+        if (
+          requestId !==
+          requestIdRef.current
+        ) {
           return;
         }
 
-        const results = Array.isArray(
-          data.suggestions
-        )
-          ? data.suggestions
-          : [];
+        const results =
+          Array.isArray(
+            data.suggestions
+          )
+            ? data.suggestions
+            : [];
 
         setSuggestions(results);
-        setShowSuggestions(results.length > 0);
+
+        setShowSuggestions(
+          results.length > 0
+        );
       } catch (error) {
-        if (error?.name === "AbortError") {
+        if (
+          error?.name ===
+          "AbortError"
+        ) {
           return;
         }
 
@@ -103,12 +155,18 @@ function AddressInput({
           error
         );
 
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId ===
+          requestIdRef.current
+        ) {
           setSuggestions([]);
           setShowSuggestions(false);
         }
       } finally {
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId ===
+          requestIdRef.current
+        ) {
           setLoadingSuggestions(false);
         }
       }
@@ -119,11 +177,17 @@ function AddressInput({
     };
   }, [value]);
 
+  /* =======================================================
+     CLIC EXTÉRIEUR
+  ======================================================= */
+
   useEffect(() => {
     function handleOutsideClick(event) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
+        !wrapperRef.current.contains(
+          event.target
+        )
       ) {
         setShowSuggestions(false);
       }
@@ -142,12 +206,20 @@ function AddressInput({
     };
   }, []);
 
-  function handleSelect(suggestion) {
+  /* =======================================================
+     SÉLECTION ADRESSE
+  ======================================================= */
+
+  function handleSelect(
+    suggestion
+  ) {
     const formatted =
       suggestion.formatted ||
       [
         suggestion.housenumber,
         suggestion.street,
+        suggestion.postcode,
+        suggestion.city,
       ]
         .filter(Boolean)
         .join(" ");
@@ -156,12 +228,61 @@ function AddressInput({
       return;
     }
 
-    onSelect(name, formatted, suggestion);
+    /*
+     * Annuler immédiatement toute recherche
+     * encore en cours.
+     */
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
 
-    setSuggestions([]);
+    /*
+     * Invalider les anciennes réponses.
+     */
+    requestIdRef.current += 1;
+
+    /*
+     * Indiquer au useEffect que le changement
+     * de valeur vient d'une sélection.
+     */
+    justSelectedRef.current = true;
+
+    /*
+     * Fermer immédiatement les suggestions.
+     */
     setShowSuggestions(false);
+    setSuggestions([]);
     setLoadingSuggestions(false);
+
+    /*
+     * Envoyer l'adresse ET la suggestion complète
+     * au composant parent.
+     */
+    onSelect(
+      name,
+      formatted,
+      suggestion
+    );
   }
+
+  /* =======================================================
+     CHANGEMENT MANUEL
+  ======================================================= */
+
+  function handleInputChange(event) {
+    /*
+     * Ici l'utilisateur recommence réellement
+     * à taper : on autorise donc une nouvelle recherche.
+     */
+    justSelectedRef.current = false;
+
+    onChange(event);
+  }
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div
@@ -177,10 +298,16 @@ function AddressInput({
           type="text"
           name={name}
           value={value}
-          onChange={onChange}
+          onChange={
+            handleInputChange
+          }
           onFocus={() => {
-            if (suggestions.length > 0) {
-              setShowSuggestions(true);
+            if (
+              suggestions.length > 0
+            ) {
+              setShowSuggestions(
+                true
+              );
             }
           }}
           required
@@ -200,7 +327,10 @@ function AddressInput({
         suggestions.length > 0 && (
           <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
             {suggestions.map(
-              (suggestion, index) => {
+              (
+                suggestion,
+                index
+              ) => {
                 const addressLine1 =
                   suggestion.addressLine1 ||
                   [
@@ -227,7 +357,13 @@ function AddressInput({
                       `${suggestion.formatted}-${index}`
                     }
                     type="button"
-                    onMouseDown={(event) => {
+                    onMouseDown={(
+                      event
+                    ) => {
+                      /*
+                       * Empêche l'input de perdre le focus
+                       * avant la sélection.
+                       */
                       event.preventDefault();
 
                       handleSelect(
@@ -263,15 +399,21 @@ function AddressInput({
   );
 }
 
+/* =========================================================
+   CALCULATEUR TRANSPORT
+========================================================= */
+
 export default function CalculateurTransport() {
   const [form, setForm] =
     useState(INITIAL_FORM);
 
-  const [selectedAddresses, setSelectedAddresses] =
-    useState({
-      depart: null,
-      arrivee: null,
-    });
+  const [
+    selectedAddresses,
+    setSelectedAddresses,
+  ] = useState({
+    depart: null,
+    arrivee: null,
+  });
 
   const [loading, setLoading] =
     useState(false);
@@ -282,6 +424,10 @@ export default function CalculateurTransport() {
   const [error, setError] =
     useState("");
 
+  /* =======================================================
+     CHANGEMENT FORMULAIRE
+  ======================================================= */
+
   function handleChange(event) {
     const {
       name,
@@ -290,27 +436,79 @@ export default function CalculateurTransport() {
       type,
     } = event.target;
 
-    setForm((previous) => ({
-      ...previous,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
-    }));
+    setForm((previous) => {
+      const next = {
+        ...previous,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : value,
+      };
+
+      /*
+       * =====================================================
+       * PRIORITÉ
+       *
+       * Standard / Urgent / Express
+       * sont exclusifs.
+       * =====================================================
+       */
+
+      if (
+        name === "priorite"
+      ) {
+        next.priorite = value;
+      }
+
+      /*
+       * =====================================================
+       * SAMEDI / DIMANCHE
+       *
+       * Un seul des deux peut être sélectionné.
+       * =====================================================
+       */
+
+      if (
+        name === "samedi" &&
+        checked
+      ) {
+        next.dimanche = false;
+      }
+
+      if (
+        name === "dimanche" &&
+        checked
+      ) {
+        next.samedi = false;
+      }
+
+      return next;
+    });
+
+    /*
+     * Une modification d'adresse
+     * invalide le résultat précédent.
+     */
 
     if (
       name === "depart" ||
       name === "arrivee"
     ) {
-      setSelectedAddresses((previous) => ({
-        ...previous,
-        [name]: null,
-      }));
+      setSelectedAddresses(
+        (previous) => ({
+          ...previous,
+          [name]: null,
+        })
+      );
 
       setResult(null);
       setError("");
     }
   }
+
+  /* =======================================================
+     SÉLECTION ADRESSE
+  ======================================================= */
 
   function handleAddressSelect(
     name,
@@ -322,40 +520,60 @@ export default function CalculateurTransport() {
       [name]: value,
     }));
 
-    setSelectedAddresses((previous) => ({
-      ...previous,
-      [name]: suggestion
-        ? {
-            latitude:
-              suggestion.latitude ?? null,
+    /*
+     * Conserver les coordonnées exactes
+     * de l'adresse sélectionnée.
+     */
 
-            longitude:
-              suggestion.longitude ?? null,
+    setSelectedAddresses(
+      (previous) => ({
+        ...previous,
 
-            postcode:
-              suggestion.postcode || "",
+        [name]: suggestion
+          ? {
+              latitude:
+                suggestion.latitude ??
+                null,
 
-            city:
-              suggestion.city || "",
+              longitude:
+                suggestion.longitude ??
+                null,
 
-            formatted:
-              suggestion.formatted ||
-              value,
+              postcode:
+                suggestion.postcode ||
+                "",
 
-            housenumber:
-              suggestion.housenumber || "",
+              city:
+                suggestion.city ||
+                "",
 
-            street:
-              suggestion.street || "",
-          }
-        : null,
-    }));
+              formatted:
+                suggestion.formatted ||
+                value,
+
+              housenumber:
+                suggestion.housenumber ||
+                "",
+
+              street:
+                suggestion.street ||
+                "",
+            }
+          : null,
+      })
+    );
 
     setResult(null);
     setError("");
   }
 
-  async function handleSubmit(event) {
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
+
+  async function handleSubmit(
+    event
+  ) {
     event.preventDefault();
 
     setLoading(true);
@@ -363,20 +581,6 @@ export default function CalculateurTransport() {
     setResult(null);
 
     try {
-      /*
-       * Le serveur recevra :
-       *
-       * priorite:
-       * - standard
-       * - urgent
-       * - express
-       *
-       * ainsi que les conditions :
-       * - samedi
-       * - nuit
-       * - dimanche
-       */
-
       const body = {
         ...form,
 
@@ -387,17 +591,21 @@ export default function CalculateurTransport() {
           selectedAddresses.arrivee,
       };
 
-      const response = await fetch(
-        "/api/calculateur",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response =
+        await fetch(
+          "/api/calculateur",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(body),
+          }
+        );
 
       const data =
         await response.json();
@@ -422,8 +630,11 @@ export default function CalculateurTransport() {
               "resultat-calculateur"
             )
             ?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
+              behavior:
+                "smooth",
+
+              block:
+                "start",
             });
         }, 50);
       });
@@ -437,6 +648,10 @@ export default function CalculateurTransport() {
     }
   }
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <section className="py-24 px-6 bg-gray-100">
       <div className="max-w-5xl mx-auto">
@@ -446,6 +661,7 @@ export default function CalculateurTransport() {
         ================================================= */}
 
         <div className="text-center mb-12">
+
           <p className="text-orange-500 font-bold uppercase tracking-widest">
             Calculateur transport
           </p>
@@ -459,6 +675,7 @@ export default function CalculateurTransport() {
             Obtenez une estimation instantanée
             selon votre trajet et vos options.
           </p>
+
         </div>
 
         {/* =================================================
@@ -501,28 +718,19 @@ export default function CalculateurTransport() {
           </div>
 
           {/* =================================================
-              CATÉGORIE 1 — PRIORITÉ
+              PRIORITÉ
           ================================================= */}
 
-          <div className="mt-10">
+          <div className="mt-8">
 
-            <div className="mb-4">
-              <p className="font-bold text-lg">
-                Priorité du transport
-              </p>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Choisissez le niveau de priorité
-                souhaité pour votre transport.
-              </p>
-            </div>
+            <p className="font-bold text-lg mb-4">
+              Priorité du transport
+            </p>
 
             <div className="grid sm:grid-cols-3 gap-4">
 
-              {/* STANDARD */}
-
               <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
                   "standard"
                     ? "border-orange-500 bg-orange-50"
@@ -540,26 +748,20 @@ export default function CalculateurTransport() {
                   onChange={
                     handleChange
                   }
-                  className="w-5 h-5 accent-orange-500"
+                  className="mr-3 accent-orange-500"
                 />
 
-                <span>
-                  <strong>
-                    Standard
-                  </strong>
+                <strong>
+                  Standard
+                </strong>
 
-                  <br />
-
-                  <span className="text-gray-500 text-sm">
-                    Sans supplément
-                  </span>
-                </span>
+                <p className="text-gray-500 text-sm mt-1">
+                  Tarif normal
+                </p>
               </label>
 
-              {/* URGENT */}
-
               <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
                   "urgent"
                     ? "border-orange-500 bg-orange-50"
@@ -577,26 +779,20 @@ export default function CalculateurTransport() {
                   onChange={
                     handleChange
                   }
-                  className="w-5 h-5 accent-orange-500"
+                  className="mr-3 accent-orange-500"
                 />
 
-                <span>
-                  <strong>
-                    Urgent
-                  </strong>
+                <strong>
+                  Urgent
+                </strong>
 
-                  <br />
-
-                  <span className="text-gray-500 text-sm">
-                    +20 € HT
-                  </span>
-                </span>
+                <p className="text-gray-500 text-sm mt-1">
+                  +20 € HT
+                </p>
               </label>
 
-              {/* EXPRESS */}
-
               <label
-                className={`flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition ${
+                className={`border rounded-xl p-4 cursor-pointer transition ${
                   form.priorite ===
                   "express"
                     ? "border-orange-500 bg-orange-50"
@@ -614,41 +810,30 @@ export default function CalculateurTransport() {
                   onChange={
                     handleChange
                   }
-                  className="w-5 h-5 accent-orange-500"
+                  className="mr-3 accent-orange-500"
                 />
 
-                <span>
-                  <strong>
-                    Express / prioritaire
-                  </strong>
+                <strong>
+                  Express / prioritaire
+                </strong>
 
-                  <br />
-
-                  <span className="text-gray-500 text-sm">
-                    +40 € HT
-                  </span>
-                </span>
+                <p className="text-gray-500 text-sm mt-1">
+                  +40 € HT
+                </p>
               </label>
 
             </div>
           </div>
 
           {/* =================================================
-              CATÉGORIE 2 — CONDITIONS
+              CONDITIONS
           ================================================= */}
 
-          <div className="mt-10">
+          <div className="mt-8">
 
-            <div className="mb-4">
-              <p className="font-bold text-lg">
-                Conditions de prise en charge
-              </p>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Ces suppléments peuvent être
-                cumulés avec la priorité choisie.
-              </p>
-            </div>
+            <p className="font-bold text-lg mb-4">
+              Conditions de transport
+            </p>
 
             <div className="grid sm:grid-cols-3 gap-4">
 
@@ -764,7 +949,7 @@ export default function CalculateurTransport() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-10 w-full bg-orange-500 text-white font-bold text-lg rounded-xl p-4 hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-8 w-full bg-orange-500 text-white font-bold text-lg rounded-xl p-4 hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading
               ? "Calcul en cours..."
@@ -793,6 +978,10 @@ export default function CalculateurTransport() {
             className="mt-8 bg-white rounded-3xl shadow-xl p-8 scroll-mt-8"
           >
 
+            {/* =================================================
+                PRIX
+            ================================================= */}
+
             <div className="text-center">
 
               <p className="text-gray-500 font-semibold">
@@ -812,7 +1001,9 @@ export default function CalculateurTransport() {
 
             </div>
 
-            {/* TRAJET */}
+            {/* =================================================
+                TRAJET
+            ================================================= */}
 
             <div className="mt-8 grid md:grid-cols-3 gap-4">
 
@@ -840,13 +1031,22 @@ export default function CalculateurTransport() {
                 </p>
 
                 <p className="font-bold text-xl mt-1">
-                  {result.trajet.distanceKm} km
+                  {
+                    result.trajet
+                      .distanceKm
+                  }{" "}
+                  km
                 </p>
 
-                {result.trajet.dureeMinutes && (
+                {result.trajet
+                  .dureeMinutes && (
                   <p className="text-sm text-gray-500 mt-1">
                     Environ{" "}
-                    {result.trajet.dureeMinutes} min
+                    {
+                      result.trajet
+                        .dureeMinutes
+                    }{" "}
+                    min
                   </p>
                 )}
 
@@ -871,11 +1071,14 @@ export default function CalculateurTransport() {
 
             </div>
 
-            {/* DÉTAIL DU TARIF */}
+            {/* =================================================
+                DÉTAIL PRIX
+            ================================================= */}
 
             <div className="mt-8 border-t pt-6">
 
               <div className="flex justify-between py-2">
+
                 <span>
                   Tarif de base
                 </span>
@@ -883,12 +1086,14 @@ export default function CalculateurTransport() {
                 <strong>
                   {result.tarif.baseHT} € HT
                 </strong>
+
               </div>
 
               {result.tarif
                 .supplementDistanceHT >
                 0 && (
                 <div className="flex justify-between py-2">
+
                   <span>
                     Ajustement distance
                   </span>
@@ -901,17 +1106,24 @@ export default function CalculateurTransport() {
                     }{" "}
                     €
                   </strong>
+
                 </div>
               )}
 
               {result.supplements?.map(
-                (supplement, index) => (
+                (
+                  supplement,
+                  index
+                ) => (
                   <div
                     key={index}
                     className="flex justify-between py-2"
                   >
+
                     <span>
-                      {supplement.label}
+                      {
+                        supplement.label
+                      }
                     </span>
 
                     <strong>
@@ -920,13 +1132,16 @@ export default function CalculateurTransport() {
                         ? `+${supplement.amount} €`
                         : "Appliqué"}
                     </strong>
+
                   </div>
                 )
               )}
 
             </div>
 
-            {/* FRAIS */}
+            {/* =================================================
+                INFORMATIONS
+            ================================================= */}
 
             <div className="mt-6 bg-orange-50 rounded-2xl p-5">
 
@@ -941,7 +1156,9 @@ export default function CalculateurTransport() {
 
             </div>
 
-            {/* DISCLAIMER */}
+            {/* =================================================
+                DISCLAIMER
+            ================================================= */}
 
             <div className="mt-6 text-center">
 
@@ -957,7 +1174,9 @@ export default function CalculateurTransport() {
 
             </div>
 
-            {/* CTA */}
+            {/* =================================================
+                DEVIS
+            ================================================= */}
 
             <a
               href="#devis"
