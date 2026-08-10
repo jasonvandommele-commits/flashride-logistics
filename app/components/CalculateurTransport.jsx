@@ -28,15 +28,15 @@ const VEHICLES = [
     description: "Transport léger et rapide",
   },
   {
-    id: "voiture",
-    emoji: "🚗",
-    name: "Voiture 3 m³",
+    id: "petit_fourgon",
+    emoji: "🚐",
+    name: "Petit fourgon 6 m³",
     description: "Petit volume",
   },
   {
     id: "fourgon",
     emoji: "🚐",
-    name: "Fourgon 8 m³",
+    name: "Fourgon 12/14 m³",
     description: "Volume intermédiaire",
   },
   {
