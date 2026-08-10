@@ -561,7 +561,7 @@ export default function FlashrideLogisticsWebsite() {
               </p>
 
               <p className="mt-2 font-semibold">
-                Paris • Île-de-France • France • Europe
+               Île-de-France • France • Europe
               </p>
 
             </div>
