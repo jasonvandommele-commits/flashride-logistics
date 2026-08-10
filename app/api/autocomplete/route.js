@@ -12,7 +12,7 @@ function normalizeAddressQuery(text) {
     .trim()
     .replace(/\s+/g, " ")
     .replace(
-      /^(\d+[A-Za-z]?)\s*(rue|avenue|av|boulevard|bd|chemin|route|place|impasse|allee|allée|cours|quai|square|passage)\b/i,
+      /^(\d+[A-Za-z]?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+[A-Za-z]?)?)\s*(rue|avenue|av|boulevard|bd|chemin|route|place|impasse|allee|allée|cours|quai|square|passage|voie|résidence|residence)\b/i,
       "$1 $2"
     );
 }
@@ -32,7 +32,7 @@ function getCity(properties) {
 }
 
 /* =========================================================
-   NUMÉRO DE RUE
+   NUMÉRO
 ========================================================= */
 
 function extractHouseNumber(text) {
@@ -42,12 +42,8 @@ function extractHouseNumber(text) {
 
   return match
     ? match[1].trim()
-    : null;
+    : "";
 }
-
-/* =========================================================
-   NORMALISATION NUMÉRO
-========================================================= */
 
 function normalizeHouseNumber(value) {
   return String(value || "")
@@ -60,9 +56,7 @@ function normalizeHouseNumber(value) {
    ADRESSE AFFICHÉE
 ========================================================= */
 
-function buildFormattedAddress(
-  properties
-) {
+function buildFormattedAddress(properties) {
   const houseNumber =
     properties.housenumber ||
     properties.house_number ||
@@ -74,7 +68,8 @@ function buildFormattedAddress(
     "";
 
   const postcode =
-    properties.postcode || "";
+    properties.postcode ||
+    "";
 
   const city =
     getCity(properties);
@@ -116,36 +111,32 @@ function buildFormattedAddress(
    SCORE
 ========================================================= */
 
-function scoreSuggestion(
-  feature,
-  query
-) {
+function scoreSuggestion(feature, query) {
   const properties =
     feature.properties || {};
 
-  const formatted = String(
-    properties.formatted ||
-      properties.address_line1 ||
-      ""
-  ).toLowerCase();
+  const formatted =
+    String(
+      properties.formatted ||
+        properties.address_line1 ||
+        ""
+    ).toLowerCase();
 
-  const street = String(
-    properties.street || ""
-  ).toLowerCase();
+  const street =
+    String(
+      properties.street || ""
+    ).toLowerCase();
 
   const requestedNumber =
-    extractHouseNumber(query);
+    normalizeHouseNumber(
+      extractHouseNumber(query)
+    );
 
   const returnedNumber =
     normalizeHouseNumber(
       properties.housenumber ||
         properties.house_number ||
         ""
-    );
-
-  const normalizedRequestedNumber =
-    normalizeHouseNumber(
-      requestedNumber
     );
 
   const resultType =
@@ -155,36 +146,22 @@ function scoreSuggestion(
 
   let score = 0;
 
-  /* -------------------------------------------------------
-     NUMÉRO
-  ------------------------------------------------------- */
+  /* Numéro */
 
-  if (
-    normalizedRequestedNumber
-  ) {
-    if (
-      returnedNumber
-    ) {
+  if (requestedNumber) {
+    if (returnedNumber) {
       score += 100;
     }
 
-    /*
-     * NUMÉRO EXACT :
-     * priorité très forte.
-     */
     if (
       returnedNumber ===
-      normalizedRequestedNumber
+      requestedNumber
     ) {
-      score += 2000;
+      score += 2500;
     }
 
-    /*
-     * Vérification également
-     * dans l'adresse affichée.
-     */
     const escaped =
-      normalizedRequestedNumber.replace(
+      requestedNumber.replace(
         /[.*+?^${}()|[\]\\]/g,
         "\\$&"
       );
@@ -203,13 +180,10 @@ function scoreSuggestion(
     }
   }
 
-  /* -------------------------------------------------------
-     TYPE DE RÉSULTAT
-  ------------------------------------------------------- */
+  /* Type */
 
   if (
-    resultType ===
-      "building" ||
+    resultType === "building" ||
     resultType === "house"
   ) {
     score += 300;
@@ -224,19 +198,17 @@ function scoreSuggestion(
   if (
     resultType === "street"
   ) {
-    score -= 300;
+    score -= 400;
   }
 
   if (
     resultType === "city" ||
     resultType === "postcode"
   ) {
-    score -= 500;
+    score -= 600;
   }
 
-  /* -------------------------------------------------------
-     ADRESSE COMPLÈTE
-  ------------------------------------------------------- */
+  /* Adresse complète */
 
   if (
     properties.postcode &&
@@ -245,23 +217,13 @@ function scoreSuggestion(
     score += 100;
   }
 
-  if (
-    properties.address_line1 &&
-    properties.address_line2
-  ) {
-    score += 50;
-  }
-
-  /* -------------------------------------------------------
-     CONFIANCE GEOAPIFY
-  ------------------------------------------------------- */
+  /* Confiance */
 
   const confidence =
     properties.rank?.confidence;
 
   if (
-    typeof confidence ===
-    "number"
+    typeof confidence === "number"
   ) {
     score += confidence * 100;
   }
@@ -278,9 +240,7 @@ function scoreSuggestion(
       buildingConfidence * 150;
   }
 
-  /* -------------------------------------------------------
-     CORRESPONDANCE TEXTE
-  ------------------------------------------------------- */
+  /* Correspondance */
 
   const normalizedQuery =
     String(query || "")
@@ -308,12 +268,10 @@ function scoreSuggestion(
 }
 
 /* =========================================================
-   FETCH GEOAPIFY
+   FETCH
 ========================================================= */
 
-async function fetchGeoapify(
-  url
-) {
+async function fetchGeoapify(url) {
   const response =
     await fetch(url, {
       method: "GET",
@@ -337,9 +295,7 @@ async function fetchGeoapify(
    GET
 ========================================================= */
 
-export async function GET(
-  request
-) {
+export async function GET(request) {
   try {
     if (!GEOAPIFY_API_KEY) {
       return NextResponse.json(
@@ -347,23 +303,18 @@ export async function GET(
           success: false,
           error:
             "GEOAPIFY_API_KEY non configurée.",
+          suggestions: [],
         },
-        {
-          status: 500,
-        }
+        { status: 500 }
       );
     }
 
-    const {
-      searchParams,
-    } = new URL(
-      request.url
-    );
+    const { searchParams } =
+      new URL(request.url);
 
     const rawText =
-      searchParams.get(
-        "text"
-      ) || "";
+      searchParams.get("text") ||
+      "";
 
     if (
       rawText.trim().length < 3
@@ -380,27 +331,21 @@ export async function GET(
       );
 
     const requestedNumber =
-      extractHouseNumber(
-        text
-      );
+      extractHouseNumber(text);
 
     /* =====================================================
-       REQUÊTE AUTOCOMPLETE
+       AUTOCOMPLETE
     ===================================================== */
 
     const autocompleteUrl =
       "https://api.geoapify.com/v1/geocode/autocomplete" +
-      `?text=${encodeURIComponent(
-        text
-      )}` +
+      `?text=${encodeURIComponent(text)}` +
       "&limit=10" +
       "&filter=countrycode:fr" +
       "&lang=fr" +
-      "&format=json" +
       `&apiKey=${GEOAPIFY_API_KEY}`;
 
-    let autocompleteFeatures =
-      [];
+    let autocompleteFeatures = [];
 
     try {
       const data =
@@ -409,15 +354,13 @@ export async function GET(
         );
 
       autocompleteFeatures =
-        Array.isArray(
-          data.features
-        )
+        Array.isArray(data.features)
           ? data.features
           : [];
     } catch (error) {
       console.warn(
         "Autocomplete Geoapify :",
-        error.message
+        error?.message
       );
     }
 
@@ -425,22 +368,18 @@ export async function GET(
        RECHERCHE PRÉCISE SI NUMÉRO
     ===================================================== */
 
-    let preciseFeatures =
-      [];
+    let preciseFeatures = [];
 
     if (requestedNumber) {
       const preciseUrl =
         "https://api.geoapify.com/v1/geocode/search" +
-        `?text=${encodeURIComponent(
-          text
-        )}` +
+        `?text=${encodeURIComponent(text)}` +
         `&housenumber=${encodeURIComponent(
           requestedNumber
         )}` +
         "&limit=10" +
         "&filter=countrycode:fr" +
         "&lang=fr" +
-        "&format=json" +
         `&apiKey=${GEOAPIFY_API_KEY}`;
 
       try {
@@ -450,15 +389,13 @@ export async function GET(
           );
 
         preciseFeatures =
-          Array.isArray(
-            data.features
-          )
+          Array.isArray(data.features)
             ? data.features
             : [];
       } catch (error) {
         console.warn(
           "Recherche précise Geoapify :",
-          error.message
+          error?.message
         );
       }
     }
@@ -476,39 +413,25 @@ export async function GET(
        DOUBLONS
     ===================================================== */
 
-    const unique =
-      new Map();
+    const unique = new Map();
 
-    for (
-      const feature of features
-    ) {
+    for (const feature of features) {
       const properties =
-        feature.properties ||
-        {};
+        feature.properties || {};
 
       const coordinates =
         feature.geometry
-          ?.coordinates ||
-        [];
-
-      const placeId =
-        properties.place_id ||
-        "";
+          ?.coordinates || [];
 
       const key =
-        placeId ||
+        properties.place_id ||
         [
-          properties.formatted ||
-            "",
-          coordinates[0] ||
-            "",
-          coordinates[1] ||
-            "",
+          properties.formatted || "",
+          coordinates[0] || "",
+          coordinates[1] || "",
         ].join("|");
 
-      if (
-        !unique.has(key)
-      ) {
+      if (!unique.has(key)) {
         unique.set(
           key,
           feature
@@ -517,126 +440,119 @@ export async function GET(
     }
 
     /* =====================================================
-       TRANSFORMATION + SCORE
+       TRANSFORMATION
     ===================================================== */
 
     const suggestions =
-      Array.from(
-        unique.values()
-      )
-        .map(
-          (feature) => {
-            const properties =
-              feature.properties ||
-              {};
+      Array.from(unique.values())
+        .map((feature) => {
+          const properties =
+            feature.properties || {};
 
-            const coordinates =
-              feature.geometry
-                ?.coordinates ||
-              [];
+          const coordinates =
+            feature.geometry
+              ?.coordinates || [];
 
-            const housenumber =
-              properties.housenumber ||
-              properties.house_number ||
-              "";
+          const housenumber =
+            properties.housenumber ||
+            properties.house_number ||
+            "";
 
-            const street =
-              properties.street ||
-              properties.address_line1 ||
-              "";
+          const street =
+            properties.street ||
+            properties.address_line1 ||
+            "";
 
-            const postcode =
-              properties.postcode ||
-              "";
+          const postcode =
+            properties.postcode ||
+            "";
 
-            const city =
-              getCity(
-                properties
-              );
+          const city =
+            getCity(properties);
 
-            const formatted =
-              buildFormattedAddress(
-                properties
-              );
+          const formatted =
+            buildFormattedAddress(
+              properties
+            );
 
-            const addressLine1 =
-              housenumber &&
-              street
-                ? `${housenumber} ${street}`
-                : street ||
-                  properties.formatted ||
-                  "";
+          const addressLine1 =
+            housenumber && street
+              ? `${housenumber} ${street}`
+              : street ||
+                properties.formatted ||
+                "";
 
-            const addressLine2 =
-              [
-                postcode,
-                city,
-              ]
-                .filter(Boolean)
-                .join(" ");
-
-            return {
-              formatted,
-
-              addressLine1,
-
-              addressLine2,
-
+          const addressLine2 =
+            [
               postcode,
-
               city,
+            ]
+              .filter(Boolean)
+              .join(" ");
 
-              housenumber,
+          return {
+            formatted,
 
-              street,
+            addressLine1,
 
-              resultType:
-                properties.result_type ||
-                "",
+            addressLine2,
 
-              placeId:
-                properties.place_id ||
-                null,
+            postcode,
 
-              latitude:
-                coordinates.length >=
-                2
-                  ? coordinates[1]
-                  : null,
+            city,
 
-              longitude:
-                coordinates.length >=
-                2
-                  ? coordinates[0]
-                  : null,
+            housenumber,
 
-              confidence:
-                properties.rank
-                  ?.confidence ??
-                null,
+            street,
 
-              _score:
-                scoreSuggestion(
-                  feature,
-                  text
-                ),
-            };
-          }
-        )
+            resultType:
+              properties.result_type ||
+              "",
+
+            placeId:
+              properties.place_id ||
+              null,
+
+            latitude:
+              coordinates.length >= 2
+                ? Number(
+                    coordinates[1]
+                  )
+                : null,
+
+            longitude:
+              coordinates.length >= 2
+                ? Number(
+                    coordinates[0]
+                  )
+                : null,
+
+            confidence:
+              properties.rank
+                ?.confidence ??
+              null,
+
+            _score:
+              scoreSuggestion(
+                feature,
+                text
+              ),
+          };
+        })
         .filter(
           (item) =>
-            item.formatted
+            item.formatted &&
+            item.latitude !== null &&
+            item.longitude !== null
         );
 
     /* =====================================================
-       TRI FINAL
+       TRI
     ===================================================== */
 
     suggestions.sort(
       (a, b) => {
-        if (
-          requestedNumber
-        ) {
+        if (requestedNumber) {
           const requested =
             normalizeHouseNumber(
               requestedNumber
@@ -653,41 +569,24 @@ export async function GET(
             );
 
           const aExact =
-            aNumber ===
-            requested;
+            aNumber === requested;
 
           const bExact =
-            bNumber ===
-            requested;
+            bNumber === requested;
 
-          /*
-           * LE BON NUMÉRO
-           * passe toujours devant.
-           */
           if (
-            aExact !==
-            bExact
+            aExact !== bExact
           ) {
             return aExact
               ? -1
               : 1;
           }
 
-          /*
-           * Si aucun numéro exact
-           * n'existe, on privilégie
-           * les adresses ayant
-           * quand même un numéro.
-           */
           const aHasNumber =
-            Boolean(
-              aNumber
-            );
+            Boolean(aNumber);
 
           const bHasNumber =
-            Boolean(
-              bNumber
-            );
+            Boolean(bNumber);
 
           if (
             aHasNumber !==
@@ -707,7 +606,7 @@ export async function GET(
     );
 
     /* =====================================================
-       LIMITATION
+       RÉSULTAT
     ===================================================== */
 
     const finalSuggestions =
@@ -717,8 +616,7 @@ export async function GET(
           ({
             _score,
             ...suggestion
-          }) =>
-            suggestion
+          }) => suggestion
         );
 
     return NextResponse.json(
@@ -743,16 +641,12 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-
         error:
           error?.message ||
           "Erreur pendant la recherche d'adresse.",
-
         suggestions: [],
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
