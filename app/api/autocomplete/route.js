@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-const GEOAPIFY_API_KEY =
-  process.env.GEOAPIFY_API_KEY;
+const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
 
 export async function GET(request) {
   try {
@@ -9,22 +8,16 @@ export async function GET(request) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "GEOAPIFY_API_KEY non configurée.",
+          error: "GEOAPIFY_API_KEY non configurée.",
         },
-        {
-          status: 500,
-        }
+        { status: 500 }
       );
     }
 
-    const { searchParams } =
-      new URL(request.url);
+    const { searchParams } = new URL(request.url);
+    const text = (searchParams.get("text") || "").trim();
 
-    const text =
-      searchParams.get("text");
-
-    if (!text || text.trim().length < 3) {
+    if (text.length < 3) {
       return NextResponse.json({
         success: true,
         suggestions: [],
@@ -32,84 +25,159 @@ export async function GET(request) {
     }
 
     const url =
-      `https://api.geoapify.com/v1/geocode/autocomplete` +
-      `?text=${encodeURIComponent(
-        text.trim()
-      )}` +
-      `&limit=5` +
-      `&filter=countrycode:fr` +
-      `&lang=fr` +
+      "https://api.geoapify.com/v1/geocode/autocomplete" +
+      `?text=${encodeURIComponent(text)}` +
+      "&limit=8" +
+      "&filter=countrycode:fr" +
+      "&lang=fr" +
       `&apiKey=${GEOAPIFY_API_KEY}`;
 
-    const response =
-      await fetch(url, {
-        method: "GET",
-        cache: "no-store",
-      });
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const data = await response.json();
 
     if (!response.ok) {
-      const errorText =
-        await response.text();
-
       return NextResponse.json(
         {
           success: false,
           error:
-            `Geoapify ${response.status}: ${errorText}`,
+            data?.message ||
+            `Erreur Geoapify ${response.status}`,
         },
-        {
-          status: response.status,
-        }
+        { status: response.status }
       );
     }
 
-    const data =
-      await response.json();
+    const features = Array.isArray(data.features)
+      ? data.features
+      : [];
 
-    const suggestions =
-      (data.features || [])
-        .map((feature) => {
-          const properties =
-            feature.properties || {};
+    const suggestions = features
+      .map((feature) => {
+        const properties = feature.properties || {};
+        const coordinates =
+          feature.geometry?.coordinates || [];
 
-          const coordinates =
-            feature.geometry?.coordinates;
+        const houseNumber =
+          properties.housenumber || "";
 
-          return {
-            formatted:
-              properties.formatted || "",
+        const street =
+          properties.street ||
+          properties.address_line1 ||
+          "";
 
-            addressLine1:
-              properties.address_line1 || "",
+        const postcode =
+          properties.postcode || "";
 
-            addressLine2:
-              properties.address_line2 || "",
+        const city =
+          properties.city ||
+          properties.town ||
+          properties.village ||
+          properties.municipality ||
+          "";
 
-            postcode:
-              properties.postcode || "",
+        const formatted =
+          properties.formatted ||
+          [
+            houseNumber,
+            street,
+            postcode,
+            city,
+          ]
+            .filter(Boolean)
+            .join(", ");
 
-            city:
-              properties.city ||
-              properties.town ||
-              properties.village ||
-              properties.municipality ||
-              "",
+        const addressLine1 =
+          houseNumber && street
+            ? `${houseNumber} ${street}`
+            : street || formatted;
 
-            latitude:
-              coordinates?.[1] ?? null,
+        const addressLine2 =
+          [postcode, city]
+            .filter(Boolean)
+            .join(" ");
 
-            longitude:
-              coordinates?.[0] ?? null,
-          };
-        })
-        .filter(
-          (item) =>
-            item.formatted
-        );
+        const resultType =
+          properties.result_type || "";
+
+        const hasHouseNumber =
+          Boolean(houseNumber) ||
+          /^\s*\d+[A-Za-z]?\s+/.test(
+            formatted
+          );
+
+        return {
+          formatted,
+          addressLine1,
+          addressLine2,
+          postcode,
+          city,
+          housenumber: houseNumber,
+          street,
+          resultType,
+          hasHouseNumber,
+          latitude:
+            coordinates.length >= 2
+              ? coordinates[1]
+              : null,
+          longitude:
+            coordinates.length >= 2
+              ? coordinates[0]
+              : null,
+          placeId:
+            properties.place_id || null,
+        };
+      })
+      .filter((item) => item.formatted);
+
+    const userTypedNumber =
+      /^\d+[A-Za-z]?\s/.test(text);
+
+    suggestions.sort((a, b) => {
+      // Si l'utilisateur a commencé par un numéro,
+      // priorité absolue aux résultats avec numéro.
+      if (
+        userTypedNumber &&
+        a.hasHouseNumber !== b.hasHouseNumber
+      ) {
+        return a.hasHouseNumber ? -1 : 1;
+      }
+
+      // Dans tous les cas, privilégier les adresses
+      // contenant un numéro.
+      if (
+        a.hasHouseNumber !== b.hasHouseNumber
+      ) {
+        return a.hasHouseNumber ? -1 : 1;
+      }
+
+      // Ensuite privilégier les bâtiments/adresses.
+      const preferredTypes = [
+        "building",
+        "house",
+        "amenity",
+        "street",
+      ];
+
+      const aPreferred =
+        preferredTypes.includes(a.resultType);
+
+      const bPreferred =
+        preferredTypes.includes(b.resultType);
+
+      if (aPreferred !== bPreferred) {
+        return aPreferred ? -1 : 1;
+      }
+
+      return 0;
+    });
 
     return NextResponse.json({
       success: true,
-      suggestions,
+      suggestions: suggestions.slice(0, 6),
     });
   } catch (error) {
     console.error(
@@ -120,14 +188,11 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: false,
-
         error:
           error.message ||
-          "Erreur autocomplete.",
+          "Erreur pendant l'autocomplétion.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
