@@ -27,22 +27,9 @@ function getCity(properties) {
     properties.town ||
     properties.village ||
     properties.municipality ||
+    properties.locality ||
     ""
   );
-}
-
-/* =========================================================
-   NORMALISATION TEXTE
-========================================================= */
-
-function normalizeText(value) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.,;:!?()[\]{}]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 /* =========================================================
@@ -67,137 +54,139 @@ function normalizeHouseNumber(value) {
 }
 
 /* =========================================================
-   VILLE DEMANDÉE
+   TEXTE NORMALISÉ
 ========================================================= */
 
-function extractRequestedCity(text) {
-  const normalized = normalizeText(text);
-
-  /*
-   * Liste des villes / communes courantes.
-   * On cherche surtout une ville explicitement écrite
-   * après la rue ou le numéro.
-   */
-  const knownCities = [
-    "paris",
-    "boulogne billancourt",
-    "boulogne-billancourt",
-    "maisons alfort",
-    "maisons-alfort",
-    "creteil",
-    "créteil",
-    "ivry sur seine",
-    "ivry-sur-seine",
-    "vitry sur seine",
-    "vitry-sur-seine",
-    "saint denis",
-    "saint-denis",
-    "montreuil",
-    "versailles",
-    "argenteuil",
-    "nanterre",
-    "courbevoie",
-    "colombes",
-    "neuilly sur seine",
-    "neuilly-sur-seine",
-    "levallois perret",
-    "levallois-perret",
-    "champigny sur marne",
-    "champigny-sur-marne",
-    "noisy le grand",
-    "noisy-le-grand",
-    "rueil malmaison",
-    "rueil-malmaison",
-    "cergy",
-    "evry",
-    "évry",
-    "melun",
-    "meaux",
-    "pontoise",
-    "sarcelles",
-    "drancy",
-    "aubervilliers",
-    "asnieres sur seine",
-    "asnières-sur-seine",
-    "gennevilliers",
-    "clichy",
-    "saint maur des fosses",
-    "saint-maur-des-fosses",
-    "fontenay sous bois",
-    "fontenay-sous-bois",
-    "antony",
-    "clamart",
-    "malakoff",
-    "montrouge",
-    "bagnolet",
-    "pantin",
-    "bobigny",
-    "sevran",
-    "aeroport",
-  ];
-
-  /*
-   * On teste les noms les plus longs en premier.
-   */
-  const sortedCities = [...knownCities].sort(
-    (a, b) => b.length - a.length
-  );
-
-  for (const city of sortedCities) {
-    const normalizedCity = normalizeText(city);
-
-    if (
-      normalized.includes(normalizedCity)
-    ) {
-      return city;
-    }
-  }
-
-  return "";
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’']/g, " ")
+    .replace(/[-/]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /* =========================================================
-   CODE POSTAL COHÉRENT AVEC LA VILLE
+   CODE POSTAL
 ========================================================= */
 
-function isParisPostcode(postcode) {
-  return /^750\d{2}$/.test(
-    String(postcode || "").trim()
-  );
+function normalizePostcode(value) {
+  const postcode = String(value || "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  return /^\d{5}$/.test(postcode)
+    ? postcode
+    : "";
 }
 
-function postcodeMatchesCity(
-  postcode,
-  requestedCity
-) {
-  const cp = String(postcode || "").trim();
+/* =========================================================
+   VILLE COHÉRENTE AVEC LE CODE POSTAL
+========================================================= */
 
-  const city = normalizeText(
-    requestedCity
-  );
+/*
+ * Geoapify peut parfois renvoyer une ville incorrecte
+ * avec un code postal correct.
+ *
+ * Exemple possible :
+ *
+ * 32 Avenue Victor Hugo
+ * 92170 Paris
+ *
+ * alors que 92170 correspond à Vanves.
+ *
+ * On utilise l'API officielle française
+ * api-adresse.data.gouv.fr pour vérifier
+ * la commune correspondant au code postal.
+ *
+ * Cette vérification est générale pour toute la France.
+ */
 
-  if (!cp || !city) {
-    return false;
+async function getOfficialCityFromPostcode(postcode) {
+  const normalizedPostcode =
+    normalizePostcode(postcode);
+
+  if (!normalizedPostcode) {
+    return "";
   }
 
-  if (city === "paris") {
-    return isParisPostcode(cp);
-  }
+  try {
+    const url =
+      "https://api-adresse.data.gouv.fr/search/" +
+      `?q=${encodeURIComponent(
+        normalizedPostcode
+      )}` +
+      "&type=municipality" +
+      "&limit=20";
 
-  /*
-   * Pour les autres villes, on ne peut pas
-   * déduire systématiquement un code postal
-   * avec certitude. On laisse donc Geoapify
-   * déterminer la correspondance.
-   */
-  return false;
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return "";
+    }
+
+    const data = await response.json();
+
+    const features =
+      Array.isArray(data.features)
+        ? data.features
+        : [];
+
+    /*
+     * On cherche en priorité une commune dont
+     * le code postal correspond exactement.
+     */
+
+    for (const feature of features) {
+      const properties =
+        feature.properties || {};
+
+      const featurePostcode =
+        Array.isArray(
+          properties.postcode
+        )
+          ? properties.postcode
+          : properties.postcode
+          ? [properties.postcode]
+          : [];
+
+      if (
+        featurePostcode.includes(
+          normalizedPostcode
+        )
+      ) {
+        return (
+          properties.city ||
+          properties.name ||
+          ""
+        );
+      }
+    }
+
+    return "";
+  } catch (error) {
+    console.warn(
+      "Vérification commune :",
+      error?.message
+    );
+
+    return "";
+  }
 }
 
 /* =========================================================
    ADRESSE AFFICHÉE
 ========================================================= */
 
-function buildFormattedAddress(properties) {
+function buildFormattedAddress(
+  properties,
+  officialCity = ""
+) {
   const houseNumber =
     properties.housenumber ||
     properties.house_number ||
@@ -209,10 +198,16 @@ function buildFormattedAddress(properties) {
     "";
 
   const postcode =
-    properties.postcode ||
-    "";
+    normalizePostcode(
+      properties.postcode
+    );
 
+  /*
+   * Si une commune officielle a été trouvée
+   * pour ce code postal, elle est prioritaire.
+   */
   const city =
+    officialCity ||
     getCity(properties);
 
   if (
@@ -230,7 +225,11 @@ function buildFormattedAddress(properties) {
   ) {
     return `${houseNumber} ${street}${
       city
-        ? `, ${postcode ? `${postcode} ` : ""}${city}`
+        ? `, ${
+            postcode
+              ? `${postcode} `
+              : ""
+          }${city}`
         : ""
     }`;
   }
@@ -255,7 +254,7 @@ function buildFormattedAddress(properties) {
 function scoreSuggestion(
   feature,
   query,
-  requestedCity
+  officialCity = ""
 ) {
   const properties =
     feature.properties || {};
@@ -272,16 +271,6 @@ function scoreSuggestion(
       properties.street || ""
     );
 
-  const city =
-    normalizeText(
-      getCity(properties)
-    );
-
-  const requestedCityNormalized =
-    normalizeText(
-      requestedCity
-    );
-
   const requestedNumber =
     normalizeHouseNumber(
       extractHouseNumber(query)
@@ -294,15 +283,25 @@ function scoreSuggestion(
         ""
     );
 
-  const postcode =
-    String(
-      properties.postcode || ""
-    ).trim();
-
   const resultType =
     String(
       properties.result_type || ""
     ).toLowerCase();
+
+  const postcode =
+    normalizePostcode(
+      properties.postcode
+    );
+
+  const returnedCity =
+    normalizeText(
+      getCity(properties)
+    );
+
+  const validatedCity =
+    normalizeText(
+      officialCity
+    );
 
   let score = 0;
 
@@ -319,64 +318,31 @@ function scoreSuggestion(
       returnedNumber ===
       requestedNumber
     ) {
-      score += 3000;
+      score += 2500;
     }
-  }
 
-  /* =======================================================
-     VILLE
-  ======================================================= */
+    const escaped =
+      requestedNumber.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
 
-  if (
-    requestedCityNormalized
-  ) {
     if (
-      city ===
-      requestedCityNormalized
-    ) {
-      /*
-       * Très grosse priorité.
-       */
-      score += 5000;
-    } else if (
-      city.includes(
-        requestedCityNormalized
-      ) ||
-      requestedCityNormalized.includes(
-        city
+      new RegExp(
+        `^\\s*${escaped}\\b`,
+        "i"
+      ).test(
+        properties.formatted ||
+          properties.address_line1 ||
+          ""
       )
     ) {
-      score += 1500;
-    } else {
-      /*
-       * L'utilisateur a demandé
-       * une ville précise mais le résultat
-       * appartient à une autre ville.
-       */
-      score -= 3000;
-    }
-
-    /*
-     * Cas particulier Paris.
-     */
-    if (
-      requestedCityNormalized ===
-      "paris"
-    ) {
-      if (
-        isParisPostcode(
-          postcode
-        )
-      ) {
-        score += 2500;
-      } else {
-        score -= 4000;
-      }
+      score += 500;
     }
   }
 
   /* =======================================================
-     TYPE
+     TYPE DE RÉSULTAT
   ======================================================= */
 
   if (
@@ -395,14 +361,14 @@ function scoreSuggestion(
   if (
     resultType === "street"
   ) {
-    score -= 500;
+    score -= 400;
   }
 
   if (
     resultType === "city" ||
     resultType === "postcode"
   ) {
-    score -= 1000;
+    score -= 600;
   }
 
   /* =======================================================
@@ -410,10 +376,11 @@ function scoreSuggestion(
   ======================================================= */
 
   if (
-    properties.postcode &&
-    getCity(properties)
+    postcode &&
+    (officialCity ||
+      getCity(properties))
   ) {
-    score += 150;
+    score += 100;
   }
 
   /* =======================================================
@@ -442,7 +409,7 @@ function scoreSuggestion(
   }
 
   /* =======================================================
-     RUE
+     CORRESPONDANCE REQUÊTE
   ======================================================= */
 
   const normalizedQuery =
@@ -453,7 +420,7 @@ function scoreSuggestion(
       normalizedQuery
     )
   ) {
-    score += 500;
+    score += 200;
   }
 
   if (
@@ -462,22 +429,34 @@ function scoreSuggestion(
       street
     )
   ) {
-    score += 250;
+    score += 100;
   }
 
   /* =======================================================
-     CODE POSTAL PARIS
+     COHÉRENCE COMMUNE / CODE POSTAL
   ======================================================= */
 
   if (
-    requestedCityNormalized ===
-      "paris" &&
-    postcodeMatchesCity(
-      postcode,
-      requestedCity
-    )
+    officialCity &&
+    returnedCity &&
+    validatedCity !== returnedCity
   ) {
-    score += 2000;
+    /*
+     * Geoapify donne une commune différente
+     * de celle validée par le code postal.
+     *
+     * On ne rejette pas le résultat car les
+     * coordonnées peuvent être bonnes, mais
+     * on le pénalise fortement.
+     */
+    score -= 1500;
+  }
+
+  if (
+    officialCity &&
+    validatedCity === returnedCity
+  ) {
+    score += 500;
   }
 
   return score;
@@ -549,13 +528,8 @@ export async function GET(request) {
     const requestedNumber =
       extractHouseNumber(text);
 
-    const requestedCity =
-      extractRequestedCity(
-        text
-      );
-
     /* =====================================================
-       AUTOCOMPLETE
+       1. AUTOCOMPLETE GEOAPIFY
     ===================================================== */
 
     const autocompleteUrl =
@@ -566,8 +540,7 @@ export async function GET(request) {
       "&lang=fr" +
       `&apiKey=${GEOAPIFY_API_KEY}`;
 
-    let autocompleteFeatures =
-      [];
+    let autocompleteFeatures = [];
 
     try {
       const data =
@@ -576,9 +549,7 @@ export async function GET(request) {
         );
 
       autocompleteFeatures =
-        Array.isArray(
-          data.features
-        )
+        Array.isArray(data.features)
           ? data.features
           : [];
     } catch (error) {
@@ -589,18 +560,59 @@ export async function GET(request) {
     }
 
     /* =====================================================
-       FUSION
+       2. RECHERCHE PRÉCISE SI NUMÉRO
+    ===================================================== */
+
+    let preciseFeatures = [];
+
+    if (requestedNumber) {
+      const preciseUrl =
+        "https://api.geoapify.com/v1/geocode/search" +
+        `?text=${encodeURIComponent(text)}` +
+        `&housenumber=${encodeURIComponent(
+          requestedNumber
+        )}` +
+        "&limit=10" +
+        "&filter=countrycode:fr" +
+        "&lang=fr" +
+        `&apiKey=${GEOAPIFY_API_KEY}`;
+
+      try {
+        const data =
+          await fetchGeoapify(
+            preciseUrl
+          );
+
+        preciseFeatures =
+          Array.isArray(data.features)
+            ? data.features
+            : [];
+      } catch (error) {
+        console.warn(
+          "Recherche précise Geoapify :",
+          error?.message
+        );
+      }
+    }
+
+    /* =====================================================
+       3. FUSION
+    ===================================================== */
+
+    const features = [
+      ...preciseFeatures,
+      ...autocompleteFeatures,
+    ];
+
+    /* =====================================================
+       4. DOUBLONS
     ===================================================== */
 
     const unique = new Map();
 
-    for (
-      const feature of
-      autocompleteFeatures
-    ) {
+    for (const feature of features) {
       const properties =
-        feature.properties ||
-        {};
+        feature.properties || {};
 
       const coordinates =
         feature.geometry
@@ -609,17 +621,12 @@ export async function GET(request) {
       const key =
         properties.place_id ||
         [
-          properties.formatted ||
-            "",
-          coordinates[0] ||
-            "",
-          coordinates[1] ||
-            "",
+          properties.formatted || "",
+          coordinates[0] || "",
+          coordinates[1] || "",
         ].join("|");
 
-      if (
-        !unique.has(key)
-      ) {
+      if (!unique.has(key)) {
         unique.set(
           key,
           feature
@@ -628,203 +635,218 @@ export async function GET(request) {
     }
 
     /* =====================================================
-       TRANSFORMATION
+       5. TRANSFORMATION
     ===================================================== */
 
-    const suggestions =
+    const rawSuggestions =
       Array.from(
         unique.values()
       )
-        .map(
-          (feature) => {
-            const properties =
-              feature.properties ||
-              {};
+        .map((feature) => {
+          const properties =
+            feature.properties || {};
 
-            const coordinates =
-              feature.geometry
-                ?.coordinates ||
-              [];
+          const coordinates =
+            feature.geometry
+              ?.coordinates || [];
 
-            const housenumber =
-              properties.housenumber ||
-              properties.house_number ||
-              "";
+          const housenumber =
+            properties.housenumber ||
+            properties.house_number ||
+            "";
 
-            const street =
-              properties.street ||
-              properties.address_line1 ||
-              "";
+          const street =
+            properties.street ||
+            properties.address_line1 ||
+            "";
 
-            const postcode =
-              properties.postcode ||
-              "";
+          const postcode =
+            normalizePostcode(
+              properties.postcode
+            );
 
-            const city =
-              getCity(properties);
+          const city =
+            getCity(properties);
 
-            const formatted =
-              buildFormattedAddress(
-                properties
-              );
-
-            const addressLine1 =
-              housenumber &&
-              street
-                ? `${housenumber} ${street}`
-                : street ||
-                  properties.formatted ||
-                  "";
-
-            const addressLine2 =
-              [
-                postcode,
-                city,
-              ]
-                .filter(Boolean)
-                .join(" ");
-
-            return {
-              formatted,
-
-              addressLine1,
-
-              addressLine2,
-
-              postcode,
-
-              city,
-
-              housenumber,
-
-              street,
-
-              resultType:
-                properties.result_type ||
-                "",
-
-              placeId:
-                properties.place_id ||
-                null,
-
-              latitude:
-                coordinates.length >=
-                2
-                  ? Number(
-                      coordinates[1]
-                    )
-                  : null,
-
-              longitude:
-                coordinates.length >=
-                2
-                  ? Number(
-                      coordinates[0]
-                    )
-                  : null,
-
-              confidence:
-                properties.rank
-                  ?.confidence ??
-                null,
-
-              _score:
-                scoreSuggestion(
-                  feature,
-                  text,
-                  requestedCity
-                ),
-            };
+          if (
+            !postcode ||
+            !city ||
+            coordinates.length < 2
+          ) {
+            return null;
           }
+
+          return {
+            feature,
+            properties,
+            coordinates,
+            housenumber,
+            street,
+            postcode,
+            city,
+          };
+        })
+        .filter(Boolean);
+
+    /* =====================================================
+       6. VALIDATION DES COMMUNES
+    ===================================================== */
+
+    /*
+     * On ne fait pas une requête par suggestion.
+     *
+     * On récupère uniquement les codes postaux
+     * uniques afin de limiter les appels API.
+     */
+
+    const uniquePostcodes =
+      Array.from(
+        new Set(
+          rawSuggestions
+            .map(
+              (item) =>
+                item.postcode
+            )
+            .filter(Boolean)
         )
+      );
+
+    const postcodeCities =
+      new Map();
+
+    await Promise.all(
+      uniquePostcodes.map(
+        async (postcode) => {
+          const city =
+            await getOfficialCityFromPostcode(
+              postcode
+            );
+
+          if (city) {
+            postcodeCities.set(
+              postcode,
+              city
+            );
+          }
+        }
+      )
+    );
+
+    /* =====================================================
+       7. CRÉATION DES SUGGESTIONS
+    ===================================================== */
+
+    const suggestions =
+      rawSuggestions
+        .map((item) => {
+          const {
+            feature,
+            properties,
+            coordinates,
+            housenumber,
+            street,
+            postcode,
+            city,
+          } = item;
+
+          const officialCity =
+            postcodeCities.get(
+              postcode
+            ) || "";
+
+          /*
+           * La commune officielle correspondant
+           * au code postal devient prioritaire.
+           */
+          const finalCity =
+            officialCity || city;
+
+          const formatted =
+            buildFormattedAddress(
+              properties,
+              finalCity
+            );
+
+          const addressLine1 =
+            housenumber && street
+              ? `${housenumber} ${street}`
+              : street ||
+                properties.formatted ||
+                "";
+
+          const addressLine2 =
+            [
+              postcode,
+              finalCity,
+            ]
+              .filter(Boolean)
+              .join(" ");
+
+          return {
+            formatted,
+
+            addressLine1,
+
+            addressLine2,
+
+            postcode,
+
+            city: finalCity,
+
+            housenumber,
+
+            street,
+
+            resultType:
+              properties.result_type ||
+              "",
+
+            placeId:
+              properties.place_id ||
+              null,
+
+            latitude:
+              Number(
+                coordinates[1]
+              ),
+
+            longitude:
+              Number(
+                coordinates[0]
+              ),
+
+            confidence:
+              properties.rank
+                ?.confidence ??
+              null,
+
+            _score:
+              scoreSuggestion(
+                feature,
+                text,
+                officialCity
+              ),
+          };
+        })
         .filter(
           (item) =>
             item.formatted &&
-            item.latitude !== null &&
-            item.longitude !== null
+            Number.isFinite(
+              item.latitude
+            ) &&
+            Number.isFinite(
+              item.longitude
+            )
         );
 
     /* =====================================================
-       TRI FINAL
+       8. TRI
     ===================================================== */
 
     suggestions.sort(
       (a, b) => {
-        /*
-         * 1. Ville exacte
-         */
-        if (
-          requestedCity
-        ) {
-          const wantedCity =
-            normalizeText(
-              requestedCity
-            );
-
-          const aCity =
-            normalizeText(
-              a.city
-            );
-
-          const bCity =
-            normalizeText(
-              b.city
-            );
-
-          const aExactCity =
-            aCity ===
-            wantedCity;
-
-          const bExactCity =
-            bCity ===
-            wantedCity;
-
-          if (
-            aExactCity !==
-            bExactCity
-          ) {
-            return aExactCity
-              ? -1
-              : 1;
-          }
-
-          /*
-           * Si Paris est demandé,
-           * un 750xx passe devant
-           * tout autre code postal.
-           */
-          if (
-            wantedCity ===
-            "paris"
-          ) {
-            const aParis =
-              isParisPostcode(
-                a.postcode
-              );
-
-            const bParis =
-              isParisPostcode(
-                b.postcode
-              );
-
-            if (
-              aParis !==
-              bParis
-            ) {
-              return aParis
-                ? -1
-                : 1;
-            }
-          }
-        }
-
-        /*
-         * 2. Numéro exact
-         */
-        if (
-          requestedNumber
-        ) {
-          const wanted =
+        if (requestedNumber) {
+          const requested =
             normalizeHouseNumber(
               requestedNumber
             );
@@ -840,24 +862,35 @@ export async function GET(request) {
             );
 
           const aExact =
-            aNumber === wanted;
+            aNumber === requested;
 
           const bExact =
-            bNumber === wanted;
+            bNumber === requested;
 
           if (
-            aExact !==
-            bExact
+            aExact !== bExact
           ) {
             return aExact
               ? -1
               : 1;
           }
+
+          const aHasNumber =
+            Boolean(aNumber);
+
+          const bHasNumber =
+            Boolean(bNumber);
+
+          if (
+            aHasNumber !==
+            bHasNumber
+          ) {
+            return aHasNumber
+              ? -1
+              : 1;
+          }
         }
 
-        /*
-         * 3. Score global
-         */
         return (
           b._score -
           a._score
@@ -866,7 +899,7 @@ export async function GET(request) {
     );
 
     /* =====================================================
-       RÉSULTAT FINAL
+       9. RÉSULTAT FINAL
     ===================================================== */
 
     const finalSuggestions =
@@ -876,8 +909,7 @@ export async function GET(request) {
           ({
             _score,
             ...suggestion
-          }) =>
-            suggestion
+          }) => suggestion
         );
 
     return NextResponse.json(
