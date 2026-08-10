@@ -110,21 +110,26 @@ export default function Reviews() {
   const [isPaused, setIsPaused] = useState(false);
 
   return (
-    <section className="py-24 px-6 bg-gray-100 overflow-hidden">
+    <section className="py-16 md:py-20 px-6 bg-gray-100 overflow-hidden">
       <div className="max-w-7xl mx-auto">
 
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-12">
           <p className="text-orange-500 font-bold uppercase tracking-widest">
             Avis clients
           </p>
 
-          <h2 className="text-3xl md:text-5xl font-black mt-4">
+          <h2 className="text-2xl md:text-4xl font-black mt-3">
             Ce que nos clients en disent
           </h2>
 
-          <div className="mt-5 flex items-center justify-center gap-2 text-lg">
-            <span className="text-orange-500 font-black text-2xl">5,0 ★</span>
-            <span className="text-gray-600">— 16 avis vérifiés sur Yoojo</span>
+          <div className="mt-4 flex items-center justify-center gap-2 text-base md:text-lg">
+            <span className="text-orange-500 font-black text-xl md:text-2xl">
+              5,0 ★
+            </span>
+
+            <span className="text-gray-600">
+              — 16 avis vérifiés sur Yoojo
+            </span>
           </div>
         </div>
 
@@ -136,7 +141,7 @@ export default function Reviews() {
           onTouchEnd={() => setIsPaused(false)}
         >
           <div
-            className="flex gap-6 w-max"
+            className="flex gap-5 w-max"
             style={{
               animation: "reviews-marquee 80s linear infinite",
               animationPlayState: isPaused ? "paused" : "running",
@@ -145,27 +150,38 @@ export default function Reviews() {
             {loopedReviews.map((review, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[75vw] sm:w-[260px]"
+                className="bg-white rounded-2xl p-4 md:p-5 border border-gray-200 shadow-sm hover:shadow-xl transition duration-300 flex flex-col shrink-0 w-[75vw] sm:w-[250px]"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-orange-500 text-sm">★★★★★</div>
-                  <span className="text-xs text-gray-400">{review.date}</span>
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="text-orange-500 text-sm">
+                    ★★★★★
+                  </div>
+
+                  <span className="text-xs text-gray-400">
+                    {review.date}
+                  </span>
                 </div>
 
                 <p className="text-gray-700 text-sm leading-relaxed flex-grow italic">
                   "{review.text}"
                 </p>
 
-                <div className="mt-4 pt-3 border-t border-gray-100">
+                <div className="mt-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm">{review.name}</p>
+                    <p className="font-bold text-sm">
+                      {review.name}
+                    </p>
+
                     {review.clientRegulier && (
                       <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">
                         Client régulier
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{review.service}</p>
+
+                  <p className="text-xs text-gray-500">
+                    {review.service}
+                  </p>
                 </div>
               </div>
             ))}
@@ -179,6 +195,7 @@ export default function Reviews() {
           0% {
             transform: translateX(0);
           }
+
           100% {
             transform: translateX(-50%);
           }
