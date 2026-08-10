@@ -42,7 +42,7 @@ export default function TransportDedie() {
             </a>
 
             <a
-              href="/#devis"
+              href="/devis"
               className="border border-white/40 px-6 py-3.5 rounded-xl font-bold text-base hover:bg-white hover:text-black transition"
             >
               Demander un devis
