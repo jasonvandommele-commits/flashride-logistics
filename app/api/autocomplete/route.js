@@ -4,29 +4,8 @@ const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
 
 /* =========================================================
-   ÎLE-DE-FRANCE
-========================================================= */
-
-function isIleDeFrancePostcode(postcode) {
-  const cp = String(postcode || "").trim();
-
-  return /^(75|77|78|91|92|93|94|95)\d{3}$/.test(cp);
-}
-
-/* =========================================================
    NORMALISATION
 ========================================================= */
-
-function normalizeText(value) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[’']/g, " ")
-    .replace(/[-/,]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 function normalizeAddressQuery(text) {
   return String(text || "")
@@ -53,13 +32,112 @@ function getCity(properties) {
 }
 
 /* =========================================================
+   CODE POSTAL
+========================================================= */
+
+function normalizePostcode(value) {
+  return String(value || "").trim();
+}
+
+/* =========================================================
+   ZONE GÉOGRAPHIQUE
+========================================================= */
+
+function getRegionPriority(postcode) {
+  const cp = normalizePostcode(postcode);
+
+  if (!/^\d{5}$/.test(cp)) {
+    return 0;
+  }
+
+  /*
+   * Priorité :
+   *
+   * 4 = Paris
+   * 3 = Petite couronne
+   * 2 = Grande couronne
+   * 1 = Reste de la France
+   */
+
+  if (/^750\d{2}$/.test(cp)) {
+    return 4;
+  }
+
+  if (/^(92|93|94)\d{3}$/.test(cp)) {
+    return 3;
+  }
+
+  if (/^(77|78|91|95)\d{3}$/.test(cp)) {
+    return 2;
+  }
+
+  return 1;
+}
+
+/* =========================================================
+   DÉTECTION VILLE / CODE POSTAL DANS LA REQUÊTE
+========================================================= */
+
+function extractPostcode(text) {
+  const match = String(text || "").match(
+    /\b(\d{5})\b/
+  );
+
+  return match ? match[1] : "";
+}
+
+function normalizeText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/*
+ * Détecte si l'utilisateur a explicitement indiqué
+ * une ville dans sa recherche.
+ *
+ * Exemple :
+ * "32 avenue Victor Hugo Paris"
+ *
+ * Ici "Paris" doit avoir priorité sur la règle
+ * générale Paris / IDF.
+ */
+
+function queryContainsCity(
+  query,
+  properties
+) {
+  const normalizedQuery =
+    normalizeText(query);
+
+  const city =
+    normalizeText(
+      getCity(properties)
+    );
+
+  if (!city) {
+    return false;
+  }
+
+  if (city.length < 3) {
+    return false;
+  }
+
+  return normalizedQuery.includes(city);
+}
+
+/* =========================================================
    NUMÉRO
 ========================================================= */
 
 function extractHouseNumber(text) {
-  const match = String(text || "").match(
-    /^\s*(\d+(?:[A-Za-z])?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+(?:[A-Za-z])?)?)/i
-  );
+  const match =
+    String(text || "").match(
+      /^\s*(\d+(?:[A-Za-z])?(?:\s*(?:bis|ter|quater))?(?:\s*[-/]\s*\d+(?:[A-Za-z])?)?)/i
+    );
 
   return match
     ? match[1].trim()
@@ -74,24 +152,12 @@ function normalizeHouseNumber(value) {
 }
 
 /* =========================================================
-   MOTS DE LA REQUÊTE
-========================================================= */
-
-function getQueryTokens(query) {
-  return normalizeText(query)
-    .split(" ")
-    .filter(
-      (token) =>
-        token.length >= 2 &&
-        !/^\d+[a-z]*$/.test(token)
-    );
-}
-
-/* =========================================================
    ADRESSE AFFICHÉE
 ========================================================= */
 
-function buildFormattedAddress(properties) {
+function buildFormattedAddress(
+  properties
+) {
   const houseNumber =
     properties.housenumber ||
     properties.house_number ||
@@ -109,6 +175,13 @@ function buildFormattedAddress(properties) {
   const city =
     getCity(properties);
 
+  /*
+   * Adresse complète :
+   *
+   * 32 avenue Victor Hugo,
+   * 75016 Paris
+   */
+
   if (
     houseNumber &&
     street &&
@@ -124,7 +197,11 @@ function buildFormattedAddress(properties) {
   ) {
     return `${houseNumber} ${street}${
       city
-        ? `, ${postcode ? `${postcode} ` : ""}${city}`
+        ? `, ${
+            postcode
+              ? `${postcode} `
+              : ""
+          }${city}`
         : ""
     }`;
   }
@@ -143,94 +220,34 @@ function buildFormattedAddress(properties) {
 }
 
 /* =========================================================
-   TYPE DE RÉSULTAT
-========================================================= */
-
-function getResultTypeScore(properties) {
-  const resultType =
-    String(
-      properties.result_type || ""
-    ).toLowerCase();
-
-  switch (resultType) {
-    case "building":
-      return 500;
-
-    case "house":
-      return 500;
-
-    case "amenity":
-      return 300;
-
-    case "street":
-      return -700;
-
-    case "city":
-      return -1000;
-
-    case "postcode":
-      return -1000;
-
-    case "district":
-      return -500;
-
-    case "locality":
-      return -500;
-
-    default:
-      return 0;
-  }
-}
-
-/* =========================================================
-   SCORE PRINCIPAL
+   SCORE
 ========================================================= */
 
 function scoreSuggestion(
   feature,
-  query,
-  requestedNumber
+  query
 ) {
   const properties =
     feature.properties || {};
 
   const formatted =
-    String(
+    normalizeText(
       properties.formatted ||
         properties.address_line1 ||
         ""
     );
 
   const street =
-    String(
-      properties.street ||
-        properties.address_line1 ||
-        ""
-    );
-
-  const city =
-    getCity(properties);
-
-  const postcode =
-    String(
-      properties.postcode || ""
+    normalizeText(
+      properties.street || ""
     );
 
   const normalizedQuery =
     normalizeText(query);
 
-  const normalizedFormatted =
-    normalizeText(formatted);
-
-  const normalizedStreet =
-    normalizeText(street);
-
-  const normalizedCity =
-    normalizeText(city);
-
-  const normalizedNumber =
+  const requestedNumber =
     normalizeHouseNumber(
-      requestedNumber
+      extractHouseNumber(query)
     );
 
   const returnedNumber =
@@ -240,179 +257,239 @@ function scoreSuggestion(
         ""
     );
 
+  const resultType =
+    String(
+      properties.result_type || ""
+    ).toLowerCase();
+
+  const postcode =
+    normalizePostcode(
+      properties.postcode
+    );
+
   let score = 0;
 
   /* =======================================================
-     1. NUMÉRO
+     1. PRIORITÉ RÉGIONALE
   ======================================================= */
 
-  if (normalizedNumber) {
+  const regionPriority =
+    getRegionPriority(postcode);
+
+  /*
+   * Très important :
+   *
+   * On ne veut pas simplement mettre Paris
+   * devant tout le reste.
+   *
+   * On veut :
+   *
+   * Paris
+   * ↓
+   * Petite couronne
+   * ↓
+   * Grande couronne
+   * ↓
+   * Reste France
+   *
+   * Mais la précision de l'adresse reste importante.
+   */
+
+  if (regionPriority === 4) {
+    score += 1800;
+  } else if (
+    regionPriority === 3
+  ) {
+    score += 1400;
+  } else if (
+    regionPriority === 2
+  ) {
+    score += 1000;
+  } else if (
+    regionPriority === 1
+  ) {
+    score += 0;
+  }
+
+  /* =======================================================
+     2. VILLE EXPLICITEMENT DEMANDÉE
+  ======================================================= */
+
+  /*
+   * Si l'utilisateur écrit :
+   *
+   * "32 avenue Victor Hugo Paris"
+   *
+   * on doit respecter Paris.
+   *
+   * Même chose pour :
+   *
+   * "10 rue Marcel Lyon"
+   * "5 rue de la République Lille"
+   *
+   * etc.
+   */
+
+  if (
+    queryContainsCity(
+      query,
+      properties
+    )
+  ) {
+    score += 5000;
+  }
+
+  /* =======================================================
+     3. CODE POSTAL EXPLICITEMENT DEMANDÉ
+  ======================================================= */
+
+  const requestedPostcode =
+    extractPostcode(query);
+
+  if (
+    requestedPostcode &&
+    postcode === requestedPostcode
+  ) {
+    score += 6000;
+  }
+
+  /* =======================================================
+     4. NUMÉRO
+  ======================================================= */
+
+  if (requestedNumber) {
     if (returnedNumber) {
-      score += 150;
+      score += 300;
     }
+
+    /*
+     * Correspondance exacte :
+     *
+     * 32 demandé
+     * 32 retourné
+     */
 
     if (
       returnedNumber ===
-      normalizedNumber
+      requestedNumber
     ) {
-      score += 5000;
-    } else if (
-      returnedNumber &&
-      returnedNumber !==
-        normalizedNumber
-    ) {
-      score -= 1500;
+      score += 4000;
     }
-  }
 
-  /* =======================================================
-     2. TYPE
-  ======================================================= */
+    /*
+     * Le numéro apparaît réellement
+     * au début de l'adresse.
+     */
 
-  score +=
-    getResultTypeScore(
-      properties
-    );
-
-  /* =======================================================
-     3. VILLE EXPLICITEMENT DEMANDÉE
-  ======================================================= */
-
-  const queryTokens =
-    getQueryTokens(query);
-
-  /*
-   * On cherche si le nom de la ville
-   * retournée par Geoapify apparaît
-   * réellement dans la requête.
-   */
-
-  if (normalizedCity) {
-    const cityTokens =
-      normalizedCity
-        .split(" ")
-        .filter(
-          (token) =>
-            token.length >= 3
-        );
-
-    const matchingCityTokens =
-      cityTokens.filter((token) =>
-        queryTokens.includes(token)
+    const escaped =
+      requestedNumber.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
       );
 
     if (
-      matchingCityTokens.length >
-      0
+      new RegExp(
+        `^\\s*${escaped}\\b`,
+        "i"
+      ).test(
+        properties.formatted ||
+          properties.address_line1 ||
+          ""
+      )
     ) {
-      score +=
-        2500 *
-        matchingCityTokens.length;
+      score += 800;
     }
   }
 
   /* =======================================================
-     4. CODE POSTAL
+     5. TYPE DE RÉSULTAT
   ======================================================= */
-
-  const postcodeMatch =
-    normalizedQuery.match(
-      /\b\d{5}\b/
-    );
-
-  if (postcodeMatch) {
-    if (
-      postcode ===
-      postcodeMatch[0]
-    ) {
-      score += 3500;
-    }
-  }
-
-  /* =======================================================
-     5. RUE
-  ======================================================= */
-
-  const normalizedStreetTokens =
-    normalizedStreet
-      .split(" ")
-      .filter(
-        (token) =>
-          token.length >= 3
-      );
-
-  let matchingStreetTokens = 0;
-
-  for (const token of normalizedStreetTokens) {
-    if (
-      queryTokens.includes(token)
-    ) {
-      matchingStreetTokens++;
-    }
-  }
-
-  score +=
-    matchingStreetTokens * 350;
 
   /*
-   * Correspondance exacte de la rue.
+   * On veut une adresse réelle.
    */
 
   if (
-    normalizedStreet &&
-    normalizedQuery.includes(
-      normalizedStreet
-    )
+    resultType === "building" ||
+    resultType === "house"
   ) {
-    score += 1000;
+    score += 700;
   }
-
-  /* =======================================================
-     6. CORRESPONDANCE DU TEXTE COMPLET
-  ======================================================= */
 
   if (
-    normalizedFormatted.includes(
-      normalizedQuery
-    )
+    resultType === "amenity"
   ) {
-    score += 500;
+    score += 400;
+  }
+
+  /*
+   * Les rues seules doivent être
+   * moins prioritaires.
+   */
+
+  if (
+    resultType === "street"
+  ) {
+    score -= 1200;
+  }
+
+  if (
+    resultType === "city"
+  ) {
+    score -= 2000;
+  }
+
+  if (
+    resultType === "postcode"
+  ) {
+    score -= 2000;
   }
 
   /* =======================================================
-     7. ADRESSE COMPLÈTE
+     6. ADRESSE COMPLÈTE
   ======================================================= */
 
   if (
     properties.postcode &&
-    city &&
-    street
+    getCity(properties)
+  ) {
+    score += 500;
+  }
+
+  if (
+    properties.housenumber ||
+    properties.house_number
+  ) {
+    score += 500;
+  }
+
+  if (
+    properties.street
   ) {
     score += 300;
   }
 
   /* =======================================================
-     8. NIVEAU DE CONFIANCE
+     7. CONFIANCE GEOAPIFY
   ======================================================= */
 
   const confidence =
     Number(
-      properties.rank?.confidence ||
-        0
+      properties.rank?.confidence
     );
 
   if (
-    Number.isFinite(confidence)
+    Number.isFinite(
+      confidence
+    )
   ) {
-    score +=
-      confidence * 150;
+    score += confidence * 150;
   }
 
   const buildingConfidence =
     Number(
       properties.rank
-        ?.confidence_building_level ||
-        0
+        ?.confidence_building_level
     );
 
   if (
@@ -425,58 +502,67 @@ function scoreSuggestion(
   }
 
   /* =======================================================
-     9. PRIORITÉ ÎLE-DE-FRANCE
-     
-     IMPORTANT :
-     seulement lorsque l'utilisateur
-     n'a PAS indiqué de ville ou de CP.
+     8. CORRESPONDANCE RUE
   ======================================================= */
 
-  const hasExplicitLocation =
-    Boolean(
-      postcodeMatch
-    ) ||
-    queryTokens.some(
-      (token) =>
-        token === "paris" ||
-        token === "boulogne" ||
-        token === "creteil" ||
-        token === "creteil" ||
-        token === "vincennes" ||
-        token === "montreuil" ||
-        token === "versailles" ||
-        token === "nanterre" ||
-        token === "courbevoie" ||
-        token === "saint-denis" ||
-        token === "argenteuil" ||
-        token === "colombes" ||
-        token === "champigny"
+  /*
+   * On retire les espaces et accents
+   * uniquement pour comparer les textes.
+   */
+
+  const queryWithoutNumber =
+    normalizedQuery.replace(
+      /^\d+(?:[a-z])?(?:\s*(?:bis|ter|quater))?\s*/i,
+      ""
     );
 
   if (
-    !hasExplicitLocation &&
-    isIleDeFrancePostcode(
-      postcode
+    street &&
+    queryWithoutNumber.includes(
+      street
     )
   ) {
-    score += 1800;
+    score += 1000;
+  }
+
+  if (
+    formatted.includes(
+      normalizedQuery
+    )
+  ) {
+    score += 1200;
   }
 
   /* =======================================================
-     10. PÉNALITÉ HORS FRANCE / LOCALISATION FAIBLE
+     9. PÉNALITÉ POUR RÉSULTAT TRÈS ÉLOIGNÉ
   ======================================================= */
 
-  const countryCode =
-    String(
-      properties.country_code ||
-        ""
-    ).toLowerCase();
+  /*
+   * Si aucune ville n'est indiquée,
+   * la priorité IDF est volontaire.
+   *
+   * Mais on ne détruit pas complètement
+   * la pertinence Geoapify.
+   */
 
   if (
-    countryCode &&
-    countryCode !== "fr"
+    !requestedPostcode &&
+    !queryContainsCity(
+      query,
+      properties
+    )
   ) {
-    score -= 10000;
+    if (regionPriority === 4) {
+      score += 500;
+    }
+
+    if (regionPriority === 3) {
+      score += 350;
+    }
+
+    if (regionPriority === 2) {
+      score += 200;
+    }
   }
 
   return score;
@@ -486,7 +572,9 @@ function scoreSuggestion(
    FETCH GEOAPIFY
 ========================================================= */
 
-async function fetchGeoapify(url) {
+async function fetchGeoapify(
+  url
+) {
   const response =
     await fetch(url, {
       method: "GET",
@@ -510,7 +598,9 @@ async function fetchGeoapify(url) {
    GET
 ========================================================= */
 
-export async function GET(request) {
+export async function GET(
+  request
+) {
   try {
     if (!GEOAPIFY_API_KEY) {
       return NextResponse.json(
@@ -524,12 +614,16 @@ export async function GET(request) {
       );
     }
 
-    const { searchParams } =
-      new URL(request.url);
+    const {
+      searchParams,
+    } = new URL(
+      request.url
+    );
 
     const rawText =
-      searchParams.get("text") ||
-      "";
+      searchParams.get(
+        "text"
+      ) || "";
 
     if (
       rawText.trim().length < 3
@@ -539,6 +633,14 @@ export async function GET(request) {
         suggestions: [],
       });
     }
+
+    /*
+     * Exemple :
+     *
+     * 10Rue Marcel
+     * devient
+     * 10 Rue Marcel
+     */
 
     const text =
       normalizeAddressQuery(
@@ -557,12 +659,13 @@ export async function GET(request) {
       `?text=${encodeURIComponent(
         text
       )}` +
-      "&limit=20" +
+      "&limit=15" +
       "&filter=countrycode:fr" +
       "&lang=fr" +
       `&apiKey=${GEOAPIFY_API_KEY}`;
 
-    let autocompleteFeatures = [];
+    let autocompleteFeatures =
+      [];
 
     try {
       const data =
@@ -598,7 +701,7 @@ export async function GET(request) {
         `&housenumber=${encodeURIComponent(
           requestedNumber
         )}` +
-        "&limit=20" +
+        "&limit=15" +
         "&filter=countrycode:fr" +
         "&lang=fr" +
         `&apiKey=${GEOAPIFY_API_KEY}`;
@@ -636,11 +739,15 @@ export async function GET(request) {
        DOUBLONS
     ===================================================== */
 
-    const unique = new Map();
+    const unique =
+      new Map();
 
-    for (const feature of features) {
+    for (
+      const feature of features
+    ) {
       const properties =
-        feature.properties || {};
+        feature.properties ||
+        {};
 
       const coordinates =
         feature.geometry
@@ -651,13 +758,13 @@ export async function GET(request) {
         [
           properties.formatted ||
             "",
-          coordinates[0] ||
-            "",
-          coordinates[1] ||
-            "",
+          coordinates[0] || "",
+          coordinates[1] || "",
         ].join("|");
 
-      if (!unique.has(key)) {
+      if (
+        !unique.has(key)
+      ) {
         unique.set(
           key,
           feature
@@ -697,7 +804,9 @@ export async function GET(request) {
             "";
 
           const city =
-            getCity(properties);
+            getCity(
+              properties
+            );
 
           const formatted =
             buildFormattedAddress(
@@ -705,7 +814,8 @@ export async function GET(request) {
             );
 
           const addressLine1 =
-            housenumber && street
+            housenumber &&
+            street
               ? `${housenumber} ${street}`
               : street ||
                 properties.formatted ||
@@ -718,13 +828,6 @@ export async function GET(request) {
             ]
               .filter(Boolean)
               .join(" ");
-
-          const score =
-            scoreSuggestion(
-              feature,
-              text,
-              requestedNumber
-            );
 
           return {
             formatted,
@@ -768,14 +871,25 @@ export async function GET(request) {
                 ?.confidence ??
               null,
 
-            _score: score,
+            _regionPriority:
+              getRegionPriority(
+                postcode
+              ),
+
+            _score:
+              scoreSuggestion(
+                feature,
+                text
+              ),
           };
         })
         .filter(
           (item) =>
             item.formatted &&
-            item.latitude !== null &&
-            item.longitude !== null
+            item.latitude !==
+              null &&
+            item.longitude !==
+              null
         );
 
     /* =====================================================
@@ -783,49 +897,117 @@ export async function GET(request) {
     ===================================================== */
 
     suggestions.sort(
-      (a, b) =>
-        b._score - a._score
+      (a, b) => {
+        /*
+         * Si l'utilisateur a explicitement
+         * donné un code postal, la correspondance
+         * exacte passe avant tout.
+         */
+
+        const requestedPostcode =
+          extractPostcode(
+            text
+          );
+
+        if (
+          requestedPostcode
+        ) {
+          const aExact =
+            a.postcode ===
+            requestedPostcode;
+
+          const bExact =
+            b.postcode ===
+            requestedPostcode;
+
+          if (
+            aExact !==
+            bExact
+          ) {
+            return aExact
+              ? -1
+              : 1;
+          }
+        }
+
+        /*
+         * Si l'utilisateur a indiqué une ville,
+         * la ville correspondante doit être prioritaire.
+         */
+
+        const aCityMatch =
+          queryContainsCity(
+            text,
+            {
+              city:
+                a.city,
+            }
+          );
+
+        const bCityMatch =
+          queryContainsCity(
+            text,
+            {
+              city:
+                b.city,
+            }
+          );
+
+        if (
+          aCityMatch !==
+          bCityMatch
+        ) {
+          return aCityMatch
+            ? -1
+            : 1;
+        }
+
+        /*
+         * Ensuite :
+         *
+         * Paris
+         * Petite couronne
+         * Grande couronne
+         * France
+         */
+
+        if (
+          a._regionPriority !==
+          b._regionPriority
+        ) {
+          return (
+            b._regionPriority -
+            a._regionPriority
+          );
+        }
+
+        /*
+         * Ensuite seulement le score
+         * global de pertinence.
+         */
+
+        return (
+          b._score -
+          a._score
+        );
+      }
     );
 
     /* =====================================================
-       ÉVITER LES DOUBLONS VISUELS
+       RÉSULTAT FINAL
     ===================================================== */
 
-    const seenAddresses =
-      new Set();
-
-    const finalSuggestions = [];
-
-    for (const suggestion of suggestions) {
-      const key =
-        normalizeText(
-          suggestion.formatted
+    const finalSuggestions =
+      suggestions
+        .slice(0, 6)
+        .map(
+          ({
+            _score,
+            _regionPriority,
+            ...suggestion
+          }) =>
+            suggestion
         );
-
-      if (
-        seenAddresses.has(key)
-      ) {
-        continue;
-      }
-
-      seenAddresses.add(key);
-
-      const {
-        _score,
-        ...cleanSuggestion
-      } = suggestion;
-
-      finalSuggestions.push(
-        cleanSuggestion
-      );
-
-      if (
-        finalSuggestions.length >=
-        6
-      ) {
-        break;
-      }
-    }
 
     return NextResponse.json(
       {
