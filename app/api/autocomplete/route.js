@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
-
-/* =========================================================
-   RATE LIMIT
-========================================================= */
-
-const AUTOCOMPLETE_LIMIT = 20; // requêtes
-const AUTOCOMPLETE_WINDOW_MS = 60 * 1000; // par minute
 
 /* =========================================================
    CACHE MÉMOIRE (TTL court)
@@ -372,37 +364,6 @@ export async function GET(request) {
           suggestions: [],
         },
         { status: 500 }
-      );
-    }
-
-    /* =====================================================
-       RATE LIMIT
-    ===================================================== */
-
-    const ip = getClientIp(request);
-
-    const rateLimit = checkRateLimit(
-      `autocomplete:${ip}`,
-      AUTOCOMPLETE_LIMIT,
-      AUTOCOMPLETE_WINDOW_MS
-    );
-
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Trop de requêtes. Merci de réessayer dans quelques instants.",
-          suggestions: [],
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(
-              Math.ceil(rateLimit.resetInMs / 1000)
-            ),
-          },
-        }
       );
     }
 
