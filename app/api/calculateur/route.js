@@ -62,21 +62,21 @@ const VEHICLE_PRICES = {
   },
 
   petit_fourgon: {
-    paris_paris: 35,
-    paris_petite: 41,
-    petite_petite: 41,
-    paris_grande: 51,
-    petite_grande: 48,
-    grande_grande: 55,
+    paris_paris: 29,
+    paris_petite: 35,
+    petite_petite: 35,
+    paris_grande: 45,
+    petite_grande: 42,
+    grande_grande: 49,
   },
 
     fourgon: {
-    paris_paris: 65,
-    paris_petite: 75,
-    petite_petite: 75,
-    paris_grande: 95,
-    petite_grande: 90,
-    grande_grande: 95,
+    paris_paris: 59,
+    paris_petite: 69,
+    petite_petite: 69,
+    paris_grande: 89,
+    petite_grande: 85,
+    grande_grande: 89,
   },
 
   "20m3": {
