@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next";
 
 const GEOAPIFY_API_KEY =
   process.env.GEOAPIFY_API_KEY;
@@ -61,7 +61,7 @@ const VEHICLE_PRICES = {
     grande_grande: 35,
   },
 
-  voiture: {
+  petit_fourgon: {
     paris_paris: 29,
     paris_petite: 35,
     petite_petite: 35,
@@ -71,12 +71,12 @@ const VEHICLE_PRICES = {
   },
 
   fourgon: {
-    paris_paris: 39,
-    paris_petite: 45,
-    petite_petite: 45,
-    paris_grande: 55,
-    petite_grande: 52,
-    grande_grande: 59,
+    paris_paris: 69,
+    paris_petite: 79,
+    petite_petite: 79,
+    paris_grande: 99,
+    petite_grande: 94,
+    grande_grande: 99,
   },
 
   "20m3": {
@@ -104,7 +104,7 @@ const DISTANCE_SUPPLEMENTS = {
     [100, 35],
   ],
 
-  voiture: [
+  petit_fourgon: [
     [10, 0],
     [20, 5],
     [30, 10],
@@ -116,12 +116,12 @@ const DISTANCE_SUPPLEMENTS = {
 
   fourgon: [
     [10, 0],
-    [20, 7],
+    [20, 8],
     [30, 12],
-    [40, 18],
-    [50, 24],
-    [75, 32],
-    [100, 42],
+    [40, 17],
+    [50, 22],
+    [75, 30],
+    [100, 40],
   ],
 
   "20m3": [
@@ -163,7 +163,7 @@ const OPTION_SUPPLEMENTS = {
     express: 20,
   },
 
-  voiture: {
+  petit_fourgon: {
     urgent: 15,
     express: 30,
   },
@@ -190,7 +190,7 @@ const VEHICLE_PERCENTAGES = {
     dimanche: 0.25,
   },
 
-  voiture: {
+  petit_fourgon: {
     nuit: 0.20,
     samedi: 0.10,
     dimanche: 0.25,
@@ -215,8 +215,8 @@ const VEHICLE_PERCENTAGES = {
 
 const VEHICLE_NAMES = {
   moto: "Moto",
-  voiture: "Voiture 3 m³",
-  fourgon: "Fourgon 8 m³",
+  petit_fourgon: "Petit fourgon 6 m³",
+  fourgon: "Fourgon 12/14 m³",
   "20m3": "Utilitaire 20 m³",
 };
 
