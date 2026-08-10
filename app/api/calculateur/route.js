@@ -14,14 +14,17 @@ function getZoneFromPostcode(postcode) {
 
   const cp = String(postcode).trim();
 
+  // Paris
   if (/^750\d{2}$/.test(cp)) {
     return "paris";
   }
 
+  // Petite couronne
   if (/^(92|93|94)\d{3}$/.test(cp)) {
     return "petite_couronne";
   }
 
+  // Grande couronne
   if (/^(77|78|91|95)\d{3}$/.test(cp)) {
     return "grande_couronne";
   }
@@ -44,6 +47,7 @@ function getBasePrice(
     return null;
   }
 
+  // Paris → Paris
   if (
     zoneDepart === "paris" &&
     zoneArrivee === "paris"
@@ -51,6 +55,7 @@ function getBasePrice(
     return 89;
   }
 
+  // Paris ↔ Petite couronne
   if (
     (zoneDepart === "paris" &&
       zoneArrivee === "petite_couronne") ||
@@ -60,6 +65,7 @@ function getBasePrice(
     return 99;
   }
 
+  // Petite couronne ↔ Petite couronne
   if (
     zoneDepart === "petite_couronne" &&
     zoneArrivee === "petite_couronne"
@@ -67,6 +73,7 @@ function getBasePrice(
     return 99;
   }
 
+  // Paris ↔ Grande couronne
   if (
     (zoneDepart === "paris" &&
       zoneArrivee === "grande_couronne") ||
@@ -76,6 +83,7 @@ function getBasePrice(
     return 129;
   }
 
+  // Petite couronne ↔ Grande couronne
   if (
     (zoneDepart === "petite_couronne" &&
       zoneArrivee === "grande_couronne") ||
@@ -85,6 +93,7 @@ function getBasePrice(
     return 119;
   }
 
+  // Grande couronne ↔ Grande couronne
   if (
     zoneDepart === "grande_couronne" &&
     zoneArrivee === "grande_couronne"
@@ -99,7 +108,9 @@ function getBasePrice(
    SUPPLÉMENT DISTANCE
 ========================================================= */
 
-function getDistanceSupplement(distanceKm) {
+function getDistanceSupplement(
+  distanceKm
+) {
   if (distanceKm <= 10) return 0;
   if (distanceKm <= 20) return 10;
   if (distanceKm <= 30) return 15;
@@ -132,7 +143,7 @@ function getZoneLabel(zone) {
 }
 
 /* =========================================================
-   NORMALISATION
+   NORMALISATION ADRESSE
 ========================================================= */
 
 function normalizeAddress(text) {
@@ -196,9 +207,15 @@ async function geocode(address) {
     normalizeAddress(address);
 
   const requestedNumber =
-    extractHouseNumber(normalized);
+    extractHouseNumber(
+      normalized
+    );
 
   let features = [];
+
+  /*
+   * Recherche principale
+   */
 
   const searchUrl =
     "https://api.geoapify.com/v1/geocode/search" +
@@ -211,11 +228,18 @@ async function geocode(address) {
     `&apiKey=${GEOAPIFY_API_KEY}`;
 
   const searchData =
-    await fetchGeoapify(searchUrl);
+    await fetchGeoapify(
+      searchUrl
+    );
 
   features.push(
     ...(searchData.features || [])
   );
+
+  /*
+   * Recherche plus précise lorsqu'un numéro
+   * est présent.
+   */
 
   if (requestedNumber) {
     const preciseUrl =
@@ -233,7 +257,9 @@ async function geocode(address) {
 
     try {
       const preciseData =
-        await fetchGeoapify(preciseUrl);
+        await fetchGeoapify(
+          preciseUrl
+        );
 
       features.push(
         ...(preciseData.features || [])
@@ -252,6 +278,10 @@ async function geocode(address) {
     );
   }
 
+  /* =======================================================
+     DOUBLONS
+  ======================================================= */
+
   const unique = new Map();
 
   for (const feature of features) {
@@ -259,7 +289,8 @@ async function geocode(address) {
       feature.properties || {};
 
     const coordinates =
-      feature.geometry?.coordinates || [];
+      feature.geometry
+        ?.coordinates || [];
 
     const key =
       properties.place_id ||
@@ -277,84 +308,105 @@ async function geocode(address) {
     }
   }
 
+  /* =======================================================
+     TRI
+  ======================================================= */
+
   const sorted =
     Array.from(
       unique.values()
-    ).sort((a, b) => {
-      const aProperties =
-        a.properties || {};
+    ).sort(
+      (a, b) => {
+        const aProperties =
+          a.properties || {};
 
-      const bProperties =
-        b.properties || {};
+        const bProperties =
+          b.properties || {};
 
-      const aNumber =
-        String(
-          aProperties.housenumber ||
-            aProperties.house_number ||
-            ""
-        )
-          .trim()
-          .toLowerCase();
+        const aNumber =
+          String(
+            aProperties.housenumber ||
+              aProperties.house_number ||
+              ""
+          )
+            .trim()
+            .toLowerCase();
 
-      const bNumber =
-        String(
-          bProperties.housenumber ||
-            bProperties.house_number ||
-            ""
-        )
-          .trim()
-          .toLowerCase();
+        const bNumber =
+          String(
+            bProperties.housenumber ||
+              bProperties.house_number ||
+              ""
+          )
+            .trim()
+            .toLowerCase();
 
-      const wanted =
-        requestedNumber
-          .trim()
-          .toLowerCase();
+        const wanted =
+          requestedNumber
+            .trim()
+            .toLowerCase();
 
-      if (wanted) {
-        const aExact =
-          aNumber === wanted;
+        /*
+         * Priorité au numéro exact
+         */
 
-        const bExact =
-          bNumber === wanted;
+        if (wanted) {
+          const aExact =
+            aNumber === wanted;
 
-        if (aExact !== bExact) {
-          return aExact
-            ? -1
-            : 1;
+          const bExact =
+            bNumber === wanted;
+
+          if (
+            aExact !== bExact
+          ) {
+            return aExact
+              ? -1
+              : 1;
+          }
+
+          /*
+           * Ensuite les résultats
+           * possédant un numéro
+           */
+
+          if (
+            aNumber &&
+            !bNumber
+          ) {
+            return -1;
+          }
+
+          if (
+            !aNumber &&
+            bNumber
+          ) {
+            return 1;
+          }
         }
 
-        if (
-          aNumber &&
-          !bNumber
-        ) {
-          return -1;
-        }
+        /*
+         * Confiance Geoapify
+         */
 
-        if (
-          !aNumber &&
-          bNumber
-        ) {
-          return 1;
-        }
+        const aConfidence =
+          Number(
+            aProperties.rank
+              ?.confidence || 0
+          );
+
+        const bConfidence =
+          Number(
+            bProperties.rank
+              ?.confidence || 0
+          );
+
+        return (
+          bConfidence -
+          aConfidence
+        );
       }
-
-      const aConfidence =
-        Number(
-          aProperties.rank
-            ?.confidence || 0
-        );
-
-      const bConfidence =
-        Number(
-          bProperties.rank
-            ?.confidence || 0
-        );
-
-      return (
-        bConfidence -
-        aConfidence
-      );
-    });
+    );
 
   const feature =
     sorted[0];
@@ -363,7 +415,8 @@ async function geocode(address) {
     feature.properties || {};
 
   const coordinates =
-    feature.geometry?.coordinates;
+    feature.geometry
+      ?.coordinates;
 
   if (
     !coordinates ||
@@ -404,7 +457,7 @@ async function geocode(address) {
 }
 
 /* =========================================================
-   COORDONNÉES AUTOCOMPLETE
+   UTILISER LES COORDONNÉES DE L'AUTOCOMPLETE
 ========================================================= */
 
 function getSelectedGeo(
@@ -481,7 +534,8 @@ async function calculateRoute(
   }
 
   const properties =
-    data.features[0].properties || {};
+    data.features[0]
+      .properties || {};
 
   const distanceMeters =
     properties.distance ??
@@ -494,7 +548,8 @@ async function calculateRoute(
     properties.duration;
 
   if (
-    distanceMeters === undefined ||
+    distanceMeters ===
+      undefined ||
     distanceMeters === null
   ) {
     throw new Error(
@@ -512,27 +567,35 @@ async function calculateRoute(
       ),
 
     durationMinutes:
-      timeSeconds !== undefined &&
+      timeSeconds !==
+        undefined &&
       timeSeconds !== null
         ? Math.round(
-            Number(timeSeconds) / 60
+            Number(timeSeconds) /
+              60
           )
         : null,
   };
 }
 
 /* =========================================================
-   PRIX
+   CALCUL DU PRIX
 ========================================================= */
 
 function calculatePrice({
   basePrice,
   distanceKm,
-  service,
+  priorite,
   samedi,
   nuit,
   dimanche,
 }) {
+  /*
+   * =======================================================
+   * 1. TARIF DE BASE + DISTANCE
+   * =======================================================
+   */
+
   const distanceSupplement =
     getDistanceSupplement(
       distanceKm
@@ -544,11 +607,29 @@ function calculatePrice({
 
   const supplements = [];
 
-  /* =======================================================
-     TYPE DE PRESTATION
-  ======================================================= */
+  /*
+   * =======================================================
+   * 2. PRIORITÉ
+   *
+   * Une seule priorité est possible :
+   *
+   * standard = 0 €
+   * urgent   = +20 €
+   * express  = +40 €
+   * =======================================================
+   */
 
-  if (service === "urgent") {
+  const normalizedPriority =
+    String(
+      priorite || "standard"
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    normalizedPriority ===
+    "urgent"
+  ) {
     price += 20;
 
     supplements.push({
@@ -557,7 +638,10 @@ function calculatePrice({
     });
   }
 
-  if (service === "express") {
+  if (
+    normalizedPriority ===
+    "express"
+  ) {
     price += 40;
 
     supplements.push({
@@ -567,14 +651,18 @@ function calculatePrice({
     });
   }
 
-  /* =======================================================
-     MAJORATIONS HORAIRES
-  ======================================================= */
+  /*
+   * =======================================================
+   * 3. SUPPLÉMENTS TEMPORELS
+   *
+   * Ces suppléments sont cumulables.
+   * =======================================================
+   */
 
-  let percentage = 1;
+  let percentage = 0;
 
   if (samedi) {
-    percentage += 0.1;
+    percentage += 0.10;
   }
 
   if (nuit) {
@@ -582,24 +670,43 @@ function calculatePrice({
   }
 
   if (dimanche) {
-    percentage += 0.3;
+    percentage += 0.30;
   }
 
-  const percentageSupplement =
-    price * (percentage - 1);
+  /*
+   * Le pourcentage est appliqué au prix
+   * après le tarif de base, la distance
+   * et la priorité.
+   */
 
-  if (
-    percentageSupplement > 0
-  ) {
+  if (percentage > 0) {
+    const percentageSupplement =
+      price * percentage;
+
     price +=
       percentageSupplement;
 
+    /*
+     * Samedi
+     */
+
     if (samedi) {
       supplements.push({
-        label: "Samedi +10 %",
-        amount: null,
+        label:
+          "Samedi +10 %",
+        amount: Number(
+          (
+            price -
+            price /
+              (1 + percentage)
+          ).toFixed(2)
+        ),
       });
     }
+
+    /*
+     * Nuit
+     */
 
     if (nuit) {
       supplements.push({
@@ -608,6 +715,10 @@ function calculatePrice({
         amount: null,
       });
     }
+
+    /*
+     * Dimanche
+     */
 
     if (dimanche) {
       supplements.push({
@@ -636,16 +747,31 @@ export async function POST(
   request
 ) {
   try {
+    /*
+     * =====================================================
+     * VÉRIFICATION GEOAPIFY
+     * =====================================================
+     */
+
     if (!GEOAPIFY_API_KEY) {
       return NextResponse.json(
         {
           success: false,
+
           error:
             "GEOAPIFY_API_KEY non configurée.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
+
+    /*
+     * =====================================================
+     * RÉCUPÉRATION DU BODY
+     * =====================================================
+     */
 
     const body =
       await request.json();
@@ -657,16 +783,18 @@ export async function POST(
       departGeo,
       arriveeGeo,
 
-      service = "standard",
+      priorite = "standard",
 
       samedi = false,
       nuit = false,
       dimanche = false,
     } = body;
 
-    /* =====================================================
-       VALIDATION ADRESSES
-    ===================================================== */
+    /*
+     * =====================================================
+     * VALIDATION
+     * =====================================================
+     */
 
     if (
       !depart ||
@@ -675,77 +803,50 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
+
           error:
             "Les adresses de départ et d'arrivée sont obligatoires.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    /* =====================================================
-       VALIDATION SERVICE
-    ===================================================== */
+    /*
+     * =====================================================
+     * VALIDATION PRIORITÉ
+     *
+     * Même si quelqu'un modifie la requête
+     * manuellement, seules ces trois valeurs
+     * sont acceptées.
+     * =====================================================
+     */
 
-    const allowedServices = [
+    const allowedPriorities = [
       "standard",
       "urgent",
       "express",
     ];
 
-    if (
-      !allowedServices.includes(
-        service
+    const safePriority =
+      allowedPriorities.includes(
+        String(priorite)
       )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Type de prestation invalide.",
-        },
-        { status: 400 }
-      );
-    }
+        ? String(priorite)
+        : "standard";
 
-    /* =====================================================
-       VALIDATION SAMEDI / DIMANCHE
-    ===================================================== */
-
-    if (
-      samedi &&
-      dimanche
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Une course ne peut pas être à la fois prévue le samedi et le dimanche / jour férié.",
-        },
-        { status: 400 }
-      );
-    }
-
-    /* =====================================================
-       ANCIENNE OPTION ATTENTE
-       REFUSÉE EXPLICITEMENT
-    ===================================================== */
-
-    if (
-      body.attente === true
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "L'attente n'est pas une option tarifaire du calculateur. Elle peut faire l'objet d'un ajustement selon les conditions réelles de la mission.",
-        },
-        { status: 400 }
-      );
-    }
-
-    /* =====================================================
-       1. UTILISER LES COORDONNÉES SÉLECTIONNÉES
-    ===================================================== */
+    /*
+     * =====================================================
+     * 1. UTILISER LES COORDONNÉES SÉLECTIONNÉES
+     *
+     * Si le client a sélectionné une adresse
+     * dans l'autocomplétion, on utilise directement
+     * ses coordonnées.
+     *
+     * Sinon, on effectue un géocodage.
+     * =====================================================
+     */
 
     const selectedDepart =
       getSelectedGeo(
@@ -767,9 +868,11 @@ export async function POST(
       selectedArrivee ||
       (await geocode(arrivee));
 
-    /* =====================================================
-       2. ZONES
-    ===================================================== */
+    /*
+     * =====================================================
+     * 2. VÉRIFICATION DES ZONES
+     * =====================================================
+     */
 
     if (
       !departResolved.zone ||
@@ -792,9 +895,11 @@ export async function POST(
       });
     }
 
-    /* =====================================================
-       3. ITINÉRAIRE
-    ===================================================== */
+    /*
+     * =====================================================
+     * 3. CALCUL DE L'ITINÉRAIRE
+     * =====================================================
+     */
 
     const route =
       await calculateRoute(
@@ -802,9 +907,11 @@ export async function POST(
         arriveeResolved
       );
 
-    /* =====================================================
-       4. TARIF DE BASE
-    ===================================================== */
+    /*
+     * =====================================================
+     * 4. TARIF DE BASE
+     * =====================================================
+     */
 
     const basePrice =
       getBasePrice(
@@ -826,9 +933,11 @@ export async function POST(
       });
     }
 
-    /* =====================================================
-       5. CALCUL
-    ===================================================== */
+    /*
+     * =====================================================
+     * 5. CALCUL FINAL
+     * =====================================================
+     */
 
     const calculation =
       calculatePrice({
@@ -837,22 +946,33 @@ export async function POST(
         distanceKm:
           route.distanceKm,
 
-        service,
+        priorite:
+          safePriority,
 
-        samedi,
-        nuit,
-        dimanche,
+        samedi:
+          Boolean(samedi),
+
+        nuit:
+          Boolean(nuit),
+
+        dimanche:
+          Boolean(dimanche),
       });
 
-    /* =====================================================
-       6. RÉPONSE
-    ===================================================== */
+    /*
+     * =====================================================
+     * 6. RÉPONSE
+     * =====================================================
+     */
 
     return NextResponse.json({
       success: true,
 
       vehicle:
         "20 m³ avec chauffeur",
+
+      priorite:
+        safePriority,
 
       depart: {
         adresse:
@@ -914,9 +1034,6 @@ export async function POST(
 
         manutention:
           "Sur devis",
-
-        attente:
-          "Selon les conditions réelles de la mission",
       },
 
       message:
@@ -936,7 +1053,9 @@ export async function POST(
           error?.message ||
           "Une erreur est survenue pendant le calcul.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
