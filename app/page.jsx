@@ -102,11 +102,11 @@ export default function FlashrideLogisticsWebsite() {
                 className="bg-orange-500 w-52 h-11 rounded-xl font-semibold text-sm hover:bg-orange-600 transition flex items-center justify-center gap-2"
               >
                 <span className="text-lg leading-none">
-                  🧮
+                  🎯
                 </span>
 
                 <span className="leading-none">
-                  Calculer mon tarif
+                  Estimer mon transport
                 </span>
 
               </button>
