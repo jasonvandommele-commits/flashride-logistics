@@ -9,6 +9,13 @@ import CalculateurTransport from "./components/CalculateurTransport";
 export default function FlashrideLogisticsWebsite() {
   const [sent, setSent] = useState(false);
 
+  const scrollToCalculator = () => {
+    document.getElementById("calculateur")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -89,9 +96,24 @@ export default function FlashrideLogisticsWebsite() {
 
             <div className="mt-6 flex flex-wrap gap-3">
 
+              <button
+                type="button"
+                onClick={scrollToCalculator}
+                className="bg-orange-500 w-52 h-11 rounded-xl font-semibold text-sm hover:bg-orange-600 transition flex items-center justify-center gap-2"
+              >
+                <span className="text-lg leading-none">
+                  🧮
+                </span>
+
+                <span className="leading-none">
+                  Calculer mon tarif
+                </span>
+
+              </button>
+
               <a
                 href="tel:0752988155"
-                className="bg-orange-500 w-52 h-11 rounded-xl font-semibold text-sm hover:bg-orange-600 transition flex items-center justify-center gap-2"
+                className="border border-white/40 w-52 h-11 rounded-xl font-semibold text-sm hover:bg-white hover:text-black transition flex items-center justify-center gap-2"
               >
                 <span className="text-lg leading-none">
                   📞
@@ -374,7 +396,9 @@ export default function FlashrideLogisticsWebsite() {
 
       {/* Calculateur */}
 
-      <CalculateurTransport />
+      <section id="calculateur">
+        <CalculateurTransport />
+      </section>
 
       {/* Pourquoi nous */}
 
@@ -561,7 +585,7 @@ export default function FlashrideLogisticsWebsite() {
               </p>
 
               <p className="mt-2 font-semibold">
-               Île-de-France • France • Europe
+                Île-de-France • France • Europe
               </p>
 
             </div>
