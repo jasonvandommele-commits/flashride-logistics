@@ -581,7 +581,7 @@ export default function CalculateurTransport() {
             <AddressInput
               name="depart"
               label="Ville ou adresse de départ"
-              placeholder="Ex. 3 Faidherbe, Paris"
+              placeholder="Ex. 3 Rue Faidherbe, Paris"
               value={form.depart}
               onChange={handleChange}
               onSelect={
