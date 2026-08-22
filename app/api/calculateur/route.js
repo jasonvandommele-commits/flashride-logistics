@@ -53,39 +53,39 @@ function getZoneLabel(zone) {
 
 const VEHICLE_PRICES = {
   moto: {
-    paris_paris: 15,
-    paris_petite: 20,
-    petite_petite: 22,
-    paris_grande: 28,
-    petite_grande: 26,
-    grande_grande: 32,
+    paris_paris: 13,
+    paris_petite: 18,
+    petite_petite: 20,
+    paris_grande: 26,
+    petite_grande: 24,
+    grande_grande: 30,
   },
 
   petit_fourgon: {
-    paris_paris: 29,
-    paris_petite: 35,
-    petite_petite: 35,
-    paris_grande: 45,
-    petite_grande: 42,
-    grande_grande: 49,
+    paris_paris: 27,
+    paris_petite: 33,
+    petite_petite: 33,
+    paris_grande: 42,
+    petite_grande: 40,
+    grande_grande: 46,
   },
 
     fourgon: {
-    paris_paris: 65,
-    paris_petite: 75,
-    petite_petite: 75,
-    paris_grande: 95,
-    petite_grande: 90,
-    grande_grande: 95,
+    paris_paris: 60,
+    paris_petite: 70,
+    petite_petite: 70,
+    paris_grande: 89,
+    petite_grande: 85,
+    grande_grande: 89,
   },
 
   "20m3": {
-    paris_paris: 89,
-    paris_petite: 99,
-    petite_petite: 99,
-    paris_grande: 129,
-    petite_grande: 119,
-    grande_grande: 129,
+    paris_paris: 80,
+    paris_petite: 90,
+    petite_petite: 93,
+    paris_grande: 115,
+    petite_grande: 109,
+    grande_grande: 119,
   },
 };
 
